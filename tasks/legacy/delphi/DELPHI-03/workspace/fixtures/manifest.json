@@ -1,0 +1,11 @@
+{
+  "id": "DELPHI-03",
+  "language": "delphi",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/payment.pas",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"amountCents": 10000, "method": "CARD"}, "expected": 10200},
+    {"input": {"amountCents": 9999, "method": "CARD"}, "expected": 9999}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "WL-02",
+  "language": "wlanguage",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/customer-query.wlanguage.pseudo",
+  "reference_docs": ["fixtures/wlanguage-reference.md"],
+  "equivalence_vectors": [
+    {"input": {"region": "eu"}, "expected": ["c-1"]},
+    {"input": {"region": "us"}, "expected": []}
+  ]
+}

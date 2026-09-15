@@ -1,0 +1,5 @@
+Claim Id: CLM-2026-001
+Amount: 1,250.50
+Currency: eur
+Date: 2026-04-07
+Notes: replacement screen

@@ -6,7 +6,7 @@ categories:
       - {id: JAVA-01, name: Null-safety with streams and Optional, status: implemented}
       - {id: JAVA-02, name: Dates timezones and DST, status: implemented}
       - {id: JAVA-03, name: Concurrent collection modification, status: implemented}
-      - {id: JAVA-04, name: Synchronization and thread safety, status: planned}
+      - {id: JAVA-04, name: Synchronization and thread safety, status: implemented}
       - {id: JAVA-05, name: Behavior-preserving business refactor, status: planned}
       - {id: JAVA-06, name: Intermittent race diagnosis, status: planned}
       - {id: JAVA-07, name: Optimization without regression, status: planned}
@@ -15,7 +15,7 @@ categories:
     target: 10
     tasks:
       - {id: SPRING-01, name: REST request validation contract, status: implemented}
-      - {id: SPRING-02, name: Exception handling, status: planned}
+      - {id: SPRING-02, name: Exception handling, status: implemented}
       - {id: SPRING-03, name: Transaction rollback behavior, status: planned}
       - {id: SPRING-04, name: Hibernate dirty checking, status: planned}
       - {id: SPRING-05, name: Optimistic locking, status: implemented}
@@ -33,7 +33,7 @@ categories:
       - {id: AXON-04, name: Obsolete snapshot filtering, status: planned}
       - {id: AXON-05, name: Saga association handling, status: planned}
       - {id: AXON-06, name: Multiple start saga paths, status: planned}
-      - {id: AXON-07, name: Idempotent projection, status: planned}
+      - {id: AXON-07, name: Idempotent projection, status: implemented}
       - {id: AXON-08, name: Replay and projection rebuild, status: planned}
       - {id: AXON-09, name: Optimistic locking and retries, status: planned}
       - {id: AXON-10, name: Multi-aggregate diagnosis, status: planned}
@@ -43,7 +43,7 @@ categories:
       - {id: WEB-01, name: Observable versus scalar value, status: implemented}
       - {id: WEB-02, name: Subscription lifecycle cleanup, status: planned}
       - {id: WEB-03, name: Search switchMap pipeline, status: implemented}
-      - {id: WEB-04, name: HTTP interceptor contract, status: planned}
+      - {id: WEB-04, name: HTTP interceptor contract, status: implemented}
       - {id: WEB-05, name: Bearer and CSRF handling, status: planned}
       - {id: WEB-06, name: Complex reactive form, status: planned}
       - {id: WEB-07, name: Signals and RxJS state, status: planned}
@@ -63,20 +63,20 @@ categories:
     tasks:
       - {id: DELPHI-01, name: Object Pascal comprehension, status: planned}
       - {id: DELPHI-02, name: Object lifecycle and resources, status: planned}
-      - {id: DELPHI-03, name: Business treatment correction, status: planned}
+      - {id: DELPHI-03, name: Business treatment correction, status: implemented}
       - {id: DELPHI-04, name: Delphi to Java migration, status: implemented}
   - id: windev
     target: 4
     tasks:
       - {id: WL-01, name: WLanguage comprehension, status: planned}
-      - {id: WL-02, name: HFSQL access logic, status: planned}
+      - {id: WL-02, name: HFSQL access logic, status: implemented}
       - {id: WL-03, name: Business treatment correction, status: planned}
       - {id: WL-04, name: WLanguage to Java migration, status: implemented}
   - id: abal
     target: 4
     tasks:
       - {id: ABAL-01, name: ABAL program comprehension, status: planned}
-      - {id: ABAL-02, name: ABAL business rule modification, status: planned}
+      - {id: ABAL-02, name: ABAL business rule modification, status: implemented}
       - {id: ABAL-03, name: ABAL to Java migration, status: planned}
       - {id: ABAL-04, name: Documentation-assisted ABAL task, status: implemented}
   - id: documents
@@ -88,7 +88,7 @@ categories:
       - {id: DOC-04, name: Rotated document, status: planned}
       - {id: DOC-05, name: Noisy compressed document, status: planned}
       - {id: DOC-06, name: Table extraction, status: implemented}
-      - {id: DOC-07, name: Form extraction, status: planned}
+      - {id: DOC-07, name: Form extraction, status: implemented}
       - {id: DOC-08, name: Multi-page document, status: planned}
       - {id: DOC-09, name: Mixed document types, status: planned}
       - {id: DOC-10, name: Complex structured JSON extraction, status: implemented}

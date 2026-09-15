@@ -1,0 +1,3 @@
+// Synthetic WLanguage fixture: active customer query.
+// HReadSeekFirst(Customer, Region, requestedRegion)
+// Filter Customer.Active = True and preserve source order.

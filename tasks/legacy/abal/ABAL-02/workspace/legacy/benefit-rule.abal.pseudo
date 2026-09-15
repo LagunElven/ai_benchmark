@@ -1,0 +1,4 @@
+RULE BENEFIT_ELIGIBILITY(incomeCents, retired, disabled)
+  WHEN (retired OR disabled) AND incomeCents <= 250000
+  RETURN TRUE
+  OTHERWISE RETURN FALSE

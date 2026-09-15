@@ -1,0 +1,37 @@
+id: ABAL-02
+revision: 1
+name: Correct an ABAL benefit eligibility rule
+category: abal
+difficulty: medium
+suites: [core, full]
+tags: [abal, advanced-business-application-language, business-rule, java]
+modes: [one-shot, repair]
+toolchain:
+  language: abal-java
+  version: "17"
+  requirements: [javac 17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/BenefitEligibility.java]
+context:
+  documents: [legacy/benefit-rule.abal.pseudo, fixtures/manifest.json, fixtures/abal-reference.md]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/BenefitEligibility.java, public-tests/BenefitEligibilityPublicTest.java]
+    - name: public behavior
+      command: [java, -cp, out, BenefitEligibilityPublicTest]
+  hidden:
+    - name: hidden compile
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/BenefitEligibility.java, BenefitEligibilityHiddenTest.java]
+    - name: hidden behavior
+      command: [java, -cp, out-hidden, BenefitEligibilityHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

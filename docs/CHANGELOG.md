@@ -2,6 +2,14 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.9.0 — Deuxième tranche de la suite complète
+
+- Ajout de huit tâches déterministes : JAVA-04, SPRING-02, AXON-07, WEB-04,
+  DELPHI-03, WL-02, ABAL-02 et DOC-07.
+- Les validations couvrent concurrence, mapping d'erreurs, idempotence, sécurité HTTP,
+  règles legacy, requêtes HFSQL, éligibilité ABAL et formulaires OCR.
+- Le catalogue compte désormais 26 tâches exécutables sur 74 scénarios réservés.
+
 ## 0.8.0 — Première tranche de la suite complète
 
 - Ajout de l'inventaire versionné `catalogue.yaml` couvrant les 74 tâches cibles.

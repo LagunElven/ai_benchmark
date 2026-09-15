@@ -1,0 +1,11 @@
+{
+  "id": "ABAL-02",
+  "language": "abal",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/benefit-rule.abal.pseudo",
+  "reference_docs": ["fixtures/abal-reference.md"],
+  "equivalence_vectors": [
+    {"input": {"incomeCents": 250000, "retired": true, "disabled": false}, "expected": true},
+    {"input": {"incomeCents": 250001, "retired": true, "disabled": false}, "expected": false}
+  ]
+}
