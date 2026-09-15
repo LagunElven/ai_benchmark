@@ -1,0 +1,33 @@
+id: E2E-01
+revision: 1
+name: Preserve an order contract from REST DTO to UI card
+category: e2e
+difficulty: hard
+suites: [core, full]
+tags: [e2e, spring, rest, dto, angular]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [ui.py]
+context:
+  inputs: [api.py, ui.py]
+validation:
+  public:
+    - name: REST to UI contract
+      command: [python, public-tests/check.py]
+  hidden:
+    - name: hidden contract checks
+      command: [python, hidden_check.py]
+metrics: [hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

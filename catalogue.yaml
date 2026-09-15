@@ -1,0 +1,109 @@
+schema_version: "1.0"
+categories:
+  - id: java
+    target: 8
+    tasks:
+      - {id: JAVA-01, name: Null-safety with streams and Optional, status: implemented}
+      - {id: JAVA-02, name: Dates timezones and DST, status: implemented}
+      - {id: JAVA-03, name: Concurrent collection modification, status: implemented}
+      - {id: JAVA-04, name: Synchronization and thread safety, status: planned}
+      - {id: JAVA-05, name: Behavior-preserving business refactor, status: planned}
+      - {id: JAVA-06, name: Intermittent race diagnosis, status: planned}
+      - {id: JAVA-07, name: Optimization without regression, status: planned}
+      - {id: JAVA-08, name: Backward-compatible API evolution, status: planned}
+  - id: spring
+    target: 10
+    tasks:
+      - {id: SPRING-01, name: REST request validation contract, status: implemented}
+      - {id: SPRING-02, name: Exception handling, status: planned}
+      - {id: SPRING-03, name: Transaction rollback behavior, status: planned}
+      - {id: SPRING-04, name: Hibernate dirty checking, status: planned}
+      - {id: SPRING-05, name: Optimistic locking, status: implemented}
+      - {id: SPRING-06, name: Dynamic update and concurrency, status: planned}
+      - {id: SPRING-07, name: JPA N+1 diagnosis, status: planned}
+      - {id: SPRING-08, name: Reactor asynchronous retry, status: planned}
+      - {id: SPRING-09, name: Bearer and CSRF security, status: planned}
+      - {id: SPRING-10, name: Multi-service transaction bug, status: planned}
+  - id: axon
+    target: 10
+    tasks:
+      - {id: AXON-01, name: Basic event handler, status: planned}
+      - {id: AXON-02, name: Single revision upcaster, status: implemented}
+      - {id: AXON-03, name: Multi-revision upcaster chain, status: implemented}
+      - {id: AXON-04, name: Obsolete snapshot filtering, status: planned}
+      - {id: AXON-05, name: Saga association handling, status: planned}
+      - {id: AXON-06, name: Multiple start saga paths, status: planned}
+      - {id: AXON-07, name: Idempotent projection, status: planned}
+      - {id: AXON-08, name: Replay and projection rebuild, status: planned}
+      - {id: AXON-09, name: Optimistic locking and retries, status: planned}
+      - {id: AXON-10, name: Multi-aggregate diagnosis, status: planned}
+  - id: web
+    target: 10
+    tasks:
+      - {id: WEB-01, name: Observable versus scalar value, status: implemented}
+      - {id: WEB-02, name: Subscription lifecycle cleanup, status: planned}
+      - {id: WEB-03, name: Search switchMap pipeline, status: implemented}
+      - {id: WEB-04, name: HTTP interceptor contract, status: planned}
+      - {id: WEB-05, name: Bearer and CSRF handling, status: planned}
+      - {id: WEB-06, name: Complex reactive form, status: planned}
+      - {id: WEB-07, name: Signals and RxJS state, status: planned}
+      - {id: WEB-08, name: Ionic navigation, status: planned}
+      - {id: WEB-09, name: OAuth and Capacitor deep link, status: planned}
+      - {id: WEB-10, name: Cross-layer web feature, status: planned}
+  - id: cobol
+    target: 5
+    tasks:
+      - {id: COBOL-01, name: Existing program comprehension, status: planned}
+      - {id: COBOL-02, name: Business rule correction, status: implemented}
+      - {id: COBOL-03, name: Sequential file and packed decimal, status: planned}
+      - {id: COBOL-04, name: Behavior-preserving modification, status: planned}
+      - {id: COBOL-05, name: COBOL to Java migration, status: implemented}
+  - id: delphi
+    target: 4
+    tasks:
+      - {id: DELPHI-01, name: Object Pascal comprehension, status: planned}
+      - {id: DELPHI-02, name: Object lifecycle and resources, status: planned}
+      - {id: DELPHI-03, name: Business treatment correction, status: planned}
+      - {id: DELPHI-04, name: Delphi to Java migration, status: implemented}
+  - id: windev
+    target: 4
+    tasks:
+      - {id: WL-01, name: WLanguage comprehension, status: planned}
+      - {id: WL-02, name: HFSQL access logic, status: planned}
+      - {id: WL-03, name: Business treatment correction, status: planned}
+      - {id: WL-04, name: WLanguage to Java migration, status: implemented}
+  - id: abal
+    target: 4
+    tasks:
+      - {id: ABAL-01, name: ABAL program comprehension, status: planned}
+      - {id: ABAL-02, name: ABAL business rule modification, status: planned}
+      - {id: ABAL-03, name: ABAL to Java migration, status: planned}
+      - {id: ABAL-04, name: Documentation-assisted ABAL task, status: implemented}
+  - id: documents
+    target: 10
+    tasks:
+      - {id: DOC-01, name: Digital PDF extraction, status: planned}
+      - {id: DOC-02, name: 300 DPI scan, status: planned}
+      - {id: DOC-03, name: 150 DPI scan, status: planned}
+      - {id: DOC-04, name: Rotated document, status: planned}
+      - {id: DOC-05, name: Noisy compressed document, status: planned}
+      - {id: DOC-06, name: Table extraction, status: implemented}
+      - {id: DOC-07, name: Form extraction, status: planned}
+      - {id: DOC-08, name: Multi-page document, status: planned}
+      - {id: DOC-09, name: Mixed document types, status: planned}
+      - {id: DOC-10, name: Complex structured JSON extraction, status: implemented}
+  - id: context
+    target: 6
+    tasks:
+      - {id: CTX-01, name: Locate a rule in a 10k-token repository, status: implemented}
+      - {id: CTX-02, name: Locate a rule in a 30k-token repository, status: planned}
+      - {id: CTX-03, name: Locate a rule in a 60k-token repository, status: planned}
+      - {id: CTX-04, name: Locate a rule in a 100k-token repository, status: planned}
+      - {id: CTX-05, name: Locate a rule in a 150k-token repository, status: planned}
+      - {id: CTX-06, name: Locate a rule in a 200k-token repository, status: planned}
+  - id: e2e
+    target: 3
+    tasks:
+      - {id: E2E-01, name: Spring REST DTO to Angular UI, status: implemented}
+      - {id: E2E-02, name: Angular command to Axon and JPA projection, status: planned}
+      - {id: E2E-03, name: Legacy rule modernization, status: planned}

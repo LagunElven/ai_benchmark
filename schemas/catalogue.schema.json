@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/catalogue.schema.json",
+  "title": "Enterprise LLM benchmark quality catalogue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "categories"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "target", "tasks"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+          "target": {"type": "integer", "minimum": 1},
+          "tasks": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name", "status"],
+              "properties": {
+                "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9]*-[0-9]{2,}$"},
+                "name": {"type": "string", "minLength": 1},
+                "status": {"enum": ["implemented", "planned", "generated"]}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

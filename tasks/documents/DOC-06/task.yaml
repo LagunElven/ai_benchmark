@@ -1,0 +1,33 @@
+id: DOC-06
+revision: 1
+name: Extract a pipe-delimited invoice table
+category: documents
+difficulty: medium
+suites: [core, full]
+tags: [documents, table, extraction, json]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [extract.py]
+context:
+  inputs: [document.txt]
+validation:
+  public:
+    - name: table extraction
+      command: [python, public-tests/check.py]
+  hidden:
+    - name: hidden table extraction
+      command: [python, hidden_check.py]
+metrics: [hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

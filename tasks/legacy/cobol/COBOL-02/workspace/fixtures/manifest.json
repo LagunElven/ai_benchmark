@@ -1,0 +1,11 @@
+{
+  "id": "COBOL-02",
+  "language": "cobol",
+  "source_status": "verified_syntax",
+  "source": "legacy/discount.cbl",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"grossCents": 100000, "classCode": "P"}, "expected": 90000},
+    {"input": {"grossCents": 99999, "classCode": "P"}, "expected": 99999}
+  ]
+}

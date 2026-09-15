@@ -11,7 +11,9 @@ class LegacyFixtureTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifests = sorted(root.glob("tasks/legacy/*/*/workspace/fixtures/manifest.json"))
         manifest_ids = {path.parent.parent.parent.name for path in manifests}
-        self.assertEqual(manifest_ids, {"COBOL-05", "DELPHI-04", "WL-04", "ABAL-04"})
+        self.assertEqual(
+            manifest_ids, {"COBOL-02", "COBOL-05", "DELPHI-04", "WL-04", "ABAL-04"}
+        )
         statuses = {load_legacy_fixture(path)["source_status"] for path in manifests}
         self.assertEqual(statuses, {"verified_syntax", "synthetic_pseudocode"})
         for path in manifests:

@@ -1,0 +1,31 @@
+id: WEB-01
+revision: 1
+name: Normalize an Observable or scalar into the first value
+category: web
+difficulty: medium
+suites: [core, full]
+tags: [web, angular, rxjs, observable]
+modes: [one-shot, repair]
+toolchain:
+  language: javascript
+  version: "node 18+"
+  requirements: [node]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [observable.js]
+validation:
+  public:
+    - name: public behavior
+      command: [node, public-tests/observable-public-test.js]
+  hidden:
+    - name: hidden behavior
+      command: [node, observable-hidden-test.js]
+metrics: [hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

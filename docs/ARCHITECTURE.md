@@ -26,6 +26,8 @@ réparation et le serving GPU sont des extensions distinctes.
   détecte les compilateurs natifs sans les exécuter implicitement.
 - `runner/context_dataset.py` génère les variantes de contexte, conserve un manifeste de
   tokenisation et calcule la précision/rappel des fichiers pertinents.
+- `runner/catalogue.py` vérifie la couverture entre l'inventaire des scénarios et les
+  définitions de tâches réellement découvrables.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
 
 ## Protocole de réponse `file_changes_v1`

@@ -2,6 +2,15 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.8.0 — Première tranche de la suite complète
+
+- Ajout de l'inventaire versionné `catalogue.yaml` couvrant les 74 tâches cibles.
+- Ajout du contrôle de couverture `runner.catalogue` et de `scripts/check_catalogue.py`.
+- Ajout de huit tâches déterministes : JAVA-01/02, SPRING-01, AXON-03, WEB-01,
+  COBOL-02, DOC-06 et E2E-01.
+- Les tâches restantes restent explicitement `planned` ; aucun placeholder n'est
+  présenté comme une validation qualité.
+
 ## 0.7.0 — Variantes long-context contrôlées
 
 - Ajout de `runner.context_dataset` et du schéma de manifeste de variante.

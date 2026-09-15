@@ -254,3 +254,12 @@ Incrémenter `revision` lorsque l'un de ces éléments change de façon à affec
 - limite d'itérations.
 
 Une correction purement documentaire sans impact sur l'exécution ne nécessite pas forcément une nouvelle révision.
+
+## Catalogue de la milestone 9
+
+Les scénarios prévus sont réservés dans `catalogue.yaml` avant leur implémentation. Une
+entrée ne passe à `implemented` qu'une fois son workspace, son validateur public et ses
+tests cachés déterministes présents. `python scripts/check_catalogue.py` détecte les
+entrées implémentées manquantes et les tâches découvertes qui ne seraient pas inventoriées.
+Les entrées `planned` ne doivent pas être copiées sous forme de placeholders : elles
+représentent le backlog de scénarios à authorer réellement.
