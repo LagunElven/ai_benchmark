@@ -13,6 +13,8 @@ _GENERATED_DIRECTORIES = {
     "build",
     "dist",
     "node_modules",
+    "out",
+    "out-hidden",
     "target",
 }
 

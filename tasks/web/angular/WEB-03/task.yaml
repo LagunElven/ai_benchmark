@@ -1,0 +1,31 @@
+id: WEB-03
+revision: 1
+name: Keep only the latest search result
+category: web
+difficulty: medium
+suites: [smoke, core, full]
+tags: [angular, rxjs, switchMap, async]
+modes: [one-shot, repair]
+toolchain:
+  language: javascript
+  version: "node18"
+  requirements: [node18+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [search.js]
+validation:
+  public:
+    - name: public-tests
+      command: [node, public-tests/search-public-test.js]
+  hidden:
+    - name: hidden-tests
+      command: [node, search-hidden-test.js]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

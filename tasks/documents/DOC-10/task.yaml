@@ -1,0 +1,35 @@
+id: DOC-10
+revision: 1
+name: Extract a structured invoice record
+category: documents
+difficulty: hard
+suites: [smoke, core, full]
+tags: [documents, extraction, json, ocr]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [extract.py]
+context:
+  documents: [document.txt]
+validation:
+  public:
+    - name: public-tests
+      command: [python, extract.py, document.txt, public-output.json]
+    - name: public-check
+      command: [python, public-tests/check.py, public-output.json]
+  hidden:
+    - name: hidden-tests
+      command: [python, check.py, document.txt, extract.py]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

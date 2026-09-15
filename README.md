@@ -3,9 +3,19 @@
 Suite reproductible pour comparer la qualité, la réparation agentique, les capacités
 documentaires/OCR et les performances de serving de modèles locaux ou hébergés.
 
-La fondation actuelle couvre les milestones 0 à 4 : schémas, découverte des tâches,
+La fondation actuelle couvre les milestones 0 à 5 : schémas, découverte des tâches,
 workspace propre, exécution `one-shot`, endpoint OpenAI-compatible, faux adaptateur
 déterministe, validation publique et cachée isolée, boucle `repair` et résultats JSON/JSONL.
+
+Une smoke suite hors ligne de sept tâches représentatives (Java, Spring, Axon, Web,
+COBOL, documents et long contexte) peut être lancée avec :
+
+```powershell
+python scripts/run_smoke.py
+```
+
+Elle utilise uniquement des réponses de test sous `tests/fixtures/`; ces fixtures ne
+sont jamais copiées dans le workspace présenté à un modèle évalué.
 
 ## Installation locale
 
@@ -23,7 +33,8 @@ python -m pip install -e .
 python -m runner validate-config
 python -m runner list-tasks
 python -m runner list-tasks --suite smoke --category java
-python -m runner run --task-id JAVA-01 --mode one-shot
+python -m runner run --task-id JAVA-03 --mode one-shot
+python scripts/run_smoke.py
 python -m unittest discover -s tests -v
 ```
 

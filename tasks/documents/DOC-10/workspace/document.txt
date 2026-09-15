@@ -1,0 +1,12 @@
+ACME SERVICES
+INVOICE: INV-2026-0042
+DATE: 2026-02-14
+CURRENCY: EUR
+
+DESCRIPTION                 QTY   UNIT PRICE   AMOUNT
+Monthly platform support     2       100.00     200.00
+Security review               1      1034.50    1034.50
+
+SUBTOTAL: 1234.50
+TAX: 246.90
+TOTAL: 1481.40

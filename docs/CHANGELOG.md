@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.4.0 — Smoke suite représentative
+
+- Ajout de sept tâches `smoke` exécutables hors ligne : JAVA-03, SPRING-05,
+  AXON-02, WEB-03, COBOL-05, DOC-10 et CTX-01.
+- Ajout de validateurs publics/cachés et de fixtures déterministes pour les
+  contrats Java, Node et Python ; les tests cachés restent hors du workspace modèle.
+- Ajout de `scripts/run_smoke.py`, adaptateur fake reproductible pour vérifier le
+  packaging et le runner sans endpoint LLM.
+- Les harnais COBOL/Spring/Axon/OCR qui substituent une dépendance native sont
+  signalés explicitement dans la documentation.
+
 ## 0.3.0 — Boucle de réparation
 
 - Ajout du mode `repair` avec retour des seuls logs publics.

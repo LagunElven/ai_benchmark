@@ -1,0 +1,37 @@
+id: COBOL-05
+revision: 1
+name: Migrate a packed-decimal order total to Java
+category: cobol
+difficulty: hard
+suites: [smoke, core, full]
+tags: [cobol, migration, java, decimal, behavior-preservation]
+modes: [one-shot, repair]
+toolchain:
+  language: cobol-java
+  version: "17"
+  requirements: [javac17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/OrderTotal.java]
+context:
+  documents: [legacy/order-total.cbl]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/OrderTotal.java, public-tests/OrderTotalPublicTest.java]
+    - name: public-tests
+      command: [java, -cp, out, OrderTotalPublicTest]
+  hidden:
+    - name: hidden-tests
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/OrderTotal.java, OrderTotalHiddenTest.java]
+    - name: hidden-tests
+      command: [java, -cp, out-hidden, OrderTotalHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

@@ -47,13 +47,18 @@
 
 Implémenter au moins :
 
-- [ ] JAVA-03 ou JAVA-04
-- [ ] SPRING-05
-- [ ] AXON-02 ou AXON-04
-- [ ] WEB-01 ou WEB-03
-- [ ] COBOL-02/05
-- [ ] DOC-02/10
-- [ ] CTX-01
+- [x] JAVA-03 (concurrence de collection)
+- [x] SPRING-05 (contrat d'optimistic locking, harnais Java hors dépendance)
+- [x] AXON-02 (upcaster de révision, harnais Java hors dépendance)
+- [x] WEB-03 (sémantique `switchMap`, harnais Node hors dépendance)
+- [x] COBOL-05 (migration avec référence COBOL, validation Java de substitution)
+- [x] DOC-10 (extraction JSON structurée sur rendu texte)
+- [x] CTX-01 (réparation avec distracteurs de contexte)
+
+La commande `python scripts/run_smoke.py` exécute ces sept tâches avec un adaptateur
+fake déterministe. Les résultats produits restent dans `results/raw/` et ne sont
+pas inclus dans Git. `cobc` et Tesseract n'étant pas installés sur la machine de
+développement, les tâches COBOL/OCR natives restent explicitement à compléter.
 
 Le smoke doit être suffisamment petit pour valider rapidement une nouvelle machine louée.
 
