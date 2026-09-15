@@ -7,7 +7,7 @@ import sys
 from runner.config import load_benchmark_config
 from runner.discovery import discover_tasks, filter_tasks, find_task
 from runner.errors import BenchmarkError
-from runner.execution import run_one_shot
+from runner.execution import run_one_shot, run_repair
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -70,10 +70,12 @@ def main(arguments: list[str] | None = None) -> int:
             return 0
 
         if options.command == "run":
-            if options.mode == "repair":
-                raise BenchmarkError("repair mode is reserved for milestone 4")
             task = find_task(tasks, options.task_id)
-            result_path = run_one_shot(config, task)
+            result_path = (
+                run_one_shot(config, task)
+                if options.mode == "one-shot"
+                else run_repair(config, task)
+            )
             print(result_path)
             return 0
         parser.error(f"Unknown command: {options.command}")

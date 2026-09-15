@@ -24,6 +24,12 @@ Toujours conserver les métriques brutes. Les scores agrégés sont des vues dé
 - time_until_success
 - tokens_until_success
 
+En mode `repair`, chaque tentative conserve son groupe de validations publiques et son artefact
+de réponse. `pass_at_n` signifie que la tâche est réussie en au plus `n` tentatives ; la valeur
+est `null` lorsque le budget d'itérations ne permet pas ce nombre. Les validations cachées ne
+sont exécutées qu'après une tentative publiquement réussie et leurs logs ne sont jamais inclus
+dans le feedback envoyé au modèle.
+
 ### Patch
 
 - files_modified

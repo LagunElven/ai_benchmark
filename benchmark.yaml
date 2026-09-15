@@ -1,6 +1,6 @@
 benchmark:
   name: enterprise-llm-bench
-  version: 0.2.0
+  version: 0.3.0
 
 paths:
   tasks: tasks
@@ -48,5 +48,8 @@ serving:
 runner:
   response_protocol: file_changes_v1
   max_context_bytes: 2000000
+  max_repair_iterations: 3
+  max_repair_total_output_tokens: 36000
+  max_repair_total_seconds: 1800
   keep_workspaces: false
   append_jsonl: true

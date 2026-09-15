@@ -88,10 +88,13 @@
     "runner": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["response_protocol", "max_context_bytes", "keep_workspaces", "append_jsonl"],
+      "required": ["response_protocol", "max_context_bytes", "max_repair_iterations", "max_repair_total_output_tokens", "max_repair_total_seconds", "keep_workspaces", "append_jsonl"],
       "properties": {
         "response_protocol": {"const": "file_changes_v1"},
         "max_context_bytes": {"type": "integer", "minimum": 1},
+        "max_repair_iterations": {"type": "integer", "minimum": 1, "maximum": 20},
+        "max_repair_total_output_tokens": {"type": "integer", "minimum": 1},
+        "max_repair_total_seconds": {"type": "integer", "minimum": 1},
         "keep_workspaces": {"type": "boolean"},
         "append_jsonl": {"type": "boolean"}
       }

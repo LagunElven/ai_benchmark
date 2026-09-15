@@ -2,6 +2,13 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.3.0 — Boucle de réparation
+
+- Ajout du mode `repair` avec retour des seuls logs publics.
+- Limite de trois itérations et budgets globaux de temps/tokens.
+- Conservation des réponses par tentative et calcul Pass@1/2/3.
+- Arrêt immédiat après succès public et validation cachée.
+
 ## 0.2.0 — Isolation des tests cachés
 
 - Ajout d'un workspace validator-visible distinct.

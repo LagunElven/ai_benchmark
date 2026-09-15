@@ -37,11 +37,11 @@
 
 ## Milestone 4 — Repair loop
 
-- [ ] retour contrôlé des erreurs publiques
-- [ ] 3 itérations maximum par défaut
-- [ ] Pass@1/2/3
-- [ ] arrêt immédiat en cas de succès
-- [ ] budget tokens/temps
+- [x] retour contrôlé des erreurs publiques
+- [x] 3 itérations maximum par défaut
+- [x] Pass@1/2/3
+- [x] arrêt immédiat en cas de succès
+- [x] budget tokens/temps
 
 ## Milestone 5 — Smoke suite
 

@@ -14,10 +14,37 @@
     "environment": {"type": "object", "required": ["hardware", "software", "serving"], "properties": {"hardware": {"type": "object"}, "software": {"type": "object"}, "serving": {"type": "object"}}, "additionalProperties": false},
     "timing": {"type": "object", "required": ["started_at", "ended_at", "total_seconds", "ttft_seconds", "generation_seconds", "time_until_success_seconds"], "properties": {"started_at": {"type": "string", "format": "date-time"}, "ended_at": {"type": "string", "format": "date-time"}, "total_seconds": {"type": "number", "minimum": 0}, "ttft_seconds": {"type": ["number", "null"], "minimum": 0}, "generation_seconds": {"type": ["number", "null"], "minimum": 0}, "time_until_success_seconds": {"type": ["number", "null"], "minimum": 0}}, "additionalProperties": false},
     "usage": {"type": "object", "required": ["input_tokens", "cached_input_tokens", "output_tokens", "reasoning_tokens", "tokens_until_success", "model_calls"], "properties": {"input_tokens": {"type": ["integer", "null"], "minimum": 0}, "cached_input_tokens": {"type": ["integer", "null"], "minimum": 0}, "output_tokens": {"type": ["integer", "null"], "minimum": 0}, "reasoning_tokens": {"type": ["integer", "null"], "minimum": 0}, "tokens_until_success": {"type": ["integer", "null"], "minimum": 0}, "model_calls": {"type": "integer", "minimum": 0}}, "additionalProperties": false},
-    "repair": {"type": "object", "required": ["pass_at_1", "pass_at_2", "pass_at_3", "successful_iteration", "repeated_failure_pattern"], "properties": {"pass_at_1": {"type": ["boolean", "null"]}, "pass_at_2": {"type": ["boolean", "null"]}, "pass_at_3": {"type": ["boolean", "null"]}, "successful_iteration": {"type": ["integer", "null"], "minimum": 1}, "repeated_failure_pattern": {"type": ["boolean", "null"]}}, "additionalProperties": false},
+    "repair": {
+      "type": "object",
+      "required": ["pass_at_1", "pass_at_2", "pass_at_3", "successful_iteration", "repeated_failure_pattern", "iterations"],
+      "properties": {
+        "pass_at_1": {"type": ["boolean", "null"]},
+        "pass_at_2": {"type": ["boolean", "null"]},
+        "pass_at_3": {"type": ["boolean", "null"]},
+        "successful_iteration": {"type": ["integer", "null"], "minimum": 1},
+        "repeated_failure_pattern": {"type": ["boolean", "null"]},
+        "iterations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["iteration", "status", "duration_seconds", "model_response", "public"],
+            "properties": {
+              "iteration": {"type": "integer", "minimum": 1},
+              "status": {"enum": ["public_failed", "public_passed", "hidden_failed", "passed", "error"]},
+              "duration_seconds": {"type": "number", "minimum": 0},
+              "model_response": {"type": ["string", "null"]},
+              "public": {"$ref": "#/$defs/validationGroup"},
+              "error": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "validation": {"type": "object", "required": ["outcome", "task_success", "build_success", "public", "hidden", "regression"], "properties": {"outcome": {"enum": ["passed", "public_passed", "failed", "not_run"]}, "task_success": {"type": ["boolean", "null"]}, "build_success": {"type": ["boolean", "null"]}, "public": {"$ref": "#/$defs/validationGroup"}, "hidden": {"$ref": "#/$defs/validationGroup"}, "regression": {"$ref": "#/$defs/validationGroup"}}, "additionalProperties": false},
     "patch": {"type": "object", "required": ["files_modified", "expected_files_modified", "unnecessary_files_modified", "lines_added", "lines_removed", "relevant_file_precision", "relevant_file_recall"], "properties": {"files_modified": {"type": "array", "items": {"type": "string"}}, "expected_files_modified": {"type": "array", "items": {"type": "string"}}, "unnecessary_files_modified": {"type": "array", "items": {"type": "string"}}, "lines_added": {"type": "integer", "minimum": 0}, "lines_removed": {"type": "integer", "minimum": 0}, "relevant_file_precision": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "relevant_file_recall": {"type": ["number", "null"], "minimum": 0, "maximum": 1}}, "additionalProperties": false},
-    "artifacts": {"type": "object", "required": ["result", "run_log", "model_response", "validation_logs"], "properties": {"result": {"type": "string"}, "run_log": {"type": ["string", "null"]}, "model_response": {"type": ["string", "null"]}, "validation_logs": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false},
+    "artifacts": {"type": "object", "required": ["result", "run_log", "model_response", "model_responses", "validation_logs"], "properties": {"result": {"type": "string"}, "run_log": {"type": ["string", "null"]}, "model_response": {"type": ["string", "null"]}, "model_responses": {"type": "array", "items": {"type": "string"}}, "validation_logs": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false},
     "errors": {"type": "array", "items": {"type": "object", "required": ["stage", "message"], "properties": {"stage": {"type": "string"}, "message": {"type": "string"}, "type": {"type": "string"}}, "additionalProperties": false}}
   },
   "$defs": {

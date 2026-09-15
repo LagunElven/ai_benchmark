@@ -121,6 +121,9 @@ def create_repository(root: Path, *, hidden_validation: bool = False) -> Path:
         "runner": {
             "response_protocol": "file_changes_v1",
             "max_context_bytes": 100000,
+            "max_repair_iterations": 3,
+            "max_repair_total_output_tokens": 3000,
+            "max_repair_total_seconds": 60,
             "keep_workspaces": False,
             "append_jsonl": True,
         },

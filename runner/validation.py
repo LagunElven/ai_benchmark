@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass
@@ -9,6 +10,23 @@ from pathlib import Path
 from typing import Any
 
 from runner.errors import ValidationError
+
+_GENERATED_CACHE_DIRECTORIES = {
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+}
+
+
+def _clean_generated_caches(workspace: Path) -> None:
+    for path in sorted(workspace.rglob("*"), reverse=True):
+        if path.name not in _GENERATED_CACHE_DIRECTORIES:
+            continue
+        if path.is_symlink() or path.is_file():
+            path.unlink()
+        elif path.is_dir():
+            shutil.rmtree(path)
 
 
 @dataclass(frozen=True)
@@ -83,6 +101,7 @@ def _validator_environment() -> dict[str, str]:
 def run_validator(
     specification: dict[str, Any], workspace: Path, default_timeout: int
 ) -> CommandResult:
+    _clean_generated_caches(workspace)
     arguments = _command_arguments(specification["command"])
     cwd_relative = specification.get("cwd", ".")
     cwd = _safe_cwd(workspace, cwd_relative)

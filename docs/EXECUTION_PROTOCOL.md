@@ -25,10 +25,19 @@
 
 ## Mode repair
 
-Le mode est déclaré dans le schéma pour versionner les tâches, mais sa boucle d'exécution
-appartient au milestone 4. Une demande `repair` doit échouer explicitement tant que cette
-fonctionnalité n'est pas activée ; elle ne doit jamais être transformée silencieusement en
-`one-shot`.
+1. Créer un workspace modèle-visible et appeler le modèle au plus trois fois par défaut.
+2. Après chaque réponse, appliquer les changements puis exécuter les validateurs publics.
+3. En cas d'échec public, envoyer à l'itération suivante uniquement les logs publics et le
+   contenu courant du workspace.
+4. Arrêter immédiatement dès que les validations publiques et, si présentes, cachées passent.
+5. Ne jamais envoyer au modèle les résultats, logs ou chemins des tests cachés.
+6. Si les validations publiques passent mais qu'une validation cachée échoue, terminer le run
+   en échec sans exposer la raison cachée au modèle.
+7. Respecter les budgets globaux configurés de temps et de tokens de sortie.
+
+Chaque tentative possède sa réponse et ses logs propres. Le résultat final contient
+`pass_at_1`, `pass_at_2`, `pass_at_3`, l'itération réussie, le motif d'échecs répétés et la
+consommation cumulée jusqu'au succès.
 
 ## Tests cachés
 

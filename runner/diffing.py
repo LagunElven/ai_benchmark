@@ -4,6 +4,18 @@ import difflib
 from dataclasses import dataclass
 from pathlib import Path
 
+_GENERATED_DIRECTORIES = {
+    ".gradle",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "target",
+}
+
 
 @dataclass(frozen=True)
 class PatchMetrics:
@@ -32,6 +44,7 @@ def snapshot_files(root: Path) -> dict[str, bytes]:
         path.relative_to(root).as_posix(): path.read_bytes()
         for path in sorted(root.rglob("*"))
         if path.is_file()
+        and not any(part in _GENERATED_DIRECTORIES for part in path.relative_to(root).parts)
     }
 
 
