@@ -5,8 +5,8 @@
 La fondation sépare quatre dimensions : qualité de code, capacité de réparation,
 documents/OCR et performances de serving. Le runner de Phase 1 implémente la découverte,
 le mode `one-shot`, un client OpenAI-compatible, des workspaces propres, la validation
-publique et la persistance des résultats. La boucle de réparation, l'injection des tests
-cachés et le serving GPU sont des extensions distinctes.
+publique, l'isolation des tests cachés et la persistance des résultats. La boucle de
+réparation et le serving GPU sont des extensions distinctes.
 
 ## Composants
 
@@ -38,11 +38,14 @@ protocoles pourront être ajoutés sans modifier les tâches.
 
 ## Frontières de sécurité
 
-Le modèle ne reçoit que `prompt.md` et le contenu de `workspace/`. Le dossier
+Le modèle ne reçoit que `prompt.md` et le contenu de son workspace modèle-visible. Le dossier
 `private-tests/`, les résultats historiques et les autres tâches ne sont jamais sérialisés
-dans le contexte. Les commandes de validation proviennent de la définition versionnée de la
-tâche et sont lancées directement, avec une liste d'arguments, un répertoire de travail borné
-et un timeout. L'isolation forte par conteneur appartient au milestone 3.
+dans le contexte. Les validations publiques s'exécutent dans ce workspace. Les validations
+cachées travaillent sur une copie séparée, dans laquelle `private-tests/<task-id>/` est injecté
+après le patch du modèle ; cette copie est supprimée à la fin de la validation. Les commandes
+proviennent de la définition versionnée de la tâche et sont lancées directement, avec une
+liste d'arguments, un répertoire de travail borné et un timeout. L'isolation forte par
+conteneur, notamment contre un code de test malveillant, reste une évolution ultérieure.
 
 ## Résultats
 

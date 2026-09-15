@@ -29,6 +29,11 @@ def create_repository(root: Path, *, hidden_validation: bool = False) -> Path:
         "Visible public test notes.", encoding="utf-8"
     )
     (root / "private-tests" / "JAVA-99" / "answer.txt").write_text("secret", encoding="utf-8")
+    (root / "private-tests" / "JAVA-99" / "hidden.py").write_text(
+        "from pathlib import Path\n"
+        "assert Path('answer.txt').read_text(encoding='utf-8') == 'secret'\n",
+        encoding="utf-8",
+    )
     task = {
         "id": "JAVA-99",
         "revision": 1,

@@ -30,10 +30,10 @@
 
 ## Milestone 3 — Isolation et hidden tests
 
-- [ ] le modèle ne voit jamais `private-tests/`
-- [ ] injection/montage seulement lors de la validation
-- [ ] test automatique prouvant l'isolation
-- [ ] séparation des artefacts model-visible / validator-visible
+- [x] le modèle ne voit jamais `private-tests/`
+- [x] injection/montage seulement lors de la validation
+- [x] test automatique prouvant l'isolation
+- [x] séparation des artefacts model-visible / validator-visible
 
 ## Milestone 4 — Repair loop
 

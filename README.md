@@ -3,9 +3,9 @@
 Suite reproductible pour comparer la qualité, la réparation agentique, les capacités
 documentaires/OCR et les performances de serving de modèles locaux ou hébergés.
 
-La fondation actuelle couvre les milestones 0 à 2 : schémas, découverte des tâches,
+La fondation actuelle couvre les milestones 0 à 3 : schémas, découverte des tâches,
 workspace propre, exécution `one-shot`, endpoint OpenAI-compatible, faux adaptateur
-déterministe, validation publique et résultats JSON/JSONL.
+déterministe, validation publique et cachée isolée, et résultats JSON/JSONL.
 
 ## Installation locale
 
@@ -44,7 +44,6 @@ les résultats.
 
 ## État des fonctions sensibles
 
-Le mode `repair` et l'injection validator-visible des tests cachés ne sont pas encore actifs.
-Une tâche déclarant des validations cachées peut exécuter sa validation publique, mais son run
-reste explicitement `incomplete`. L'isolation forte et sa preuve automatisée constituent le
-prochain milestone.
+Le mode `repair` n'est pas encore actif. Les tests cachés sont injectés uniquement dans une
+copie validator-visible distincte du workspace du modèle, puis supprimés après validation.
+L'isolation forte par conteneur reste à traiter pour les validateurs non fiables.

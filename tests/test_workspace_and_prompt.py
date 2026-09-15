@@ -6,8 +6,9 @@ from pathlib import Path
 
 from runner.config import load_benchmark_config
 from runner.discovery import discover_tasks
+from runner.errors import WorkspaceError
 from runner.prompting import build_messages
-from runner.workspace import CleanWorkspace
+from runner.workspace import CleanWorkspace, ValidatorWorkspace
 from tests.support import create_repository
 
 
@@ -29,6 +30,43 @@ class WorkspaceAndPromptTests(unittest.TestCase):
                 self.assertIn("Visible public test notes", serialized)
 
             self.assertFalse((root / ".benchmark-work" / "safe-run").exists())
+
+    def test_private_tests_are_only_in_validator_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_benchmark_config(create_repository(root, hidden_validation=True))
+            task = discover_tasks(config)[0]
+
+            with CleanWorkspace(config, task, "isolation-run") as model_workspace:
+                with ValidatorWorkspace(
+                    config, task, model_workspace, "isolation-run"
+                ) as validator:
+                    self.assertNotEqual(model_workspace, validator)
+                    self.assertFalse((model_workspace / "answer.txt").exists())
+                    self.assertEqual(
+                        (validator / "answer.txt").read_text(encoding="utf-8"), "secret"
+                    )
+                self.assertFalse((root / ".benchmark-work" / "isolation-run-validator").exists())
+
+    def test_hidden_file_collision_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_benchmark_config(create_repository(root, hidden_validation=True))
+            task = discover_tasks(config)[0]
+            (root / "private-tests" / "JAVA-99" / "app.py").write_text(
+                "must not overwrite", encoding="utf-8"
+            )
+
+            with CleanWorkspace(config, task, "collision-run") as model_workspace:
+                with (
+                    self.assertRaisesRegex(WorkspaceError, "collides"),
+                    ValidatorWorkspace(config, task, model_workspace, "collision-run"),
+                ):
+                    pass
+                self.assertEqual(
+                    (model_workspace / "app.py").read_text(encoding="utf-8"), "VALUE = 1\n"
+                )
+            self.assertFalse((root / ".benchmark-work" / "collision-run-validator").exists())
 
 
 if __name__ == "__main__":

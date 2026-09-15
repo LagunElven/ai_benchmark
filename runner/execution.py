@@ -19,7 +19,7 @@ from runner.errors import BenchmarkError
 from runner.prompting import build_messages
 from runner.results import ResultStore
 from runner.validation import CommandResult, format_log, run_validator
-from runner.workspace import CleanWorkspace
+from runner.workspace import CleanWorkspace, ValidatorWorkspace
 
 
 def _utc_now() -> str:
@@ -159,12 +159,15 @@ def _validation_group(
     workspace: Path,
     timeout: int,
     store: ResultStore,
+    artifact_prefix: str,
 ) -> tuple[dict[str, Any], list[str]]:
     results: list[CommandResult] = []
     logs: list[str] = []
     for index, specification in enumerate(specifications, start=1):
         result = run_validator(specification, workspace, timeout)
-        log_path = store.write_artifact(f"validation-public-{index}.log", format_log(result))
+        log_path = store.write_artifact(
+            f"validation-{artifact_prefix}-{index}.log", format_log(result)
+        )
         logs.append(log_path)
         results.append(result)
         if not result.passed:
@@ -224,6 +227,7 @@ def run_one_shot(
                 workspace,
                 task.data["runtime"]["timeout_seconds"],
                 store,
+                "public",
             )
             result["validation"]["public"] = public
             result["artifacts"]["validation_logs"] = logs
@@ -236,9 +240,27 @@ def run_one_shot(
                 result["run"]["status"] = "completed"
                 result["repair"]["pass_at_1"] = False
             elif task.has_hidden_validation:
-                result["validation"]["outcome"] = "public_passed"
-                result["validation"]["task_success"] = None
-                result["run"]["status"] = "incomplete"
+                with ValidatorWorkspace(config, task, workspace, run_id) as validator_workspace:
+                    hidden, hidden_logs = _validation_group(
+                        task.data["validation"]["hidden"],
+                        validator_workspace,
+                        task.data["runtime"]["timeout_seconds"],
+                        store,
+                        "hidden",
+                    )
+                result["validation"]["hidden"] = hidden
+                result["artifacts"]["validation_logs"].extend(hidden_logs)
+                hidden_passed = hidden["status"] == "passed"
+                result["validation"]["outcome"] = "passed" if hidden_passed else "failed"
+                result["validation"]["task_success"] = hidden_passed
+                result["run"]["status"] = "completed"
+                result["repair"]["pass_at_1"] = hidden_passed
+                if hidden_passed:
+                    result["repair"]["successful_iteration"] = 1
+                    result["timing"]["time_until_success_seconds"] = time.monotonic() - started
+                    tokens = result["usage"]["input_tokens"], result["usage"]["output_tokens"]
+                    if all(value is not None for value in tokens):
+                        result["usage"]["tokens_until_success"] = sum(tokens)  # type: ignore[arg-type]
             else:
                 result["validation"]["outcome"] = "passed"
                 result["validation"]["task_success"] = True
@@ -253,6 +275,13 @@ def run_one_shot(
         result["errors"].append(
             {"stage": "execution", "type": type(exc).__name__, "message": str(exc)}
         )
+        if task.has_hidden_validation and result["validation"]["public"]["status"] == "passed":
+            result["validation"]["hidden"] = {
+                "status": "failed",
+                "passed": 0,
+                "total": len(task.data["validation"]["hidden"]),
+                "commands": [],
+            }
         result["run"]["status"] = "failed"
         result["validation"]["outcome"] = "failed"
         result["validation"]["task_success"] = False

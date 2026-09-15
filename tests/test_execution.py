@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
-from runner.client import FakeModelClient
+from runner.client import FakeModelClient, ModelResponse
 from runner.config import load_benchmark_config, validate_document
 from runner.discovery import discover_tasks
 from runner.execution import run_one_shot
@@ -31,7 +32,7 @@ class ExecutionTests(unittest.TestCase):
             self.assertTrue((root / "results" / "raw" / "runs.jsonl").is_file())
             self.assertFalse(any((root / ".benchmark-work").iterdir()))
 
-    def test_hidden_validation_keeps_result_incomplete(self) -> None:
+    def test_hidden_validation_runs_in_disposable_validator_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             config = load_benchmark_config(create_repository(root, hidden_validation=True))
@@ -44,10 +45,56 @@ class ExecutionTests(unittest.TestCase):
             )
             result = json.loads(result_path.read_text(encoding="utf-8"))
 
-            self.assertEqual(result["run"]["status"], "incomplete")
-            self.assertEqual(result["validation"]["outcome"], "public_passed")
-            self.assertIsNone(result["validation"]["task_success"])
-            self.assertEqual(result["validation"]["hidden"]["status"], "not_run")
+            self.assertEqual(result["run"]["status"], "completed")
+            self.assertEqual(result["validation"]["outcome"], "passed")
+            self.assertTrue(result["validation"]["task_success"])
+            self.assertEqual(result["validation"]["hidden"]["status"], "passed")
+            self.assertEqual(result["validation"]["hidden"]["passed"], 1)
+            self.assertFalse(any(root.glob(".benchmark-work/*-validator")))
+
+    def test_model_messages_never_contain_private_material(self) -> None:
+        class RecordingClient(FakeModelClient):
+            def __init__(self) -> None:
+                super().__init__('{"changes":[{"path":"app.py","content":"VALUE = 2\\n"}]}')
+                self.messages: list[dict[str, str]] = []
+
+            def complete(
+                self, messages: list[dict[str, str]], *, max_output_tokens: int
+            ) -> ModelResponse:
+                self.messages = list(messages)
+                return super().complete(messages, max_output_tokens=max_output_tokens)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_benchmark_config(create_repository(root, hidden_validation=True))
+            task = discover_tasks(config)[0]
+            client = RecordingClient()
+
+            result_path = run_one_shot(config, task, client)
+            result = json.loads(result_path.read_text(encoding="utf-8"))
+
+            self.assertTrue(result["validation"]["task_success"])
+            self.assertNotIn("secret", json.dumps(client.messages, ensure_ascii=False))
+
+    def test_missing_private_tests_fails_closed_without_workspace_leak(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_benchmark_config(create_repository(root, hidden_validation=True))
+            task = discover_tasks(config)[0]
+            shutil.rmtree(root / "private-tests" / "JAVA-99")
+
+            result_path = run_one_shot(
+                config,
+                task,
+                FakeModelClient('{"changes":[{"path":"app.py","content":"VALUE = 2\\n"}]}'),
+            )
+            result = json.loads(result_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(result["run"]["status"], "failed")
+            self.assertFalse(result["validation"]["task_success"])
+            self.assertEqual(result["validation"]["hidden"]["status"], "failed")
+            self.assertIn("private tests are missing", result["errors"][0]["message"])
+            self.assertFalse(any(root.glob(".benchmark-work/*-validator")))
 
 
 if __name__ == "__main__":
