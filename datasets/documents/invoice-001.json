@@ -1,0 +1,27 @@
+{
+  "id": "invoice-001",
+  "text": "ACME SERVICES\nINVOICE: INV-2026-0042\nDATE: 2026-02-14\nCURRENCY: EUR\n\nDESCRIPTION                 QTY   UNIT PRICE   AMOUNT\nMonthly platform support     2       100.00     200.00\nSecurity review               1      1034.50    1034.50\n\nSUBTOTAL: 1234.50\nTAX: 246.90\nTOTAL: 1481.40\n",
+  "ground_truth": {
+    "currency": "EUR",
+    "invoice_date": "2026-02-14",
+    "invoice_number": "INV-2026-0042",
+    "line_items": [
+      {
+        "amount": 200.0,
+        "description": "Monthly platform support",
+        "quantity": 2,
+        "unit_price": 100.0
+      },
+      {
+        "amount": 1034.5,
+        "description": "Security review",
+        "quantity": 1,
+        "unit_price": 1034.5
+      }
+    ],
+    "subtotal": 1234.5,
+    "tax": 246.9,
+    "total": 1481.4
+  },
+  "page_width_inches": 8.5
+}

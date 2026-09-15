@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.5.0 — Framework documents/OCR
+
+- Ajout d'un schéma de source documentaire et d'un générateur hors ligne avec
+  texte canonique, vérité terrain et manifeste SHA-256.
+- Ajout de variantes raster PGM déterministes : 300/150 DPI, rotation, bruit et
+  quantification grayscale servant de substitut de compression sans codec externe.
+- Ajout des métriques CER/WER et du scoring structuré par champ (numérique, date,
+  identifiant, cellules, champs manquants/hallucinés et validité JSON/schéma).
+- Ajout des commandes `scripts/generate_document_dataset.py` et
+  `scripts/score_document.py`, avec fixture invoice reproductible.
+
 ## 0.4.0 — Smoke suite représentative
 
 - Ajout de sept tâches `smoke` exécutables hors ligne : JAVA-03, SPRING-05,

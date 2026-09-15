@@ -50,6 +50,7 @@ les résultats.
 - `docs/METRICS.md` : métriques et comparabilité.
 - `docs/ARCHITECTURE.md` : composants et frontières de sécurité.
 - `docs/EXECUTION_PROTOCOL.md` : cycle précis d'un run.
+- `docs/DOCUMENTS.md` : génération des fixtures et scoring OCR/documents.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.
 

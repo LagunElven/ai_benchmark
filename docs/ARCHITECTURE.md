@@ -18,6 +18,10 @@ réparation et le serving GPU sont des extensions distinctes.
 - `runner/changes.py` applique les modifications structurées en empêchant toute sortie du workspace.
 - `runner/validation.py` exécute des commandes sans passer par un shell.
 - `runner/execution.py` orchestre un run et calcule les métriques brutes.
+- `runner/document_dataset.py` génère les sources documentaires, rendus PGM et variantes
+  reproductibles sans dépendance OCR native.
+- `runner/document_metrics.py` calcule CER/WER et les métriques de sortie structurée sans
+  les réduire à un score unique.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
 
 ## Protocole de réponse `file_changes_v1`

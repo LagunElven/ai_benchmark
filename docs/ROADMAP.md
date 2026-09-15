@@ -64,14 +64,17 @@ Le smoke doit être suffisamment petit pour valider rapidement une nouvelle mach
 
 ## Milestone 6 — Documents/OCR framework
 
-- [ ] générateur de document source
-- [ ] vérité terrain JSON
-- [ ] génération de variantes 300/150 dpi
-- [ ] rotation
-- [ ] bruit/compression
-- [ ] extraction JSON
-- [ ] calcul CER/WER
-- [ ] précision par champ
+- [x] générateur de document source (`runner.document_dataset`)
+- [x] vérité terrain JSON versionnée et contrôlée par schéma
+- [x] génération de variantes 300/150 dpi
+- [x] rotation déterministe
+- [x] bruit et compression grayscale reproductibles
+- [x] extraction JSON (scoring d'une sortie candidate)
+- [x] calcul CER/WER
+- [x] précision par champ, champs manquants/hallucinés et schéma
+
+Le framework fonctionne sans Tesseract : l'adaptateur OCR d'une campagne peut
+consommer les PGM générés et transmettre le texte/JSON candidat au scorer.
 
 ## Milestone 7 — Legacy
 

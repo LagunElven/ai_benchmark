@@ -95,6 +95,12 @@ Lorsque la vérité terrain permet de définir les fichiers attendus :
 
 Conserver également la précision par champ critique.
 
+Le module `runner.document_metrics` calcule CER/WER par distance de Levenshtein
+et conserve séparément `json_validity`, `schema_validity`, `exact_field_accuracy`,
+les précisions numérique/date/identifiant/tableau, ainsi que les taux et noms de
+champs manquants ou hallucinés. Une sortie JSON invalide ne doit pas être
+transformée en zéro silencieux pour les autres dimensions.
+
 ## 7. Long contexte
 
 - context_tokens

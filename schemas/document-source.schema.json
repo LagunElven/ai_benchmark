@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/document-source.schema.json",
+  "title": "Deterministic document source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "text", "ground_truth"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "text": {"type": "string", "minLength": 1},
+    "ground_truth": {"type": "object"},
+    "page_width_inches": {"type": "number", "exclusiveMinimum": 0}
+  }
+}
