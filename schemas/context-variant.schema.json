@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/context-variant.schema.json",
+  "title": "Long-context variant manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "variant", "target_tokens", "actual_tokens", "token_count_method", "seed", "source", "relevant_files", "distractor_directory", "files"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "variant": {"type": "string", "minLength": 1},
+    "target_tokens": {"type": "integer", "minimum": 1},
+    "actual_tokens": {"type": "integer", "minimum": 1},
+    "token_count_method": {"type": "string", "minLength": 1},
+    "tokenizer": {"type": ["string", "null"]},
+    "seed": {"type": "integer"},
+    "source": {"type": "string", "minLength": 1},
+    "relevant_files": {"type": "array", "items": {"type": "string"}},
+    "distractor_directory": {"type": "string", "minLength": 1},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "generated"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "generated": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

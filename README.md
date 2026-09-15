@@ -3,7 +3,7 @@
 Suite reproductible pour comparer la qualité, la réparation agentique, les capacités
 documentaires/OCR et les performances de serving de modèles locaux ou hébergés.
 
-La fondation actuelle couvre les milestones 0 à 5 : schémas, découverte des tâches,
+La fondation actuelle couvre les milestones 0 à 8 : schémas, découverte des tâches,
 workspace propre, exécution `one-shot`, endpoint OpenAI-compatible, faux adaptateur
 déterministe, validation publique et cachée isolée, boucle `repair` et résultats JSON/JSONL.
 
@@ -35,6 +35,8 @@ python -m runner list-tasks
 python -m runner list-tasks --suite smoke --category java
 python -m runner run --task-id JAVA-03 --mode one-shot
 python scripts/run_smoke.py
+python scripts/generate_context_variants.py tasks/context/CTX-01/workspace .tmp/context-ctx01 --relevant-file src/billing.py
+python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k/context-manifest.json --modified-file src/billing.py
 python -m unittest discover -s tests -v
 ```
 
@@ -52,6 +54,7 @@ les résultats.
 - `docs/EXECUTION_PROTOCOL.md` : cycle précis d'un run.
 - `docs/DOCUMENTS.md` : génération des fixtures et scoring OCR/documents.
 - `docs/LEGACY.md` : statuts des fixtures legacy et équivalences Java.
+- `docs/CONTEXT.md` : génération et mesure des variantes long-context.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.
 

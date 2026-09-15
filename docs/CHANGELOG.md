@@ -2,6 +2,15 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.7.0 — Variantes long-context contrôlées
+
+- Ajout de `runner.context_dataset` et du schéma de manifeste de variante.
+- Ajout de la génération déterministe des tailles 10k/30k/60k/100k/150k/200k
+  avec distracteurs séparés et fichiers pertinents déclarés.
+- Ajout du comptage tokenizer optionnel (`tiktoken`) et du fallback regex
+  explicitement identifié lorsque le tokenizer du modèle n'est pas disponible.
+- Ajout des scripts de génération et de scoring précision/rappel des fichiers.
+
 ## 0.6.0 — Fixtures legacy et équivalence
 
 - Ajout du manifeste `legacy-fixture` avec statut `verified_syntax` ou

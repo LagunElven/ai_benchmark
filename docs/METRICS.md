@@ -113,6 +113,12 @@ transformée en zéro silencieux pour les autres dimensions.
 
 Le rapport principal doit montrer l'évolution de ces métriques en fonction de la taille de contexte.
 
+`runner.context_dataset` conserve pour chaque variante la cible et le nombre réel
+de tokens, la méthode (`tiktoken:<encoding>` ou `fallback:regex`), le seed et les
+empreintes des fichiers. Le fallback est une estimation de comparaison, jamais
+présenté comme le nombre exact du tokenizer du modèle. `score_relevant_files`
+calcule séparément précision, rappel et fichiers inutiles à partir du diff brut.
+
 ## 8. Répétitions et statistiques
 
 Qualité :

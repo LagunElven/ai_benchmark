@@ -92,10 +92,15 @@ validations cachées des quatre migrations disponibles.
 
 ## Milestone 8 — Long context
 
-- [ ] générer plusieurs tailles de même projet
-- [ ] mesurer tokens exacts avec tokenizer du modèle lorsque possible
-- [ ] contrôler le niveau de distraction
-- [ ] mesurer fichiers pertinents vs fichiers modifiés
+- [x] générer plusieurs tailles d'un même projet (10k à 200k)
+- [x] mesurer les tokens via tokenizer optionnel, avec fallback explicite
+- [x] contrôler le niveau de distraction par génération déterministe
+- [x] mesurer fichiers pertinents vs fichiers modifiés
+
+Le générateur écrit un manifeste par variante, conserve les mêmes fichiers
+fonctionnels et ajoute seulement generated-distractors/. Les variantes sont
+produites à la demande afin de ne pas alourdir le dépôt ; leurs manifestes
+enregistrent seed, tokenizer, nombre réel de tokens et SHA-256.
 
 ## Milestone 9 — Suite complète
 
