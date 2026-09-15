@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/task.schema.json",
+  "title": "Enterprise LLM benchmark task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "revision", "name", "category", "difficulty", "suites", "tags", "modes", "toolchain", "runtime", "workspace", "validation", "metrics", "metric_extractors"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9]*-[0-9]{2,}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "name": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+    "difficulty": {"enum": ["easy", "medium", "hard"]},
+    "suites": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["smoke", "core", "full"]}},
+    "tags": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "modes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["one-shot", "repair"]}},
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "version", "requirements"],
+      "properties": {
+        "language": {"type": "string"},
+        "version": {"type": ["string", "null"]},
+        "requirements": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["internet", "max_iterations", "timeout_seconds", "max_output_tokens"],
+      "properties": {
+        "internet": {"type": "boolean"},
+        "max_iterations": {"type": "integer", "minimum": 1, "maximum": 20},
+        "timeout_seconds": {"type": "integer", "minimum": 1},
+        "max_output_tokens": {"type": "integer", "minimum": 1}
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "source": {"type": "string", "minLength": 1},
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "target"],
+            "properties": {
+              "source": {"type": "string", "minLength": 1},
+              "target": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "expected_modified_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inputs": {"type": "array", "items": {"type": "string"}},
+        "documents": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public", "hidden"],
+      "properties": {
+        "public": {"type": "array", "items": {"$ref": "#/$defs/validator"}},
+        "hidden": {"type": "array", "items": {"$ref": "#/$defs/validator"}}
+      }
+    },
+    "metrics": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "metric_extractors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "source", "pattern", "type"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "source": {"enum": ["stdout", "stderr"]},
+          "validator": {"type": ["string", "null"]},
+          "pattern": {"type": "string", "minLength": 1},
+          "group": {"type": "integer", "minimum": 0},
+          "type": {"enum": ["integer", "number", "string", "boolean"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "validator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "command": {
+          "oneOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "array", "minItems": 1, "items": {"type": "string"}}
+          ]
+        },
+        "timeout_seconds": {"type": "integer", "minimum": 1},
+        "cwd": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

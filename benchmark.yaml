@@ -1,0 +1,52 @@
+benchmark:
+  name: enterprise-llm-bench
+  version: 0.1.0
+
+paths:
+  tasks: tasks
+  private_tests: private-tests
+  results: results
+  work: .benchmark-work
+
+model:
+  provider: openai_compatible
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+  name: local-model
+  revision: null
+  tokenizer_revision: null
+  quantization: null
+  dtype: null
+  request_timeout_seconds: 600
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    top_k: null
+    max_output_tokens: 12000
+    seed: 42
+
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+
+serving:
+  engine: null
+  engine_version: null
+  launch_command: null
+  tensor_parallel_size: null
+  pipeline_parallel_size: null
+  max_model_length: null
+  prefix_caching: null
+  batch_size: null
+  concurrency: null
+
+runner:
+  response_protocol: file_changes_v1
+  max_context_bytes: 2000000
+  keep_workspaces: false
+  append_jsonl: true
