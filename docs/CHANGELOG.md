@@ -2,6 +2,13 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.10.0 — Tranche Java/Spring/Axon
+
+- Ajout de sept tâches déterministes : JAVA-05/06, SPRING-03/08 et AXON-01/04/05.
+- Les validations couvrent refactoring avec invariants, races concurrentes, rollback
+  transactionnel, retry asynchrone, handlers d'événements, snapshots et sagas.
+- Le catalogue compte désormais 33 tâches exécutables sur 74 scénarios réservés.
+
 ## 0.9.0 — Deuxième tranche de la suite complète
 
 - Ajout de huit tâches déterministes : JAVA-04, SPRING-02, AXON-07, WEB-04,

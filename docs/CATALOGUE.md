@@ -17,8 +17,8 @@ validateurs public/caché et qu'aucune tâche exécutée n'est absente de l'inve
 python scripts/check_catalogue.py
 ~~~
 
-La deuxième tranche fournit 26 tâches exécutables (les sept smoke historiques, seize
-nouvelles tâches core/full et les trois migrations legacy déjà présentes). Les 74
+La troisième tranche fournit 33 tâches exécutables (les sept smoke historiques, vingt-
+trois nouvelles tâches core/full et les trois migrations legacy déjà présentes). Les 74
 scénarios restent listés afin que l'expansion soit mesurable sans fabriquer de
 placeholders superficiels. Une campagne complète ne doit utiliser que les entrées
 `implemented` et publier la révision de chaque `task.yaml`.
