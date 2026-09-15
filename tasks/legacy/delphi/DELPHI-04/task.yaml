@@ -1,0 +1,37 @@
+id: DELPHI-04
+revision: 1
+name: Migrate a Delphi balance rule to Java
+category: delphi
+difficulty: hard
+suites: [core, full]
+tags: [delphi, migration, java, currency, behavior-preservation]
+modes: [one-shot, repair]
+toolchain:
+  language: delphi-java
+  version: "17"
+  requirements: [javac17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/CustomerBalance.java]
+context:
+  documents: [legacy/CustomerBalance.pas, fixtures/manifest.json]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/CustomerBalance.java, public-tests/CustomerBalancePublicTest.java]
+    - name: public-tests
+      command: [java, -cp, out, CustomerBalancePublicTest]
+  hidden:
+    - name: hidden-tests
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/CustomerBalance.java, CustomerBalanceHiddenTest.java]
+    - name: hidden-tests
+      command: [java, -cp, out-hidden, CustomerBalanceHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

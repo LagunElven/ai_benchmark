@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.6.0 — Fixtures legacy et équivalence
+
+- Ajout du manifeste `legacy-fixture` avec statut `verified_syntax` ou
+  `synthetic_pseudocode`, documentation fournie et vecteurs d'équivalence.
+- Ajout des tâches DELPHI-04, WL-04 et ABAL-04 avec migrations Java et tests
+  cachés ; COBOL-05 rejoint le catalogue de vecteurs.
+- Ajout de la détection non destructive des toolchains GnuCOBOL, Delphi,
+  WinDev et ABAL et du script d'exécution des équivalences Java.
+- Les syntaxes WLanguage et ABAL non vérifiables sont explicitement marquées
+  synthétiques ; ABAL signifie Advanced Business Application Language, pas ABAP.
+
 ## 0.5.0 — Framework documents/OCR
 
 - Ajout d'un schéma de source documentaire et d'un générateur hors ligne avec

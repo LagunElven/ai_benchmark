@@ -78,12 +78,17 @@ consommer les PGM générés et transmettre le texte/JSON candidat au scorer.
 
 ## Milestone 7 — Legacy
 
-- [ ] COBOL automatisé avec GnuCOBOL si possible
-- [ ] Delphi fixtures
-- [ ] WLanguage fixtures
-- [ ] ABAL fixtures validés
-- [ ] ABAL avec documentation fournie
-- [ ] migrations legacy → Java avec tests d'équivalence
+- [x] détection et exécution conditionnelle GnuCOBOL si disponible
+- [x] Delphi fixture avec statut de syntaxe explicite
+- [x] WLanguage fixture synthétique documenté
+- [x] ABAL fixture synthétique validé par schéma
+- [x] ABAL avec documentation fournie et distinction ABAL/ABAP
+- [x] migrations legacy → Java avec tests d'équivalence cachés
+
+Les compilateurs propriétaires ou rares ne sont pas supposés présents. La
+commande `python scripts/check_legacy_toolchains.py --json` capture leur état ;
+`python scripts/run_legacy_equivalence.py` exécute les cibles Java et les
+validations cachées des quatre migrations disponibles.
 
 ## Milestone 8 — Long context
 

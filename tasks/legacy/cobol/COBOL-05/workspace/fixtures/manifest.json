@@ -1,0 +1,11 @@
+{
+  "id": "COBOL-05",
+  "language": "cobol",
+  "source_status": "verified_syntax",
+  "source": "legacy/order-total.cbl",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"subtotal": "100.00", "tax": "20.00"}, "expected": "120.00"},
+    {"input": {"subtotal": "9999999.00", "tax": "10.00"}, "expected": "9999999.99"}
+  ]
+}

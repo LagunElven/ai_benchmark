@@ -1,0 +1,37 @@
+id: WL-04
+revision: 1
+name: Migrate a WLanguage late-fee rule to Java
+category: windev
+difficulty: hard
+suites: [core, full]
+tags: [windev, wlanguage, migration, java, business-rule]
+modes: [one-shot, repair]
+toolchain:
+  language: wlanguage-java
+  version: "17"
+  requirements: [javac17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/LateFee.java]
+context:
+  documents: [legacy/late-fee.wlanguage.pseudo, fixtures/manifest.json, fixtures/wlanguage-reference.md]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/LateFee.java, public-tests/LateFeePublicTest.java]
+    - name: public-tests
+      command: [java, -cp, out, LateFeePublicTest]
+  hidden:
+    - name: hidden-tests
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/LateFee.java, LateFeeHiddenTest.java]
+    - name: hidden-tests
+      command: [java, -cp, out-hidden, LateFeeHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

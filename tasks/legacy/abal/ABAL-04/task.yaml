@@ -1,0 +1,37 @@
+id: ABAL-04
+revision: 1
+name: Apply supplied ABAL documentation during a Java migration
+category: abal
+difficulty: hard
+suites: [core, full]
+tags: [abal, advanced-business-application-language, with-docs, migration, java]
+modes: [one-shot, repair]
+toolchain:
+  language: abal-java
+  version: "17"
+  requirements: [javac17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 7000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/BenefitRule.java]
+context:
+  documents: [legacy/benefit.abal.pseudo, fixtures/abal-reference.md, fixtures/manifest.json]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/BenefitRule.java, public-tests/BenefitRulePublicTest.java]
+    - name: public-tests
+      command: [java, -cp, out, BenefitRulePublicTest]
+  hidden:
+    - name: hidden-tests
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/BenefitRule.java, BenefitRuleHiddenTest.java]
+    - name: hidden-tests
+      command: [java, -cp, out-hidden, BenefitRuleHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

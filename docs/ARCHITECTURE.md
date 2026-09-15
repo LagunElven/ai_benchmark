@@ -22,6 +22,8 @@ réparation et le serving GPU sont des extensions distinctes.
   reproductibles sans dépendance OCR native.
 - `runner/document_metrics.py` calcule CER/WER et les métriques de sortie structurée sans
   les réduire à un score unique.
+- `runner/legacy.py` valide les manifestes legacy, compare des vecteurs d'équivalence et
+  détecte les compilateurs natifs sans les exécuter implicitement.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
 
 ## Protocole de réponse `file_changes_v1`

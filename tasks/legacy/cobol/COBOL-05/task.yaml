@@ -21,7 +21,7 @@ workspace:
     - {source: public-tests, target: public-tests}
   expected_modified_files: [src/main/java/OrderTotal.java]
 context:
-  documents: [legacy/order-total.cbl]
+  documents: [legacy/order-total.cbl, fixtures/manifest.json]
 validation:
   public:
     - name: compile

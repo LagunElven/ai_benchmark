@@ -1,0 +1,5 @@
+// SYNTHETIC PSEUDOCODE — not verified proprietary WLanguage syntax.
+PROCEDURE ComputeLateFee(Amount, DaysLate)
+IF DaysLate <= 0 THEN RESULT 0
+IF DaysLate > 30 THEN RESULT Amount * 10 / 100
+RESULT Amount * 5 / 100

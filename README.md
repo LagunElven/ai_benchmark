@@ -51,6 +51,7 @@ les résultats.
 - `docs/ARCHITECTURE.md` : composants et frontières de sécurité.
 - `docs/EXECUTION_PROTOCOL.md` : cycle précis d'un run.
 - `docs/DOCUMENTS.md` : génération des fixtures et scoring OCR/documents.
+- `docs/LEGACY.md` : statuts des fixtures legacy et équivalences Java.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.
 

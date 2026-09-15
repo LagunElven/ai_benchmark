@@ -1,0 +1,11 @@
+{
+  "id": "ABAL-04",
+  "language": "abal",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/benefit.abal.pseudo",
+  "reference_docs": ["fixtures/abal-reference.md"],
+  "equivalence_vectors": [
+    {"input": {"tenure_months": 0, "base_amount": "100.00"}, "expected": "100.00"},
+    {"input": {"tenure_months": 12, "base_amount": "100.00"}, "expected": "95.00"}
+  ]
+}

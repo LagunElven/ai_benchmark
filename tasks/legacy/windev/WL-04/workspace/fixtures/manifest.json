@@ -1,0 +1,12 @@
+{
+  "id": "WL-04",
+  "language": "wlanguage",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/late-fee.wlanguage.pseudo",
+  "reference_docs": ["fixtures/wlanguage-reference.md"],
+  "equivalence_vectors": [
+    {"input": {"amount": "100.00", "days_late": 0}, "expected": "0.00"},
+    {"input": {"amount": "100.00", "days_late": 10}, "expected": "5.00"},
+    {"input": {"amount": "100.00", "days_late": 31}, "expected": "10.00"}
+  ]
+}

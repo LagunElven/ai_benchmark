@@ -1,0 +1,11 @@
+{
+  "id": "DELPHI-04",
+  "language": "delphi",
+  "source_status": "verified_syntax",
+  "source": "legacy/CustomerBalance.pas",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"gross": "100.00", "credit": "20.00"}, "expected": "80.00"},
+    {"input": {"gross": "10.00", "credit": "20.00"}, "expected": "0.00"}
+  ]
+}
