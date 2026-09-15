@@ -9,20 +9,20 @@ categories:
       - {id: JAVA-04, name: Synchronization and thread safety, status: implemented}
       - {id: JAVA-05, name: Behavior-preserving business refactor, status: implemented}
       - {id: JAVA-06, name: Intermittent race diagnosis, status: implemented}
-      - {id: JAVA-07, name: Optimization without regression, status: planned}
-      - {id: JAVA-08, name: Backward-compatible API evolution, status: planned}
+      - {id: JAVA-07, name: Optimization without regression, status: implemented}
+      - {id: JAVA-08, name: Backward-compatible API evolution, status: implemented}
   - id: spring
     target: 10
     tasks:
       - {id: SPRING-01, name: REST request validation contract, status: implemented}
       - {id: SPRING-02, name: Exception handling, status: implemented}
       - {id: SPRING-03, name: Transaction rollback behavior, status: implemented}
-      - {id: SPRING-04, name: Hibernate dirty checking, status: planned}
+      - {id: SPRING-04, name: Hibernate dirty checking, status: implemented}
       - {id: SPRING-05, name: Optimistic locking, status: implemented}
-      - {id: SPRING-06, name: Dynamic update and concurrency, status: planned}
-      - {id: SPRING-07, name: JPA N+1 diagnosis, status: planned}
+      - {id: SPRING-06, name: Dynamic update and concurrency, status: implemented}
+      - {id: SPRING-07, name: JPA N+1 diagnosis, status: implemented}
       - {id: SPRING-08, name: Reactor asynchronous retry, status: implemented}
-      - {id: SPRING-09, name: Bearer and CSRF security, status: planned}
+      - {id: SPRING-09, name: Bearer and CSRF security, status: implemented}
       - {id: SPRING-10, name: Multi-service transaction bug, status: planned}
   - id: axon
     target: 10
@@ -32,11 +32,11 @@ categories:
       - {id: AXON-03, name: Multi-revision upcaster chain, status: implemented}
       - {id: AXON-04, name: Obsolete snapshot filtering, status: implemented}
       - {id: AXON-05, name: Saga association handling, status: implemented}
-      - {id: AXON-06, name: Multiple start saga paths, status: planned}
+      - {id: AXON-06, name: Multiple start saga paths, status: implemented}
       - {id: AXON-07, name: Idempotent projection, status: implemented}
-      - {id: AXON-08, name: Replay and projection rebuild, status: planned}
-      - {id: AXON-09, name: Optimistic locking and retries, status: planned}
-      - {id: AXON-10, name: Multi-aggregate diagnosis, status: planned}
+      - {id: AXON-08, name: Replay and projection rebuild, status: implemented}
+      - {id: AXON-09, name: Optimistic locking and retries, status: implemented}
+      - {id: AXON-10, name: Multi-aggregate diagnosis, status: implemented}
   - id: web
     target: 10
     tasks:

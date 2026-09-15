@@ -2,6 +2,14 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.11.0 — Couverture Java/Spring/Axon renforcée
+
+- Java atteint ses 8 scénarios avec JAVA-07 (optimisation) et JAVA-08 (évolution API).
+- Axon atteint ses 10 scénarios avec AXON-06 et AXON-08 à AXON-10.
+- Spring ajoute SPRING-04, SPRING-06, SPRING-07 et SPRING-09 ; seul SPRING-10 reste
+  planifié dans cette famille.
+- Le catalogue compte désormais 43 tâches exécutables sur 74 scénarios réservés.
+
 ## 0.10.0 — Tranche Java/Spring/Axon
 
 - Ajout de sept tâches déterministes : JAVA-05/06, SPRING-03/08 et AXON-01/04/05.

@@ -1,0 +1,35 @@
+id: AXON-08
+revision: 1
+name: Rebuild a projection deterministically during replay
+category: axon
+difficulty: hard
+suites: [core, full]
+tags: [axon, replay, projection, rebuild, event-sourcing]
+modes: [one-shot, repair]
+toolchain:
+  language: java
+  version: "17"
+  requirements: [javac 17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/BalanceProjection.java]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/BalanceProjection.java, public-tests/BalanceProjectionPublicTest.java]
+    - name: public behavior
+      command: [java, -cp, out, BalanceProjectionPublicTest]
+  hidden:
+    - name: hidden compile
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/BalanceProjection.java, BalanceProjectionHiddenTest.java]
+    - name: hidden behavior
+      command: [java, -cp, out-hidden, BalanceProjectionHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

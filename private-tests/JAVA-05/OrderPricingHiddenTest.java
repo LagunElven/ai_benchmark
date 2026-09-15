@@ -17,7 +17,7 @@ public final class OrderPricingHiddenTest {
         for (var invalid : new OrderPricing.Line[] {
                 null, new OrderPricing.Line("bad", 0, 10), new OrderPricing.Line("bad", 1, -1)}) {
             try {
-                OrderPricing.totalCents(java.util.List.of(invalid), false);
+                OrderPricing.totalCents(java.util.Arrays.asList(invalid), false);
                 throw new AssertionError("invalid line accepted");
             } catch (IllegalArgumentException expected) {
                 // expected
