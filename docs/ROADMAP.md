@@ -145,11 +145,15 @@ serveur ou la machine ne les expose pas.
 
 ## Milestone 11 — GPU campaigns
 
-Préparer des playbooks reproductibles pour :
+Le protocole des campagnes et l'ordre de reprise sont définis dans
+[`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Les campagnes réelles restent
+à exécuter sur les accélérateurs cibles.
 
-- [ ] H200
-- [ ] RTX PRO 6000 Blackwell
-- [ ] DGX Spark
+- [x] protocole de comparaison contrôlée BF16/Q8_0 et comparaison opérationnelle
+- [x] matrice initiale C-003 à C-008
+- [ ] playbook reproductible H200
+- [ ] playbook reproductible RTX PRO 6000 Blackwell
+- [ ] playbook reproductible DGX Spark
 
 Chaque playbook doit documenter :
 

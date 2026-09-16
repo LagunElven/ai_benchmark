@@ -13,6 +13,10 @@ Cette matrice reste volontairement simple pour la milestone 10. La présentation
 
 Les résultats détaillés sont disponibles dans les rapports associés. Les résultats bruts restent dans results/raw et sont indexés par results/raw/runs.jsonl.
 
+Les campagnes GPU réservées pour la reprise de la milestone 11 sont décrites
+dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Elles ne sont pas
+ajoutées à la matrice de résultats avant leur exécution effective.
+
 ## Matrice qualité
 
 Les valeurs de catégorie sont au format réussites/total. Les tokens sont ceux rapportés par l’endpoint OpenAI-compatible et le temps est le temps cumulé des runs qualité.

@@ -60,6 +60,7 @@ les résultats.
 - `docs/LEGACY.md` : statuts des fixtures legacy et équivalences Java.
 - `docs/CONTEXT.md` : génération et mesure des variantes long-context.
 - `docs/SERVING.md` : matrice, exécution et métriques du benchmark serving.
+- `docs/GPU_CAMPAIGN_PLAN.md` : protocole et ordre des futures campagnes GPU.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.

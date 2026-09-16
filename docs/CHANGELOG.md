@@ -2,6 +2,15 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.21.0 — Protocole des campagnes GPU
+
+- Ajout du plan reproductible des campagnes H200 et RTX PRO 6000 Blackwell.
+- Définition des comparaisons contrôlées BF16/Q8_0, de la piste exploratoire
+  UD-Q8_K_XL et de la séparation entre qualité contrôlée et profils serving
+  optimisés par matériel.
+- Ajout d'un préflight de capacité 64k/128k/262k et de critères explicites
+  pour conserver les OOM, refus de contexte et écarts de configuration.
+
 ## 0.20.0 — Socle serving reproductible
 
 - Ajout d'un client OpenAI-compatible générique en streaming SSE avec mesure du TTFT,
