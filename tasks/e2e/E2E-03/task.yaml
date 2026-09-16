@@ -1,0 +1,37 @@
+id: E2E-03
+revision: 1
+name: Modernize a COBOL ledger rule behind a Java API
+category: e2e
+difficulty: hard
+suites: [core, full]
+tags: [e2e, legacy, cobol, java, spring, migration, behavior-preservation]
+modes: [one-shot, repair]
+toolchain:
+  language: java-legacy
+  version: "17"
+  requirements: [javac17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 7000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/LedgerService.java]
+context:
+  documents: [legacy/ledger-adjust.cbl, fixtures/manifest.json]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/LedgerService.java, src/main/java/LedgerApi.java, public-tests/LedgerApiPublicTest.java]
+    - name: public behavior
+      command: [java, -cp, out, LedgerApiPublicTest]
+  hidden:
+    - name: hidden compile
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/LedgerService.java, src/main/java/LedgerApi.java, LedgerApiHiddenTest.java]
+    - name: hidden behavior
+      command: [java, -cp, out-hidden, LedgerApiHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

@@ -17,8 +17,8 @@ validateurs public/caché et qu'aucune tâche exécutée n'est absente de l'inve
 python scripts/check_catalogue.py
 ~~~
 
-La tranche Context fournit 72 tâches exécutables (les sept smoke historiques, les
-variantes long-context matérialisées et les tâches core/full déjà présentes). Les 74
-scénarios restent listés afin que l'expansion soit mesurable sans fabriquer de
-placeholders superficiels. Une campagne complète ne doit utiliser que les entrées
+La milestone 9 fournit 74 tâches exécutables (les sept smoke historiques, les
+variantes long-context matérialisées, les scénarios E2E et les tâches core/full déjà
+présentes). Les 74 scénarios restent listés comme inventaire complet. Une campagne
+complète ne doit utiliser que les entrées
 `implemented` et publier la révision de chaque `task.yaml`.

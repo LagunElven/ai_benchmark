@@ -105,5 +105,5 @@ categories:
     target: 3
     tasks:
       - {id: E2E-01, name: Spring REST DTO to Angular UI, status: implemented}
-      - {id: E2E-02, name: Angular command to Axon and JPA projection, status: planned}
-      - {id: E2E-03, name: Legacy rule modernization, status: planned}
+      - {id: E2E-02, name: Angular command to Axon and JPA projection, status: implemented}
+      - {id: E2E-03, name: Legacy rule modernization, status: implemented}

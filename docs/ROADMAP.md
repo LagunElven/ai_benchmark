@@ -116,13 +116,13 @@ Atteindre progressivement environ 74 tâches qualité.
 - [x] ABAL 4 (4 tâches implémentées)
 - [x] Documents 10 (10 tâches implémentées)
 - [x] Context 6 (6 variantes exécutables de 10k à 200k)
-- [ ] E2E 3 (1 nouvelle tâche implémentée, 2 planifiées)
+- [x] E2E 3 (3 tâches implémentées)
 
-La tranche Context porte l'inventaire complet dans `catalogue.yaml` et fournit 72
-tâches exécutables, sans transformer les deux scénarios E2E restants en stubs trompeurs.
+La milestone 9 porte l'inventaire complet dans `catalogue.yaml` et fournit 74
+tâches exécutables, sans transformer les scénarios en stubs trompeurs.
 `python scripts/check_catalogue.py` contrôle la cohérence entre l'inventaire et les
-dossiers découverts. Les entrées seront promues une par une après ajout de fixtures,
-tests cachés et validation déterministe.
+dossiers découverts. Les tâches E2E couvrent désormais les contrats Angular/Axon/JPA
+et la modernisation d'une règle COBOL vers Java avec validation déterministe.
 
 ## Milestone 10 — Serving
 

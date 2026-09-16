@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.19.0 — Milestone 9 complète
+
+- Ajout de E2E-02 avec un contrat multi-couches Angular → commande → événement Axon
+  → projection JPA, incluant accumulation, versions contiguës et validation cachée.
+- Ajout de E2E-03 avec une règle COBOL fournie, un service Java de modernisation et
+  un adaptateur API, avec équivalences décimales, opérations ordonnées et erreurs.
+- Les contrats de couches restent indépendants des frameworks natifs afin de rendre
+  les validations reproductibles sur une machine de développement standard.
+- Les 74 tâches du catalogue sont désormais exécutables et validées publiquement et
+  secrètement ; la milestone 9 est complète.
+
 ## 0.18.0 — Couverture Context complète
 
 - Ajout de CTX-02 à CTX-06 comme variantes matérialisées du même scénario de
