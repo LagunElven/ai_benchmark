@@ -1,0 +1,31 @@
+id: WEB-08
+revision: 1
+name: Guard an Ionic-style navigation stack
+category: web
+difficulty: medium
+suites: [core, full]
+tags: [web, ionic, navigation, routing, async-guard]
+modes: [one-shot, repair]
+toolchain:
+  language: javascript
+  version: "node 18+"
+  requirements: [node]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [navigation.js]
+validation:
+  public:
+    - name: public behavior
+      command: [node, public-tests/navigation-public-test.js]
+  hidden:
+    - name: hidden behavior
+      command: [node, navigation-hidden-test.js]
+metrics: [hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

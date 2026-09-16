@@ -1,0 +1,31 @@
+id: WEB-10
+revision: 1
+name: Preserve an order contract across Web layers
+category: web
+difficulty: hard
+suites: [core, full]
+tags: [web, angular, api, service, component, template, contract]
+modes: [one-shot, repair]
+toolchain:
+  language: javascript
+  version: "node 18+"
+  requirements: [node]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 7000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [order-service.js, orders-component.js, order-card.html]
+validation:
+  public:
+    - name: public behavior
+      command: [node, public-tests/order-feature-public-test.js]
+  hidden:
+    - name: hidden behavior
+      command: [node, order-feature-hidden-test.js]
+metrics: [hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

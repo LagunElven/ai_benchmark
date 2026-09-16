@@ -2,6 +2,13 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.13.0 — Couverture Web complète
+
+- Ajout de WEB-07 à WEB-10 : état Signals/RxJS, navigation Ionic avec garde asynchrone,
+  callback OAuth via deep link Capacitor et fonctionnalité Web multi-couches.
+- Le catalogue Web atteint ses 10 tâches exécutables et le catalogue global 51 tâches
+  sur 74 scénarios réservés.
+
 ## 0.12.0 — Spring complète et nouvelle tranche Web
 
 - SPRING-10 complète la couverture Spring avec une orchestration multi-service et

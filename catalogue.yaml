@@ -46,10 +46,10 @@ categories:
       - {id: WEB-04, name: HTTP interceptor contract, status: implemented}
       - {id: WEB-05, name: Bearer and CSRF handling, status: implemented}
       - {id: WEB-06, name: Complex reactive form, status: implemented}
-      - {id: WEB-07, name: Signals and RxJS state, status: planned}
-      - {id: WEB-08, name: Ionic navigation, status: planned}
-      - {id: WEB-09, name: OAuth and Capacitor deep link, status: planned}
-      - {id: WEB-10, name: Cross-layer web feature, status: planned}
+      - {id: WEB-07, name: Signals and RxJS state, status: implemented}
+      - {id: WEB-08, name: Ionic navigation, status: implemented}
+      - {id: WEB-09, name: OAuth and Capacitor deep link, status: implemented}
+      - {id: WEB-10, name: Cross-layer web feature, status: implemented}
   - id: cobol
     target: 5
     tasks:
