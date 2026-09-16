@@ -1,6 +1,6 @@
 benchmark:
-  name: enterprise-llm-bench
-  version: 0.20.0
+  name: enterprise-llm-bench-gemma4-thinking-100k
+  version: 0.20.0-gemma4-thinking-100k
 
 paths:
   tasks: tasks
@@ -13,45 +13,46 @@ model:
   base_url: http://127.0.0.1:8888/v1
   api_key_env: BENCHMARK_API_KEY
   name: unsloth/gemma-4-12B-it-qat-GGUF
-  revision: null
+  revision: 980b060c40a8539ac159e0501a3e0f66a6365af3
   tokenizer_revision: null
   quantization: UD-Q4_K_XL
   dtype: GGUF/QAT
-  request_timeout_seconds: 600
+  request_timeout_seconds: 1800
   generation:
-    temperature: 0.0
-    top_p: 1.0
-    top_k: null
-    max_output_tokens: 12000
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 64
+    max_output_tokens: 12032
     seed: 42
     chat_template_kwargs:
-      enable_thinking: false
+      enable_thinking: true
 
 hardware:
-  accelerator_model: null
-  gpu_count: null
-  gpu_memory_gb: null
-  driver_version: null
+  accelerator_model: NVIDIA GeForce RTX 5070 Ti Laptop GPU
+  gpu_count: 1
+  gpu_memory_gb: 12.227
+  driver_version: "582.05"
   cuda_version: null
   cpu_model: null
   host_memory_gb: null
 
 serving:
-  engine: null
+  engine: unsloth-desktop/llama.cpp
   engine_version: null
   launch_command: null
-  tensor_parallel_size: null
+  tensor_parallel_size: 1
   pipeline_parallel_size: null
-  max_model_length: null
+  max_model_length: 100000
   prefix_caching: null
-  batch_size: null
-  concurrency: null
+  batch_size: 4
+  concurrency: 1
 
 runner:
   response_protocol: file_changes_v1
   max_context_bytes: 2000000
   max_repair_iterations: 3
-  max_repair_total_output_tokens: 36000
-  max_repair_total_seconds: 1800
+  max_repair_total_output_tokens: 40000
+  max_repair_total_seconds: 7200
+  override_task_max_output_tokens: true
   keep_workspaces: false
   append_jsonl: true

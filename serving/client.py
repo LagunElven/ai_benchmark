@@ -124,11 +124,13 @@ class OpenAICompatibleServingClient:
         *,
         timeout_seconds: float,
         api_key_env: str | None = None,
+        chat_template_kwargs: dict[str, Any] | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout_seconds = timeout_seconds
         self.api_key_env = api_key_env
+        self.chat_template_kwargs = chat_template_kwargs
 
     def complete_stream(
         self,
@@ -152,6 +154,8 @@ class OpenAICompatibleServingClient:
         }
         if seed is not None:
             payload["seed"] = seed
+        if self.chat_template_kwargs is not None:
+            payload["chat_template_kwargs"] = self.chat_template_kwargs
         headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
         if self.api_key_env and os.environ.get(self.api_key_env):
             headers["Authorization"] = f"Bearer {os.environ[self.api_key_env]}"
@@ -253,6 +257,22 @@ class OpenAICompatibleServingClient:
                 if not data or data == "[DONE]":
                     continue
                 payload = json.loads(data)
+                stream_error = payload.get("error")
+                if isinstance(stream_error, dict):
+                    message = str(stream_error.get("message", stream_error))
+                    ended = time.monotonic()
+                    kind = _error_kind(None, message)
+                    return StreamMeasurement(
+                        status=kind,
+                        started=started,
+                        ended=ended,
+                        first_token=first_token,
+                        input_tokens=input_tokens,
+                        output_tokens=output_tokens,
+                        error_type=_error_type(None, message),
+                        error_message=message[:500],
+                        server_metrics=_server_metrics(headers),
+                    )
                 prompt_count, completion_count = _usage(payload)
                 input_tokens = prompt_count if prompt_count is not None else input_tokens
                 output_tokens = completion_count if completion_count is not None else output_tokens

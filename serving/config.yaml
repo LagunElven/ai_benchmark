@@ -2,14 +2,14 @@ schema_version: "1.0"
 name: enterprise-serving-matrix
 version: "0.1.0"
 endpoint:
-  base_url: http://127.0.0.1:8000/v1
+  base_url: http://127.0.0.1:8888/v1
   api_key_env: BENCHMARK_API_KEY
-model: local-model
+model: unsloth/gemma-4-12B-it-qat-GGUF
 model_metadata:
   revision: null
   tokenizer_revision: null
-  quantization: null
-  dtype: null
+  quantization: UD-Q4_K_XL
+  dtype: GGUF/QAT
 hardware:
   accelerator_model: null
   gpu_count: null
@@ -40,3 +40,5 @@ request:
   top_p: 1.0
   seed: 42
   stream: true
+  chat_template_kwargs:
+    enable_thinking: false

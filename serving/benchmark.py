@@ -166,6 +166,7 @@ class ServingBenchmark:
             data["model"],
             timeout_seconds=request_config["timeout_seconds"],
             api_key_env=endpoint.get("api_key_env"),
+            chat_template_kwargs=request_config.get("chat_template_kwargs"),
         )
         run_id = f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%S.%fZ')}-serving-{uuid.uuid4().hex[:8]}"
         started_at = _utc_now()

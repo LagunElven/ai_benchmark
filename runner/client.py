@@ -53,8 +53,12 @@ class OpenAICompatibleClient:
             "max_tokens": min(generation["max_output_tokens"], max_output_tokens),
             "stream": False,
         }
+        if generation.get("top_k") is not None:
+            payload["top_k"] = generation["top_k"]
         if generation.get("seed") is not None:
             payload["seed"] = generation["seed"]
+        if generation.get("chat_template_kwargs") is not None:
+            payload["chat_template_kwargs"] = generation["chat_template_kwargs"]
 
         headers = {"Content-Type": "application/json"}
         api_key_env = self.model.get("api_key_env")

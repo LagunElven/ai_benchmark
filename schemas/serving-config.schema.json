@@ -81,7 +81,8 @@
         "temperature": {"type": "number", "minimum": 0},
         "top_p": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
         "seed": {"type": ["integer", "null"]},
-        "stream": {"const": true}
+        "stream": {"const": true},
+        "chat_template_kwargs": {"type": ["object", "null"]}
       }
     }
   }

@@ -9,7 +9,9 @@ SYSTEM_PROMPT = """You are completing a software benchmark task in an isolated w
 Return only a JSON object matching file_changes_v1:
 {"changes":[{"path":"relative/path","content":"complete UTF-8 file content"}]}
 Use forward-slash relative paths. Do not include markdown fences, explanations, commands,
-absolute paths, parent traversal, or files that do not need to change."""
+absolute paths, parent traversal, or files that do not need to change. The content value is
+a JSON string: escape every newline as \\n, every backslash as \\\\, and every embedded
+double quote as \\". Never place a literal line break inside a JSON string."""
 
 
 def _is_probably_binary(content: bytes) -> bool:

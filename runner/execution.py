@@ -16,7 +16,7 @@ from runner.client import ModelClient, create_client
 from runner.config import BenchmarkConfig
 from runner.diffing import PatchMetrics, calculate_patch_metrics, snapshot_files
 from runner.discovery import TaskDefinition
-from runner.errors import BenchmarkError
+from runner.errors import BenchmarkError, ChangeProtocolError
 from runner.prompting import build_messages
 from runner.results import ResultStore
 from runner.validation import CommandResult, format_log, run_validator
@@ -132,6 +132,16 @@ def _repair_feedback(iteration: int, feedback: str) -> str:
         "Only the public validator output below is available; hidden tests and hidden logs "
         "must not be inferred or requested. Return only the file_changes_v1 JSON object.\n\n"
         f"{feedback}"
+    )
+
+
+def _protocol_feedback(iteration: int, error: str) -> str:
+    return (
+        f"# File-change protocol feedback after iteration {iteration}\n\n"
+        "The previous response could not be applied to the workspace. Return only a valid "
+        "file_changes_v1 JSON object. Escape newlines inside each content string as \\n, "
+        "escape backslashes as \\\\, and do not use markdown fences or explanations.\n\n"
+        f"Parser error: {error}"
     )
 
 
@@ -302,9 +312,10 @@ def run_one_shot(
             messages = build_messages(task, workspace, config.data["runner"]["max_context_bytes"])
             model_client = client or create_client(config)
             result["usage"]["model_calls"] = 1
-            response = model_client.complete(
-                messages, max_output_tokens=task.data["runtime"]["max_output_tokens"]
-            )
+            task_output_budget = task.data["runtime"]["max_output_tokens"]
+            if config.data["runner"].get("override_task_max_output_tokens"):
+                task_output_budget = config.data["model"]["generation"]["max_output_tokens"]
+            response = model_client.complete(messages, max_output_tokens=task_output_budget)
             _record_model_response(result, store, response)
             _accumulate_usage(result, response)
 
@@ -407,6 +418,8 @@ def run_repair(
         config.data["runner"]["max_repair_iterations"],
     )
     max_output_tokens = task.data["runtime"]["max_output_tokens"]
+    if config.data["runner"].get("override_task_max_output_tokens"):
+        max_output_tokens = config.data["model"]["generation"]["max_output_tokens"]
     max_total_output_tokens = config.data["runner"]["max_repair_total_output_tokens"]
     max_total_seconds = config.data["runner"]["max_repair_total_seconds"]
     requested_output_tokens = 0
@@ -460,7 +473,6 @@ def run_repair(
                     _accumulate_usage(result, response)
                     apply_file_changes(response.content, workspace)
                 except Exception as exc:
-                    fatal_error = True
                     message = str(exc)
                     result["errors"].append(
                         {
@@ -479,6 +491,10 @@ def run_repair(
                             "error": message,
                         }
                     )
+                    if isinstance(exc, ChangeProtocolError):
+                        feedback = _protocol_feedback(iteration, message)
+                        continue
+                    fatal_error = True
                     break
 
                 result["patch"] = calculate_patch_metrics(
