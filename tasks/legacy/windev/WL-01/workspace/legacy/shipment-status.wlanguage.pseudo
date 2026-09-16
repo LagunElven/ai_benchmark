@@ -1,0 +1,8 @@
+// SYNTHETIC WLANGUAGE PSEUDOCODE — not verified proprietary syntax.
+PROCEDURE ShipmentStatus(OrderedUnits, ShippedUnits, DaysSincePromise)
+IF OrderedUnits < 0 OR ShippedUnits < 0 OR ShippedUnits > OrderedUnits OR DaysSincePromise < 0 THEN
+    ERROR "invalid shipment"
+Remaining = OrderedUnits - ShippedUnits
+IF Remaining = 0 THEN RESULT "COMPLETE"
+IF DaysSincePromise > 2 THEN RESULT "OVERDUE"
+RESULT "OPEN"

@@ -1,0 +1,12 @@
+{
+  "id": "WL-01",
+  "language": "wlanguage",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/shipment-status.wlanguage.pseudo",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"ordered_units": 10, "shipped_units": 10, "days_since_promise": 12}, "expected": "COMPLETE"},
+    {"input": {"ordered_units": 10, "shipped_units": 6, "days_since_promise": 2}, "expected": "OPEN"},
+    {"input": {"ordered_units": 10, "shipped_units": 6, "days_since_promise": 3}, "expected": "OVERDUE"}
+  ]
+}

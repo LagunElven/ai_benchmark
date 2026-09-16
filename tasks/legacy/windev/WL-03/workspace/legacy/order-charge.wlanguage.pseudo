@@ -1,0 +1,11 @@
+// SYNTHETIC WLANGUAGE PSEUDOCODE — not verified proprietary syntax.
+PROCEDURE TotalOrderCharge(Subtotal, DeliveryMode)
+IF Subtotal < 0 THEN ERROR "invalid subtotal"
+Mode = Upper(Trim(DeliveryMode))
+SWITCH Mode
+  CASE "PICKUP": Shipping = 0.00
+  CASE "EXPRESS": Shipping = 12.50
+  CASE "STANDARD":
+    IF Subtotal >= 50.00 THEN Shipping = 0.00 ELSE Shipping = 6.90
+  OTHERWISE: ERROR "unknown delivery mode"
+RESULT Round(Subtotal + Shipping, 2)

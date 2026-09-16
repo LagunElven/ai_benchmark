@@ -23,9 +23,13 @@ class LegacyFixtureTests(unittest.TestCase):
                 "DELPHI-02",
                 "DELPHI-03",
                 "DELPHI-04",
+                "WL-01",
                 "WL-02",
+                "WL-03",
                 "WL-04",
+                "ABAL-01",
                 "ABAL-02",
+                "ABAL-03",
                 "ABAL-04",
             },
         )

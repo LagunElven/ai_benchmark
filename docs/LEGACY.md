@@ -41,6 +41,16 @@ La milestone 9 complète ensuite Delphi avec deux scénarios Object Pascal stand
 | DELPHI-01 | FulfillmentStatus.pas | verified_syntax | Java enum |
 | DELPHI-02 | ResourceOwner.pas | verified_syntax | Java AutoCloseable |
 
+La milestone 9 complète également WinDev et ABAL avec des sources explicitement
+synthétiques et des contrats Java exécutables :
+
+| tâche | source | statut | cible |
+|---|---|---|---|
+| WL-01 | shipment-status.wlanguage.pseudo | synthetic_pseudocode | Java enum |
+| WL-03 | order-charge.wlanguage.pseudo | synthetic_pseudocode | Java BigDecimal |
+| ABAL-01 | tax-band.abal.pseudo | synthetic_pseudocode | Java enum |
+| ABAL-03 | annual-allowance.abal.pseudo | synthetic_pseudocode | Java BigDecimal |
+
 ABAL signifie Advanced Business Application Language, et non SAP ABAP. Le
 fixture ABAL contient une référence fournie et teste explicitement l'usage de
 la documentation.

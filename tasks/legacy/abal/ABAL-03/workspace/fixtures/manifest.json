@@ -1,0 +1,12 @@
+{
+  "id": "ABAL-03",
+  "language": "abal",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/annual-allowance.abal.pseudo",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"claim_amount": "80.00", "remaining_cap": "100.00", "approved": true}, "expected": "80.00"},
+    {"input": {"claim_amount": "80.00", "remaining_cap": "100.00", "approved": false}, "expected": "0.00"},
+    {"input": {"claim_amount": "120.00", "remaining_cap": "100.00", "approved": true}, "expected": "100.00"}
+  ]
+}

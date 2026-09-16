@@ -15,7 +15,7 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(sum(category["target"] for category in catalogue["categories"]), 74)
         summary = catalogue_coverage(root)
         self.assertEqual(summary["target_tasks"], 74)
-        self.assertEqual(summary["implemented_tasks"], 56)
+        self.assertEqual(summary["implemented_tasks"], 60)
         self.assertEqual(summary["missing_implemented"], [])
         self.assertEqual(summary["category_mismatches"], [])
         self.assertEqual(summary["missing_validation"], [])

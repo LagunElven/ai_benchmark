@@ -68,16 +68,16 @@ categories:
   - id: windev
     target: 4
     tasks:
-      - {id: WL-01, name: WLanguage comprehension, status: planned}
+      - {id: WL-01, name: WLanguage comprehension, status: implemented}
       - {id: WL-02, name: HFSQL access logic, status: implemented}
-      - {id: WL-03, name: Business treatment correction, status: planned}
+      - {id: WL-03, name: Business treatment correction, status: implemented}
       - {id: WL-04, name: WLanguage to Java migration, status: implemented}
   - id: abal
     target: 4
     tasks:
-      - {id: ABAL-01, name: ABAL program comprehension, status: planned}
+      - {id: ABAL-01, name: ABAL program comprehension, status: implemented}
       - {id: ABAL-02, name: ABAL business rule modification, status: implemented}
-      - {id: ABAL-03, name: ABAL to Java migration, status: planned}
+      - {id: ABAL-03, name: ABAL to Java migration, status: implemented}
       - {id: ABAL-04, name: Documentation-assisted ABAL task, status: implemented}
   - id: documents
     target: 10

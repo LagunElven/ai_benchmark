@@ -2,6 +2,15 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.16.0 — Couverture WinDev et ABAL complète
+
+- Ajout de WL-01/WL-03 et ABAL-01/ABAL-03 avec pseudo-sources explicitement marquées
+  `synthetic_pseudocode`, contrats documentés et validations Java publiques/cachées.
+- Les catégories WinDev et ABAL atteignent chacune 4 tâches exécutables ; le catalogue
+  global atteint 60 tâches sur 74 scénarios réservés.
+- Les scénarios ABAL-01/ABAL-03 restent des évaluations sans documentation propriétaire
+  fournie, tandis qu'ABAL-04 conserve le scénario assisté par documentation.
+
 ## 0.15.0 — Couverture Delphi complète
 
 - Ajout de DELPHI-01 (compréhension d'une règle de stock) et DELPHI-02 (cycle de vie

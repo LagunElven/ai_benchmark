@@ -1,0 +1,12 @@
+{
+  "id": "WL-03",
+  "language": "wlanguage",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/order-charge.wlanguage.pseudo",
+  "reference_docs": ["fixtures/wlanguage-reference.md"],
+  "equivalence_vectors": [
+    {"input": {"subtotal": "40.00", "mode": "STANDARD"}, "expected": "46.90"},
+    {"input": {"subtotal": "50.00", "mode": "STANDARD"}, "expected": "50.00"},
+    {"input": {"subtotal": "40.00", "mode": "EXPRESS"}, "expected": "52.50"}
+  ]
+}

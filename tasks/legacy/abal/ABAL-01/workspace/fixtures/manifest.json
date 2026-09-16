@@ -1,0 +1,12 @@
+{
+  "id": "ABAL-01",
+  "language": "abal",
+  "source_status": "synthetic_pseudocode",
+  "source": "legacy/tax-band.abal.pseudo",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"annual_income_cents": "500000", "resident": true}, "expected": "BASIC"},
+    {"input": {"annual_income_cents": "1000000", "resident": true}, "expected": "BASIC"},
+    {"input": {"annual_income_cents": "4000000", "resident": false}, "expected": "NON_RESIDENT"}
+  ]
+}
