@@ -1,0 +1,33 @@
+id: DOC-04
+revision: 1
+name: Extract a rotated delivery document
+category: documents
+difficulty: medium
+suites: [core, full]
+tags: [documents, rotated, orientation, extraction, json, dates]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [extract.py]
+context:
+  inputs: [rotated-document.txt]
+validation:
+  public:
+    - name: rotated document extraction
+      command: [python, public-tests/check.py]
+  hidden:
+    - name: hidden rotated document extraction
+      command: [python, hidden_check.py]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified, exact_field_accuracy, numeric_field_accuracy, date_field_accuracy, identifier_field_accuracy, json_validity]
+metric_extractors: []

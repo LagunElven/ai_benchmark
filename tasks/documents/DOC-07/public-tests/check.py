@@ -1,4 +1,7 @@
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from extract import extract_form
 

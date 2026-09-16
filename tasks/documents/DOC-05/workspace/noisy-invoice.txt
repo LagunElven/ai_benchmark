@@ -1,0 +1,6 @@
+NOISY OCR / JPEG TRANSCRIPT
+INVOICE NO.. INV-NOISY-11
+CURRENCY :: eur
+TOTAL  : 1 234,50
+TAX : 20,50
+random speckles ignored ###

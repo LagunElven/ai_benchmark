@@ -17,7 +17,7 @@ validateurs public/caché et qu'aucune tâche exécutée n'est absente de l'inve
 python scripts/check_catalogue.py
 ~~~
 
-La neuvième tranche fournit 60 tâches exécutables (les sept smoke historiques, cinquante
+La dixième tranche fournit 67 tâches exécutables (les sept smoke historiques, cinquante-sept
 nouvelles tâches core/full et les trois migrations legacy déjà présentes). Les 74
 scénarios restent listés afin que l'expansion soit mesurable sans fabriquer de
 placeholders superficiels. Une campagne complète ne doit utiliser que les entrées

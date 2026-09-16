@@ -1,0 +1,33 @@
+id: DOC-09
+revision: 1
+name: Extract mixed invoice and receipt documents
+category: documents
+difficulty: hard
+suites: [core, full]
+tags: [documents, mixed-types, invoice, receipt, extraction, json]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [extract.py]
+context:
+  inputs: [mixed-documents.txt]
+validation:
+  public:
+    - name: mixed document extraction
+      command: [python, public-tests/check.py]
+  hidden:
+    - name: hidden mixed document extraction
+      command: [python, hidden_check.py]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified, exact_field_accuracy, numeric_field_accuracy, date_field_accuracy, identifier_field_accuracy, json_validity]
+metric_extractors: []

@@ -1,0 +1,33 @@
+id: DOC-03
+revision: 1
+name: Recover critical fields from a 150 DPI OCR scan
+category: documents
+difficulty: hard
+suites: [core, full]
+tags: [documents, scan, 150dpi, ocr-noise, extraction, json]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 5500
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [extract.py]
+context:
+  inputs: [scan-150dpi.txt, fixtures/ocr-notes.md]
+validation:
+  public:
+    - name: 150 DPI OCR extraction
+      command: [python, public-tests/check.py]
+  hidden:
+    - name: hidden 150 DPI OCR extraction
+      command: [python, hidden_check.py]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified, exact_field_accuracy, numeric_field_accuracy, date_field_accuracy, identifier_field_accuracy, json_validity]
+metric_extractors: []

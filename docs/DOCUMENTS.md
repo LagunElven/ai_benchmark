@@ -27,6 +27,20 @@ python scripts/generate_document_dataset.py datasets/documents/invoice-001.json 
 Le générateur refuse un dossier de sortie non vide afin de ne jamais écraser un
 jeu de données existant.
 
+## Tâches de la milestone 9
+
+La catégorie Documents est complète avec dix tâches. DOC-01 à DOC-05 évaluent le
+post-traitement de rendus numériques et de transcriptions OCR déterministes :
+300/150 DPI, rotation, bruit et formats numériques locaux. DOC-06 et DOC-07
+couvrent respectivement les tableaux et formulaires, DOC-08 les documents
+multi-pages, DOC-09 les types mélangés et DOC-10 l'extraction JSON complexe.
+
+Les tâches DOC-01 à DOC-05, DOC-08 et DOC-09 utilisent des transcriptions texte
+portables dans leur workspace. Elles ne prétendent pas remplacer une campagne
+OCR native : les invariants mesurés sont les champs, dates, identifiants,
+montants, cellules et erreurs de parsing. Les variantes PGM produites par le
+générateur restent disponibles pour les campagnes équipées d'un OCR.
+
 ## Scoring
 
 `runner.document_metrics` calcule CER/WER par distance de Levenshtein sans

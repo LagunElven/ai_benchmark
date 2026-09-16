@@ -1,0 +1,8 @@
+NORTHWIND SERVICES
+PURCHASE ORDER
+Order Number : PO-2026-0017
+Issue Date: 2026-03-12
+Supplier: Northwind Services
+Currency: eur
+Total Net: 2,400.00
+Prepared by: procurement

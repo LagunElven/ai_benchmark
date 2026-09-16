@@ -114,11 +114,11 @@ Atteindre progressivement environ 74 tâches qualité.
 - [x] Delphi 4 (4 tâches implémentées)
 - [x] WinDev 4 (4 tâches implémentées)
 - [x] ABAL 4 (4 tâches implémentées)
-- [ ] Documents 10 (3 tâches implémentées, 7 planifiées)
+- [x] Documents 10 (10 tâches implémentées)
 - [ ] Context 6 (1 tâche source, 5 variantes planifiées)
 - [ ] E2E 3 (1 nouvelle tâche implémentée, 2 planifiées)
 
-La neuvième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 60
+La dixième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 67
 tâches exécutables, sans transformer les scénarios restants en stubs trompeurs.
 `python scripts/check_catalogue.py` contrôle la cohérence entre l'inventaire et les
 dossiers découverts. Les entrées seront promues une par une après ajout de fixtures,

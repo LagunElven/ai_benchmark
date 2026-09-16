@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.17.0 — Couverture Documents complète
+
+- Ajout de DOC-01 à DOC-05 et DOC-08/DOC-09 avec transcriptions déterministes pour
+  document numérique, scans 300/150 DPI, rotation, bruit, multi-pages et types mélangés.
+- Les validateurs mesurent des champs critiques, nombres, dates, identifiants, cellules de
+  tableaux, validité JSON et erreurs de parsing sans dépendance OCR native.
+- Correction du bootstrap d'import des checks publics DOC-06/DOC-07 pour qu'ils s'exécutent
+  correctement dans le workspace isolé du runner.
+- La catégorie Documents atteint 10 tâches exécutables et le catalogue global 67 tâches
+  sur 74 scénarios réservés.
+
 ## 0.16.0 — Couverture WinDev et ABAL complète
 
 - Ajout de WL-01/WL-03 et ABAL-01/ABAL-03 avec pseudo-sources explicitement marquées

@@ -82,15 +82,15 @@ categories:
   - id: documents
     target: 10
     tasks:
-      - {id: DOC-01, name: Digital PDF extraction, status: planned}
-      - {id: DOC-02, name: 300 DPI scan, status: planned}
-      - {id: DOC-03, name: 150 DPI scan, status: planned}
-      - {id: DOC-04, name: Rotated document, status: planned}
-      - {id: DOC-05, name: Noisy compressed document, status: planned}
+      - {id: DOC-01, name: Digital PDF extraction, status: implemented}
+      - {id: DOC-02, name: 300 DPI scan, status: implemented}
+      - {id: DOC-03, name: 150 DPI scan, status: implemented}
+      - {id: DOC-04, name: Rotated document, status: implemented}
+      - {id: DOC-05, name: Noisy compressed document, status: implemented}
       - {id: DOC-06, name: Table extraction, status: implemented}
       - {id: DOC-07, name: Form extraction, status: implemented}
-      - {id: DOC-08, name: Multi-page document, status: planned}
-      - {id: DOC-09, name: Mixed document types, status: planned}
+      - {id: DOC-08, name: Multi-page document, status: implemented}
+      - {id: DOC-09, name: Mixed document types, status: implemented}
       - {id: DOC-10, name: Complex structured JSON extraction, status: implemented}
   - id: context
     target: 6
