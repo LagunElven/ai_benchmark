@@ -31,3 +31,16 @@ python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k/context-ma
 Le scorer sépare précision des fichiers pertinents, rappel et fichiers inutiles.
 Un patch rapide qui touche de nombreux distracteurs reste donc mesurable comme
 une perte de précision, indépendamment de la réussite fonctionnelle.
+
+## Tâches de la milestone 9
+
+CTX-01 reste la source du scénario à environ 10k tokens. CTX-02 à CTX-06
+matérialisent le même workspace et le même bug à environ 30k, 60k, 100k, 150k et
+200k tokens. Chaque workspace conserve `src/billing.py` comme unique fichier
+pertinent et contient uniquement des distracteurs générés avec le seed
+`20260915`, ainsi qu'un `context-manifest.json` versionné.
+
+Les cinq variantes ont des validateurs publics et cachés propres. La réussite
+fonctionnelle, le nombre de tokens, la précision et le rappel des fichiers
+modifiés restent des métriques distinctes ; les valeurs réelles sont celles du
+manifeste et dépendent du tokenizer choisi pour la campagne.

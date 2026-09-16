@@ -96,11 +96,11 @@ categories:
     target: 6
     tasks:
       - {id: CTX-01, name: Locate a rule in a 10k-token repository, status: implemented}
-      - {id: CTX-02, name: Locate a rule in a 30k-token repository, status: planned}
-      - {id: CTX-03, name: Locate a rule in a 60k-token repository, status: planned}
-      - {id: CTX-04, name: Locate a rule in a 100k-token repository, status: planned}
-      - {id: CTX-05, name: Locate a rule in a 150k-token repository, status: planned}
-      - {id: CTX-06, name: Locate a rule in a 200k-token repository, status: planned}
+      - {id: CTX-02, name: Locate a rule in a 30k-token repository, status: implemented}
+      - {id: CTX-03, name: Locate a rule in a 60k-token repository, status: implemented}
+      - {id: CTX-04, name: Locate a rule in a 100k-token repository, status: implemented}
+      - {id: CTX-05, name: Locate a rule in a 150k-token repository, status: implemented}
+      - {id: CTX-06, name: Locate a rule in a 200k-token repository, status: implemented}
   - id: e2e
     target: 3
     tasks:

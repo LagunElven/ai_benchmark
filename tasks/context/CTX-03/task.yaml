@@ -1,0 +1,33 @@
+id: CTX-03
+revision: 1
+name: Locate and fix a billing rule in a 60k-token repository
+category: context
+difficulty: hard
+suites: [core, full]
+tags: [long-context, repository-understanding, python, precision, context-60k]
+modes: [one-shot, repair]
+toolchain:
+  language: python
+  version: "3.11"
+  requirements: [python3.11+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/billing.py]
+context:
+  inputs: [repository]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, context_tokens, files_modified, unnecessary_files_modified, relevant_file_precision, relevant_file_recall]
+validation:
+  public:
+    - name: public-tests
+      command: [python, public-tests/test_billing.py]
+  hidden:
+    - name: hidden-tests
+      command: [python, test_billing.py]
+metric_extractors: []

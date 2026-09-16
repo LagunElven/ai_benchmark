@@ -115,11 +115,11 @@ Atteindre progressivement environ 74 tâches qualité.
 - [x] WinDev 4 (4 tâches implémentées)
 - [x] ABAL 4 (4 tâches implémentées)
 - [x] Documents 10 (10 tâches implémentées)
-- [ ] Context 6 (1 tâche source, 5 variantes planifiées)
+- [x] Context 6 (6 variantes exécutables de 10k à 200k)
 - [ ] E2E 3 (1 nouvelle tâche implémentée, 2 planifiées)
 
-La dixième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 67
-tâches exécutables, sans transformer les scénarios restants en stubs trompeurs.
+La tranche Context porte l'inventaire complet dans `catalogue.yaml` et fournit 72
+tâches exécutables, sans transformer les deux scénarios E2E restants en stubs trompeurs.
 `python scripts/check_catalogue.py` contrôle la cohérence entre l'inventaire et les
 dossiers découverts. Les entrées seront promues une par une après ajout de fixtures,
 tests cachés et validation déterministe.

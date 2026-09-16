@@ -2,6 +2,19 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.18.0 — Couverture Context complète
+
+- Ajout de CTX-02 à CTX-06 comme variantes matérialisées du même scénario de
+  réparation, à environ 30k, 60k, 100k, 150k et 200k tokens.
+- Chaque variante conserve le même workspace fonctionnel, les mêmes distracteurs
+  déterministes, le même fichier pertinent `src/billing.py` et un manifeste avec
+  seed, méthode de comptage, tailles réelles et empreintes SHA-256.
+- Ajout de validations publiques et cachées indépendantes pour les cinq niveaux ;
+  la précision/rappel des fichiers modifiés et le contexte sont conservés comme
+  métriques séparées.
+- La catégorie Context atteint 6 tâches exécutables et le catalogue global 72 tâches
+  sur 74 scénarios réservés.
+
 ## 0.17.0 — Couverture Documents complète
 
 - Ajout de DOC-01 à DOC-05 et DOC-08/DOC-09 avec transcriptions déterministes pour

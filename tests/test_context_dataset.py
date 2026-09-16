@@ -15,6 +15,40 @@ from runner.context_dataset import (
 
 
 class ContextDatasetTests(unittest.TestCase):
+    def test_materialized_quality_variants_are_versioned_and_comparable(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        schema = json.loads(
+            (root / "schemas" / "context-variant.schema.json").read_text(encoding="utf-8")
+        )
+        source_path = root / "tasks" / "context" / "CTX-01" / "workspace" / "src" / "billing.py"
+        source = source_path.read_text(encoding="utf-8")
+        targets = {
+            "CTX-02": 30000,
+            "CTX-03": 60000,
+            "CTX-04": 100000,
+            "CTX-05": 150000,
+            "CTX-06": 200000,
+        }
+        actual_tokens = []
+        for task_id, target in targets.items():
+            workspace = root / "tasks" / "context" / task_id / "workspace"
+            manifest = json.loads(
+                (workspace / "context-manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["target_tokens"], target)
+            self.assertGreaterEqual(manifest["actual_tokens"], target)
+            self.assertEqual(manifest["relevant_files"], ["src/billing.py"])
+            self.assertEqual(
+                manifest["source"], "tasks/context/CTX-01/workspace"
+            )
+            self.assertFalse(list(Draft202012Validator(schema).iter_errors(manifest)))
+            self.assertEqual(
+                (workspace / "src" / "billing.py").read_text(encoding="utf-8"), source
+            )
+            self.assertTrue((workspace / "generated-distractors").is_dir())
+            actual_tokens.append(manifest["actual_tokens"])
+        self.assertEqual(actual_tokens, sorted(actual_tokens))
+
     def test_variants_reach_targets_and_validate_manifests(self) -> None:
         root = Path(__file__).resolve().parents[1]
         schema = json.loads(
