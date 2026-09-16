@@ -4,7 +4,7 @@ name: Apply supplied ABAL documentation during a Java migration
 category: abal
 difficulty: hard
 suites: [core, full]
-tags: [abal, advanced-business-application-language, with-docs, migration, java]
+tags: [abal, advanced-business-application-language, with-docs, migration, java-equivalence, java]
 modes: [one-shot, repair]
 toolchain:
   language: abal-java

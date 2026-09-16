@@ -4,7 +4,7 @@ name: Migrate a WLanguage late-fee rule to Java
 category: windev
 difficulty: hard
 suites: [core, full]
-tags: [windev, wlanguage, migration, java, business-rule]
+tags: [windev, wlanguage, migration, java, java-equivalence, business-rule]
 modes: [one-shot, repair]
 toolchain:
   language: wlanguage-java

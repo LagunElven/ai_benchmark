@@ -1,0 +1,12 @@
+{
+  "id": "COBOL-04",
+  "language": "cobol",
+  "source_status": "verified_syntax",
+  "source": "legacy/ledger-adjust.cbl",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"balance": "100.00", "amount": "25.00", "code": "C"}, "expected": "125.00"},
+    {"input": {"balance": "100.00", "amount": "25.00", "code": "D"}, "expected": "75.00"},
+    {"input": {"balance": "100.00", "entries": [{"amount": "10.00", "code": "C"}, {"amount": "5.00", "code": "D"}]}, "expected": "105.00"}
+  ]
+}

@@ -14,7 +14,10 @@ class LegacyFixtureTests(unittest.TestCase):
         self.assertEqual(
             manifest_ids,
             {
+                "COBOL-01",
                 "COBOL-02",
+                "COBOL-03",
+                "COBOL-04",
                 "COBOL-05",
                 "DELPHI-03",
                 "DELPHI-04",

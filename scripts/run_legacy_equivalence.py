@@ -26,10 +26,8 @@ def main(arguments: list[str] | None = None) -> int:
     if not config_path.is_absolute():
         config_path = REPOSITORY_ROOT / config_path
     config = load_benchmark_config(config_path)
-    tasks = filter_tasks(discover_tasks(config), category="cobol")
-    tasks += filter_tasks(discover_tasks(config), category="delphi")
-    tasks += filter_tasks(discover_tasks(config), category="windev")
-    tasks += filter_tasks(discover_tasks(config), category="abal")
+    discovered = discover_tasks(config)
+    tasks = filter_tasks(discovered, tag="java-equivalence")
     if options.task_id:
         wanted = set(options.task_id)
         tasks = [task for task in tasks if task.id in wanted]

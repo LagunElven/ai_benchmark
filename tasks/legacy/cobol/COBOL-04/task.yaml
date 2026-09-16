@@ -1,0 +1,37 @@
+id: COBOL-04
+revision: 1
+name: Extend a COBOL ledger rule without regression
+category: cobol
+difficulty: hard
+suites: [core, full]
+tags: [cobol, behavior-preservation, maintenance, comp-3, decimal, java]
+modes: [one-shot, repair]
+toolchain:
+  language: cobol-java
+  version: "17"
+  requirements: [javac 17+]
+runtime:
+  internet: false
+  max_iterations: 3
+  timeout_seconds: 120
+  max_output_tokens: 6000
+workspace:
+  source: workspace
+  include:
+    - {source: public-tests, target: public-tests}
+  expected_modified_files: [src/main/java/LedgerAdjuster.java]
+context:
+  documents: [legacy/ledger-adjust.cbl, fixtures/manifest.json]
+validation:
+  public:
+    - name: compile
+      command: [javac, -encoding, UTF-8, -d, out, src/main/java/LedgerAdjuster.java, public-tests/LedgerAdjusterPublicTest.java]
+    - name: public behavior
+      command: [java, -cp, out, LedgerAdjusterPublicTest]
+  hidden:
+    - name: hidden compile
+      command: [javac, -encoding, UTF-8, -d, out-hidden, src/main/java/LedgerAdjuster.java, LedgerAdjusterHiddenTest.java]
+    - name: hidden behavior
+      command: [java, -cp, out-hidden, LedgerAdjusterHiddenTest]
+metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
+metric_extractors: []

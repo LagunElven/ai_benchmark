@@ -4,7 +4,7 @@ name: Migrate a packed-decimal order total to Java
 category: cobol
 difficulty: hard
 suites: [smoke, core, full]
-tags: [cobol, migration, java, decimal, behavior-preservation]
+tags: [cobol, migration, java, java-equivalence, decimal, behavior-preservation]
 modes: [one-shot, repair]
 toolchain:
   language: cobol-java

@@ -2,6 +2,15 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.14.0 — Couverture COBOL complète
+
+- Ajout de COBOL-01, COBOL-03 et COBOL-04 avec sources fixed-format, manifestes
+  `verified_syntax`, cibles Java portables et validations déterministes.
+- La catégorie COBOL atteint 5 tâches exécutables et le catalogue global 54 tâches sur
+  74 scénarios réservés.
+- Le harness d'équivalence sélectionne explicitement les quatre migrations Java munies
+  d'un adaptateur fake via le tag `java-equivalence`.
+
 ## 0.13.0 — Couverture Web complète
 
 - Ajout de WEB-07 à WEB-10 : état Signals/RxJS, navigation Ionic avec garde asynchrone,

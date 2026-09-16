@@ -53,10 +53,10 @@ categories:
   - id: cobol
     target: 5
     tasks:
-      - {id: COBOL-01, name: Existing program comprehension, status: planned}
+      - {id: COBOL-01, name: Existing program comprehension, status: implemented}
       - {id: COBOL-02, name: Business rule correction, status: implemented}
-      - {id: COBOL-03, name: Sequential file and packed decimal, status: planned}
-      - {id: COBOL-04, name: Behavior-preserving modification, status: planned}
+      - {id: COBOL-03, name: Sequential file and packed decimal, status: implemented}
+      - {id: COBOL-04, name: Behavior-preserving modification, status: implemented}
       - {id: COBOL-05, name: COBOL to Java migration, status: implemented}
   - id: delphi
     target: 4

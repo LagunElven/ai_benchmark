@@ -1,0 +1,12 @@
+{
+  "id": "COBOL-01",
+  "language": "cobol",
+  "source_status": "verified_syntax",
+  "source": "legacy/account-status.cbl",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"balance": "0.00", "daysPastDue": 90}, "expected": "ZERO_BALANCE"},
+    {"input": {"balance": "10.00", "daysPastDue": 30}, "expected": "ACTIVE"},
+    {"input": {"balance": "10.00", "daysPastDue": 31}, "expected": "DELINQUENT"}
+  ]
+}

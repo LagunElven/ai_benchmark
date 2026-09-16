@@ -1,0 +1,11 @@
+{
+  "id": "COBOL-03",
+  "language": "cobol",
+  "source_status": "verified_syntax",
+  "source": "legacy/daily-sales.cbl",
+  "reference_docs": ["fixtures/input-format.md"],
+  "equivalence_vectors": [
+    {"input": {"records": ["A0001|10.00|P", "A0002|2.35|V", "A0003|1.00|P"]}, "expected": "11.00"},
+    {"input": {"records": ["A0001|9999999.99|P", "A0002|0.01|P"]}, "expected": "10000000.00"}
+  ]
+}

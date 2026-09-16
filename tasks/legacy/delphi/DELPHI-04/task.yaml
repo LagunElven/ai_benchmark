@@ -4,7 +4,7 @@ name: Migrate a Delphi balance rule to Java
 category: delphi
 difficulty: hard
 suites: [core, full]
-tags: [delphi, migration, java, currency, behavior-preservation]
+tags: [delphi, migration, java, java-equivalence, currency, behavior-preservation]
 modes: [one-shot, repair]
 toolchain:
   language: delphi-java

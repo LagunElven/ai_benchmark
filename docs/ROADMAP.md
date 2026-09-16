@@ -110,7 +110,7 @@ Atteindre progressivement environ 74 tâches qualité.
 - [x] Spring 10 (10 tâches implémentées)
 - [x] Axon 10 (10 tâches implémentées)
 - [x] Web 10 (10 tâches implémentées)
-- [ ] COBOL 5 (2 tâches implémentées, 3 planifiées)
+- [x] COBOL 5 (5 tâches implémentées)
 - [ ] Delphi 4 (2 tâches implémentées, 2 planifiées)
 - [ ] WinDev 4 (2 tâches implémentées, 2 planifiées)
 - [ ] ABAL 4 (2 tâches implémentées, 2 planifiées)
@@ -118,7 +118,7 @@ Atteindre progressivement environ 74 tâches qualité.
 - [ ] Context 6 (1 tâche source, 5 variantes planifiées)
 - [ ] E2E 3 (1 nouvelle tâche implémentée, 2 planifiées)
 
-La sixième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 51
+La septième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 54
 tâches exécutables, sans transformer les scénarios restants en stubs trompeurs.
 `python scripts/check_catalogue.py` contrôle la cohérence entre l'inventaire et les
 dossiers découverts. Les entrées seront promues une par une après ajout de fixtures,

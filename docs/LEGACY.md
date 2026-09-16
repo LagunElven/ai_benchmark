@@ -26,6 +26,14 @@ et les tests cachés couvrent les limites et l'arithmétique décimale.
 | WL-04 | late-fee.wlanguage.pseudo | synthetic_pseudocode | Java BigDecimal |
 | ABAL-04 | benefit.abal.pseudo | synthetic_pseudocode | Java BigDecimal |
 
+La milestone 9 ajoute trois scénarios COBOL portables supplémentaires :
+
+| tâche | source | statut | cible |
+|---|---|---|---|
+| COBOL-01 | account-status.cbl | verified_syntax | Java enum |
+| COBOL-03 | daily-sales.cbl | verified_syntax | Java BigDecimal |
+| COBOL-04 | ledger-adjust.cbl | verified_syntax | Java BigDecimal |
+
 ABAL signifie Advanced Business Application Language, et non SAP ABAP. Le
 fixture ABAL contient une référence fournie et teste explicitement l'usage de
 la documentation.
@@ -42,6 +50,10 @@ Les commandes candidates sont cobc pour GnuCOBOL, dcc32/dcc64 pour Delphi et
 les noms courants wdcompiler/wdcomp pour WinDev. Aucun compilateur ABAL
 portable n'est supposé. Une campagne peut ajouter un validateur natif quand
 son image d'exécution et sa version sont figées.
+
+`run_legacy_equivalence.py` sélectionne uniquement les quatre tâches portant le tag
+`java-equivalence`, car elles disposent d'une réponse fake et d'une cible Java de
+migration exécutable.
 
 Pour un contrôle COBOL natif optionnel (avec sortie JSON et timeout), utiliser :
 
