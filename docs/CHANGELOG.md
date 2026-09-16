@@ -2,6 +2,19 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.20.0 — Socle serving reproductible
+
+- Ajout d'un client OpenAI-compatible générique en streaming SSE avec mesure du TTFT,
+  usage d'entrée/sortie, TPOT, erreurs HTTP, OOM et timeout.
+- Ajout de `serving/config.yaml` et d'une matrice 40 cas couvrant 1/2/5/10 utilisateurs,
+  8k/32k/64k/100k/200k tokens, warmup, répétitions, préfixes cold et shared-prefix.
+- Ajout de la persistance brute de campagnes serving et du schéma associé ; les métriques
+  serving restent séparées des résultats qualité et les comparaisons sont reproductibles.
+- Ajout de l'échantillonnage best-effort `nvidia-smi`/mémoire hôte et de la capture des
+  métriques KV-cache exposées par headers, avec valeurs d'indisponibilité explicites.
+- La milestone 10 couvre désormais toutes ses dimensions initiales sans exiger de GPU
+  ni de dépendance serveur spécifique pour exécuter les tests locaux.
+
 ## 0.19.0 — Milestone 9 complète
 
 - Ajout de E2E-02 avec un contrat multi-couches Angular → commande → événement Axon

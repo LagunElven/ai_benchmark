@@ -1,0 +1,42 @@
+schema_version: "1.0"
+name: enterprise-serving-matrix
+version: "0.1.0"
+endpoint:
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+model: local-model
+model_metadata:
+  revision: null
+  tokenizer_revision: null
+  quantization: null
+  dtype: null
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+serving:
+  engine: null
+  engine_version: null
+  launch_command: null
+  tensor_parallel_size: null
+  pipeline_parallel_size: null
+  max_model_length: null
+  prefix_caching: null
+  batch_size: null
+matrix:
+  concurrency: [1, 2, 5, 10]
+  context_tokens: [8000, 32000, 64000, 100000, 200000]
+  prefix_modes: [cold, shared-prefix]
+  warmup_requests: 1
+  repetitions: 3
+request:
+  timeout_seconds: 600
+  max_output_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  seed: 42
+  stream: true

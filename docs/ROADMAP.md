@@ -126,17 +126,22 @@ et la modernisation d'une règle COBOL vers Java avec validation déterministe.
 
 ## Milestone 10 — Serving
 
-- [ ] adapter vLLM benchmark / API generic
-- [ ] 1/2/5/10 utilisateurs
-- [ ] 8k/32k/64k/100k/200k contextes
-- [ ] cold prefixes
-- [ ] shared prefixes
-- [ ] TTFT
-- [ ] throughput
-- [ ] TPOT
-- [ ] mémoire GPU
-- [ ] KV cache
-- [ ] OOM/timeout
+- [x] adapter vLLM benchmark / API generic
+- [x] 1/2/5/10 utilisateurs
+- [x] 8k/32k/64k/100k/200k contextes
+- [x] cold prefixes
+- [x] shared prefixes
+- [x] TTFT
+- [x] throughput
+- [x] TPOT
+- [x] mémoire GPU
+- [x] KV cache
+- [x] OOM/timeout
+
+Le benchmark serving est indépendant des résultats de qualité. Sa matrice par défaut
+contient 40 cas et ses résultats bruts sont versionnés par run dans `results/raw/serving/`.
+Les métriques matérielles et KV-cache restent explicitement indisponibles lorsque le
+serveur ou la machine ne les expose pas.
 
 ## Milestone 11 — GPU campaigns
 

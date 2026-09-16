@@ -3,9 +3,11 @@
 Suite reproductible pour comparer la qualité, la réparation agentique, les capacités
 documentaires/OCR et les performances de serving de modèles locaux ou hébergés.
 
-La fondation actuelle couvre les milestones 0 à 9 : schémas, découverte des tâches,
+La fondation actuelle couvre les milestones 0 à 10 : schémas, découverte des tâches,
 workspace propre, exécution `one-shot`, endpoint OpenAI-compatible, faux adaptateur
 déterministe, validation publique et cachée isolée, boucle `repair` et résultats JSON/JSONL.
+Le benchmark serving dispose d'une matrice reproductible concurrence/contexte/préfixe et
+conserve ses résultats séparément des résultats de qualité.
 
 Une smoke suite hors ligne de sept tâches représentatives (Java, Spring, Axon, Web,
 COBOL, documents et long contexte) peut être lancée avec :
@@ -38,6 +40,7 @@ python scripts/run_smoke.py
 python scripts/generate_context_variants.py tasks/context/CTX-01/workspace .tmp/context-ctx01 --relevant-file src/billing.py
 python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k/context-manifest.json --modified-file src/billing.py
 python scripts/check_catalogue.py
+python scripts/run_serving_benchmark.py --plan-only
 python -m unittest discover -s tests -v
 ```
 
@@ -56,6 +59,7 @@ les résultats.
 - `docs/DOCUMENTS.md` : génération des fixtures et scoring OCR/documents.
 - `docs/LEGACY.md` : statuts des fixtures legacy et équivalences Java.
 - `docs/CONTEXT.md` : génération et mesure des variantes long-context.
+- `docs/SERVING.md` : matrice, exécution et métriques du benchmark serving.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.

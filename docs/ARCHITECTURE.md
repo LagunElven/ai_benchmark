@@ -29,6 +29,14 @@ réparation et le serving GPU sont des extensions distinctes.
 - `runner/catalogue.py` vérifie la couverture entre l'inventaire des scénarios et les
   définitions de tâches réellement découvrables.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
+- `serving/client.py` appelle un endpoint OpenAI-compatible en streaming SSE et capture
+  TTFT, usage, erreurs OOM/timeout et métriques serveur exposées par headers.
+- `serving/benchmark.py` construit la matrice concurrence/contexte/préfixe, exécute les
+  lots concurrents et persiste une campagne serving indépendante des runs qualité.
+- `serving/metrics.py` calcule les distributions p50/p95, TPOT, tok/s par utilisateur et
+  débit agrégé sans réduire les dimensions à un score opaque.
+- `serving/resources.py` échantillonne `nvidia-smi` et la mémoire hôte si disponibles ;
+  les données non exposées restent explicitement indisponibles.
 
 ## Protocole de réponse `file_changes_v1`
 
