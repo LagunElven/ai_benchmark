@@ -61,8 +61,8 @@ categories:
   - id: delphi
     target: 4
     tasks:
-      - {id: DELPHI-01, name: Object Pascal comprehension, status: planned}
-      - {id: DELPHI-02, name: Object lifecycle and resources, status: planned}
+      - {id: DELPHI-01, name: Object Pascal comprehension, status: implemented}
+      - {id: DELPHI-02, name: Object lifecycle and resources, status: implemented}
       - {id: DELPHI-03, name: Business treatment correction, status: implemented}
       - {id: DELPHI-04, name: Delphi to Java migration, status: implemented}
   - id: windev

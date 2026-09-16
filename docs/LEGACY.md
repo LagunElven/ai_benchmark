@@ -34,6 +34,13 @@ La milestone 9 ajoute trois scénarios COBOL portables supplémentaires :
 | COBOL-03 | daily-sales.cbl | verified_syntax | Java BigDecimal |
 | COBOL-04 | ledger-adjust.cbl | verified_syntax | Java BigDecimal |
 
+La milestone 9 complète ensuite Delphi avec deux scénarios Object Pascal standard :
+
+| tâche | source | statut | cible |
+|---|---|---|---|
+| DELPHI-01 | FulfillmentStatus.pas | verified_syntax | Java enum |
+| DELPHI-02 | ResourceOwner.pas | verified_syntax | Java AutoCloseable |
+
 ABAL signifie Advanced Business Application Language, et non SAP ABAP. Le
 fixture ABAL contient une référence fournie et teste explicitement l'usage de
 la documentation.

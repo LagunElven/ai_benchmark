@@ -19,6 +19,8 @@ class LegacyFixtureTests(unittest.TestCase):
                 "COBOL-03",
                 "COBOL-04",
                 "COBOL-05",
+                "DELPHI-01",
+                "DELPHI-02",
                 "DELPHI-03",
                 "DELPHI-04",
                 "WL-02",

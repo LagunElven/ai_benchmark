@@ -1,0 +1,12 @@
+{
+  "id": "DELPHI-01",
+  "language": "delphi",
+  "source_status": "verified_syntax",
+  "source": "legacy/FulfillmentStatus.pas",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"onHand": 20, "reserved": 5, "reorderPoint": 10}, "expected": "READY"},
+    {"input": {"onHand": 15, "reserved": 5, "reorderPoint": 10}, "expected": "REORDER"},
+    {"input": {"onHand": 8, "reserved": 8, "reorderPoint": 10}, "expected": "BACKORDER"}
+  ]
+}

@@ -2,6 +2,14 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.15.0 — Couverture Delphi complète
+
+- Ajout de DELPHI-01 (compréhension d'une règle de stock) et DELPHI-02 (cycle de vie
+  d'un propriétaire de ressources), avec sources Object Pascal standard marquées
+  `verified_syntax` et validations Java publiques/cachées.
+- La catégorie Delphi atteint 4 tâches exécutables et le catalogue global 56 tâches sur
+  74 scénarios réservés.
+
 ## 0.14.0 — Couverture COBOL complète
 
 - Ajout de COBOL-01, COBOL-03 et COBOL-04 avec sources fixed-format, manifestes

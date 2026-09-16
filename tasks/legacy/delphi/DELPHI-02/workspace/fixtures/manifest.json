@@ -1,0 +1,11 @@
+{
+  "id": "DELPHI-02",
+  "language": "delphi",
+  "source_status": "verified_syntax",
+  "source": "legacy/ResourceOwner.pas",
+  "reference_docs": [],
+  "equivalence_vectors": [
+    {"input": {"names": ["db", "audit"]}, "expected": {"activeBeforeClose": 2, "activeAfterClose": 0, "releaseCount": 2, "closed": true}},
+    {"input": {"names": []}, "expected": {"activeBeforeClose": 0, "activeAfterClose": 0, "releaseCount": 0, "closed": true}}
+  ]
+}
