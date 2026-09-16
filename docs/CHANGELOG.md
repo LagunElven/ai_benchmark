@@ -2,6 +2,14 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.12.0 — Spring complète et nouvelle tranche Web
+
+- SPRING-10 complète la couverture Spring avec une orchestration multi-service et
+  compensation en cas d'échec.
+- Ajout de WEB-02, WEB-05 et WEB-06 pour le cycle de vie RxJS, la propagation sûre des
+  credentials HTTP et la validation d'un formulaire réactif complexe.
+- Le catalogue compte désormais 47 tâches exécutables sur 74 scénarios réservés.
+
 ## 0.11.0 — Couverture Java/Spring/Axon renforcée
 
 - Java atteint ses 8 scénarios avec JAVA-07 (optimisation) et JAVA-08 (évolution API).

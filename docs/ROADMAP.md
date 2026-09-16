@@ -107,9 +107,9 @@ enregistrent seed, tokenizer, nombre réel de tokens et SHA-256.
 Atteindre progressivement environ 74 tâches qualité.
 
 - [x] Java 8 (8 tâches implémentées)
-- [ ] Spring 10 (9 tâches implémentées, 1 planifiée)
+- [x] Spring 10 (10 tâches implémentées)
 - [x] Axon 10 (10 tâches implémentées)
-- [ ] Web 10 (3 tâches implémentées, 7 planifiées)
+- [ ] Web 10 (6 tâches implémentées, 4 planifiées)
 - [ ] COBOL 5 (2 tâches implémentées, 3 planifiées)
 - [ ] Delphi 4 (2 tâches implémentées, 2 planifiées)
 - [ ] WinDev 4 (2 tâches implémentées, 2 planifiées)
@@ -118,7 +118,7 @@ Atteindre progressivement environ 74 tâches qualité.
 - [ ] Context 6 (1 tâche source, 5 variantes planifiées)
 - [ ] E2E 3 (1 nouvelle tâche implémentée, 2 planifiées)
 
-La quatrième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 43
+La cinquième tranche porte l'inventaire complet dans `catalogue.yaml` et fournit 47
 tâches exécutables, sans transformer les scénarios restants en stubs trompeurs.
 `python scripts/check_catalogue.py` contrôle la cohérence entre l'inventaire et les
 dossiers découverts. Les entrées seront promues une par une après ajout de fixtures,

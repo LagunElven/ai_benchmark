@@ -23,7 +23,7 @@ categories:
       - {id: SPRING-07, name: JPA N+1 diagnosis, status: implemented}
       - {id: SPRING-08, name: Reactor asynchronous retry, status: implemented}
       - {id: SPRING-09, name: Bearer and CSRF security, status: implemented}
-      - {id: SPRING-10, name: Multi-service transaction bug, status: planned}
+      - {id: SPRING-10, name: Multi-service transaction bug, status: implemented}
   - id: axon
     target: 10
     tasks:
@@ -41,11 +41,11 @@ categories:
     target: 10
     tasks:
       - {id: WEB-01, name: Observable versus scalar value, status: implemented}
-      - {id: WEB-02, name: Subscription lifecycle cleanup, status: planned}
+      - {id: WEB-02, name: Subscription lifecycle cleanup, status: implemented}
       - {id: WEB-03, name: Search switchMap pipeline, status: implemented}
       - {id: WEB-04, name: HTTP interceptor contract, status: implemented}
-      - {id: WEB-05, name: Bearer and CSRF handling, status: planned}
-      - {id: WEB-06, name: Complex reactive form, status: planned}
+      - {id: WEB-05, name: Bearer and CSRF handling, status: implemented}
+      - {id: WEB-06, name: Complex reactive form, status: implemented}
       - {id: WEB-07, name: Signals and RxJS state, status: planned}
       - {id: WEB-08, name: Ionic navigation, status: planned}
       - {id: WEB-09, name: OAuth and Capacitor deep link, status: planned}
