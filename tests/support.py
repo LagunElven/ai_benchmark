@@ -117,6 +117,8 @@ def create_repository(root: Path, *, hidden_validation: bool = False) -> Path:
             "prefix_caching": None,
             "batch_size": None,
             "concurrency": None,
+            "max_num_seqs": None,
+            "reasoning_parser": None,
         },
         "runner": {
             "response_protocol": "file_changes_v1",

@@ -149,11 +149,15 @@ Le protocole des campagnes et l'ordre de reprise sont définis dans
 [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Les campagnes réelles restent
 à exécuter sur les accélérateurs cibles.
 
-- [x] protocole de comparaison contrôlée BF16/Q8_0 et comparaison opérationnelle
-- [x] matrice initiale C-003 à C-008
-- [ ] playbook reproductible H200
-- [ ] playbook reproductible RTX PRO 6000 Blackwell
-- [ ] playbook reproductible DGX Spark
+- [x] protocole de comparaison contrôlée BF16/FP8 avec vLLM
+- [x] matrice initiale C-003 à C-006 et C-009/C-010
+- [x] campagnes NVFP4 distinctes C-011/C-012 pour RTX PRO et DGX Spark
+- [x] plan versionné, préflight local et manifeste de campagne
+- [x] playbook distant générique avec tunnel SSH et préflight hôte
+- [ ] playbook reproductible H200 spécifique au moteur retenu
+- [ ] playbook reproductible RTX PRO 6000 Blackwell spécifique au moteur retenu
+- [x] campagnes DGX Spark / GB10 ajoutées au plan contrôlé
+- [ ] playbook reproductible DGX Spark / GB10 spécifique au moteur retenu
 
 Chaque playbook doit documenter :
 

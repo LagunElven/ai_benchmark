@@ -1,0 +1,63 @@
+benchmark:
+  name: enterprise-llm-bench-qwen3.8-nvfp4-vllm
+  version: 0.25.5-qwen3.8-nvfp4-vllm
+paths:
+  tasks: tasks
+  private_tests: private-tests
+  results: results
+  work: .benchmark-work
+model:
+  provider: openai_compatible
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+  name: Qwen3.8-27B
+  source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
+  revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: NVFP4-MIXED
+  dtype: NVFP4/FP8
+  request_timeout_seconds: 1800
+  generation:
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 20
+    max_output_tokens: 32768
+    seed: 42
+    chat_template_kwargs:
+      enable_thinking: true
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  launch_command: >-
+    HF_HOME=/workspace/models vllm serve nvidia/Qwen3.8-27B-NVFP4
+    --revision dbb8f445b3145f8a4c18ddc769f032d57d32867c
+    --tokenizer Qwen/Qwen3.8-27B --tokenizer-revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    --served-model-name Qwen3.8-27B
+    --tensor-parallel-size 1 --pipeline-parallel-size 1
+    --max-model-len 262144 --max-num-seqs 16 --reasoning-parser qwen3 --kv-cache-dtype fp8
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+  prefix_caching: false
+  kv_cache_dtype: fp8
+  batch_size: null
+  concurrency: 1
+runner:
+  response_protocol: file_changes_v1
+  max_context_bytes: 2000000
+  max_repair_iterations: 3
+  max_repair_total_output_tokens: 98304
+  max_repair_total_seconds: 21600
+  override_task_max_output_tokens: false
+  keep_workspaces: false
+  append_jsonl: true

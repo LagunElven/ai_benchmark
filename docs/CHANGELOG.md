@@ -2,6 +2,124 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.10 — Profil serving sans prefix caching
+
+- Ajout d'un profil serving Qwen smoke sans cache de préfixe.
+- La matrice est identique au profil cache activé et utilise explicitement
+  `--no-enable-prefix-caching` pour permettre une comparaison contrôlée.
+- Ajout de la matrice serving complète BF16 liée à la RTX PRO 6000.
+
+## 0.25.9 — Calibrage tokenizer du serving
+
+- Le générateur de contexte serving peut maintenant charger le tokenizer Hugging Face exact et compter le prompt après application du chat template.
+- Les profils Qwen serving déclarent explicitement le dépôt et la révision de leur tokenizer ; le profil générique conserve un fallback regex explicite.
+- La campagne serving affiche désormais le cas en cours et son résultat immédiatement dans le terminal.
+- Les profils Qwen rendent explicite l'activation du prefix caching vLLM au lieu de dépendre de la valeur par défaut.
+
+## 0.25.8 — Profil serving smoke Qwen3.8
+
+- Ajout d'un profil serving court pour mesurer séparément la performance vLLM.
+- Matrice initiale limitée à 1 et 5 utilisateurs, contextes 8k/32k/64k,
+  modes cold/shared-prefix et une répétition.
+- Profil explicitement configuré sans thinking afin de ne pas confondre la
+  performance de serving avec une longueur variable de raisonnement.
+
+## 0.25.7 — Tolérer une clôture manquante du bloc JSON
+
+- Le protocole file_changes_v1 accepte désormais un bloc JSON précédé d'un
+  marqueur de code JSON même si le marqueur de clôture manque.
+- Le JSON reste validé strictement après retrait de cette enveloppe ; aucune
+  explication ou donnée non JSON n'est acceptée.
+
+## 0.25.6 — Ajouter le profil Qwen sans thinking
+
+- Ajout du profil BF16 `C-013` sur RTX PRO 6000 avec `enable_thinking: false`.
+- C-013 est marqué `operational_solution` et ne doit pas être mélangé aux
+  comparaisons contrôlées de C-004.
+- Le serveur vLLM reste inchangé : le paramètre est transmis au niveau de la
+  requête via `chat_template_kwargs`.
+
+## 0.25.5 — Donner à WEB-03 un budget de raisonnement suffisant
+
+- `WEB-03` passe en révision 2 avec un plafond de 12000 tokens pour inclure le
+  raisonnement Qwen et la réponse `file_changes_v1`.
+- Le plafond est une limite maximale, pas une quantité obligatoire à générer.
+- Le runner enregistre désormais le budget effectif de la tâche dans les
+  métadonnées de génération.
+
+## 0.25.4 — Respecter les budgets de sortie des tâches qualité
+
+- Les profils qualité Qwen3.8 n'écrasent plus `runtime.max_output_tokens` avec un
+  budget global de 32768 tokens.
+- Chaque tâche utilise désormais son propre plafond de sortie, qui couvre le
+  raisonnement et la réponse finale.
+- Les plafonds globaux de réparation restent inchangés ; les résultats précédents
+  restent conservés et ne sont pas réécrits.
+
+## 0.25.3 — Séparer le raisonnement Qwen du contenu de réponse
+
+- Ajout de `--reasoning-parser qwen3` aux profils Qwen3.8 vLLM.
+- Le premier smoke qualité a confirmé que, sans parser, le bloc `<think>` était
+  mélangé au JSON `file_changes_v1` et rendait la réponse inexploitable.
+- La correction conserve le thinking pour la qualité et le désactive toujours
+  explicitement pour le serving de débit.
+
+## 0.25.2 — Stabiliser le nombre de séquences vLLM sur RTX PRO 6000
+
+- Ajout de `--max-num-seqs 16` aux profils Qwen3.8 BF16, FP8 et NVFP4.
+- Le défaut vLLM de 1024 provoquait l’échec de l’initialisation du cache Mamba
+  sur la RTX PRO 6000 Blackwell Server Edition ; 16 couvre la matrice de
+  concurrence jusqu’à 10 tout en conservant une marge.
+- Ajout de `max_num_seqs` aux schémas, au plan GPU et aux métadonnées de serving.
+
+## 0.25.1 — Figer la variante RTX PRO Server Edition
+
+- Les campagnes C-004, C-006 et C-011 ciblent désormais explicitement la
+  `NVIDIA RTX PRO 6000 Blackwell Server Edition`.
+- Les variantes Workstation et Max-Q ne sont pas mélangées aux groupes de
+  comparaison actuels.
+
+## 0.25.0 — Ajouter les campagnes NVFP4 Blackwell
+
+- Ajout de la variante `NVFP4-MIXED` basée sur le checkpoint
+  `nvidia/Qwen3.8-27B-NVFP4`, produit avec NVIDIA Model Optimizer et épinglé à
+  la révision `dbb8f445b3145f8a4c18ddc769f032d57d32867c`.
+- Ajout des campagnes exploratoires de comparaison de quantification C-011 sur
+  RTX PRO 6000 Blackwell et C-012 sur DGX Spark/GB10.
+- Ajout des configurations qualité/serving NVFP4 ; le KV cache reste en FP8 et
+  le tokenizer reste celui du checkpoint Qwen BF16.
+- Le support du checkpoint doit réussir le smoke vLLM avant les campagnes
+  qualité et serving ; les changements de backend ou de version sont conservés
+  dans les métadonnées et peuvent faire basculer la comparaison en
+  `operational_solution`.
+
+## 0.24.0 — Basculer les campagnes Qwen vers vLLM
+
+- Remplacement du dépôt GGUF Unsloth par les dépôts officiels Safetensors
+  `Qwen/Qwen3.8-27B` et `Qwen/Qwen3.8-27B-FP8`.
+- Suppression des campagnes Q8_0 et UD-Q8_K_XL, qui nécessiteraient le support
+  GGUF expérimental de vLLM.
+- Sélection de vLLM `0.29.0` comme moteur de référence et ajout du template FP8.
+- Le plan conserve une révision immuable par variante et une révision commune du
+  tokenizer officiel.
+
+## 0.23.0 — Ajout du DGX Spark / GB10
+
+- Ajout des campagnes C-009 BF16, C-010 Q8_0 et C-011 UD-Q8_K_XL pour le
+  matériel NVIDIA DGX Spark / GB10.
+- Extension des groupes contrôlés BF16/Q8_0 à trois plateformes.
+- Ajout des précautions de mesure liées à la mémoire unifiée du GB10.
+
+## 0.22.0 — Préparation des campagnes GPU distantes
+
+- Ajout d'un plan versionné C-003 à C-008 avec variantes BF16, Q8_0 et UD-Q8_K_XL.
+- Ajout du préflight local qui empreinte les configurations et tous les fichiers
+  model-visible sans inclure les tests cachés.
+- Ajout du préflight hôte GPU, du smoke endpoint et du runner de campagne qualité
+  avec manifeste JSON/JSONL append-only.
+- Ajout du runbook Vast.ai ; la configuration concrète du moteur reste à figer
+  avant de déclarer une campagne prête.
+
 ## 0.21.0 — Protocole des campagnes GPU
 
 - Ajout du plan reproductible des campagnes H200 et RTX PRO 6000 Blackwell.

@@ -30,6 +30,8 @@ class ModelClient(Protocol):
 def _message_text(value: Any) -> str:
     if isinstance(value, str):
         return value
+    if value is None:
+        return ""
     if isinstance(value, list):
         parts = [part.get("text", "") for part in value if isinstance(part, dict)]
         return "".join(parts)

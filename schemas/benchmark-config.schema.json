@@ -35,6 +35,7 @@
         "base_url": {"type": ["string", "null"]},
         "api_key_env": {"type": ["string", "null"]},
         "name": {"type": "string", "minLength": 1},
+        "source_repository": {"type": ["string", "null"], "format": "uri"},
         "revision": {"type": ["string", "null"]},
         "tokenizer_revision": {"type": ["string", "null"]},
         "quantization": {"type": ["string", "null"]},
@@ -73,7 +74,7 @@
     "serving": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["engine", "engine_version", "launch_command", "tensor_parallel_size", "pipeline_parallel_size", "max_model_length", "prefix_caching", "batch_size", "concurrency"],
+      "required": ["engine", "engine_version", "launch_command", "tensor_parallel_size", "pipeline_parallel_size", "max_model_length", "prefix_caching", "batch_size", "concurrency", "max_num_seqs", "reasoning_parser"],
       "properties": {
         "engine": {"type": ["string", "null"]},
         "engine_version": {"type": ["string", "null"]},
@@ -82,8 +83,11 @@
         "pipeline_parallel_size": {"type": ["integer", "null"], "minimum": 1},
         "max_model_length": {"type": ["integer", "null"], "minimum": 1},
         "prefix_caching": {"type": ["boolean", "null"]},
+        "kv_cache_dtype": {"type": ["string", "null"]},
         "batch_size": {"type": ["integer", "null"], "minimum": 1},
-        "concurrency": {"type": ["integer", "null"], "minimum": 1}
+        "concurrency": {"type": ["integer", "null"], "minimum": 1},
+        "max_num_seqs": {"type": ["integer", "null"], "minimum": 1},
+        "reasoning_parser": {"type": ["string", "null"]}
       }
     },
     "runner": {

@@ -1,0 +1,74 @@
+schema_version: "1.0"
+name: enterprise-serving-qwen3.8-smoke
+version: 0.25.9-qwen3.8-bf16-vllm-smoke
+
+endpoint:
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+
+model: Qwen3.8-27B
+model_metadata:
+  source_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: BF16
+  dtype: BF16
+tokenizer:
+  type: huggingface
+  repository: Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  local_files_only: false
+
+hardware:
+  accelerator_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+  gpu_count: 1
+  gpu_memory_gb: 96
+  driver_version: 595.71.05
+  cuda_version: "13.2"
+  cpu_model: null
+  host_memory_gb: null
+
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  launch_command: >-
+    vllm serve Qwen/Qwen3.8-27B
+    --revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    --tokenizer Qwen/Qwen3.8-27B
+    --tokenizer-revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    --served-model-name Qwen3.8-27B
+    --max-model-len 262144
+    --max-num-seqs 16
+    --reasoning-parser qwen3
+    --enable-prefix-caching
+    --tensor-parallel-size 1
+    --pipeline-parallel-size 1
+    --kv-cache-dtype fp8
+    --download-dir /workspace/models
+    --host 127.0.0.1
+    --port 18000
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+  prefix_caching: true
+  kv_cache_dtype: fp8
+  batch_size: null
+
+matrix:
+  concurrency: [1, 5]
+  context_tokens: [8000, 32000, 64000]
+  prefix_modes: [cold, shared-prefix]
+  warmup_requests: 1
+  repetitions: 1
+
+request:
+  timeout_seconds: 1800
+  max_output_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  seed: 42
+  stream: true
+  chat_template_kwargs:
+    enable_thinking: false

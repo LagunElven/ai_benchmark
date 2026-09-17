@@ -46,6 +46,8 @@ serving:
   prefix_caching: null
   batch_size: 4
   concurrency: 1
+  max_num_seqs: null
+  reasoning_parser: null
 
 runner:
   response_protocol: file_changes_v1

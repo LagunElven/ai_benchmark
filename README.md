@@ -41,6 +41,8 @@ python scripts/generate_context_variants.py tasks/context/CTX-01/workspace .tmp/
 python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k/context-manifest.json --modified-file src/billing.py
 python scripts/check_catalogue.py
 python scripts/run_serving_benchmark.py --plan-only
+python scripts/prepare_gpu_campaign.py --campaign-id C-003 --config benchmark.qwen3.8-bf16.yaml --serving-config campaigns/gpu/serving-qwen.yaml
+python scripts/run_quality_campaign.py --campaign-id C-003 --plan-only
 python -m unittest discover -s tests -v
 ```
 
@@ -61,6 +63,9 @@ les résultats.
 - `docs/CONTEXT.md` : génération et mesure des variantes long-context.
 - `docs/SERVING.md` : matrice, exécution et métriques du benchmark serving.
 - `docs/GPU_CAMPAIGN_PLAN.md` : protocole et ordre des futures campagnes GPU.
+- `docs/GPU_REMOTE_RUNBOOK.md` : préparation et exécution sur une machine GPU louée.
+- `docs/REMOTE_GPU_CHECKLIST.md` : checklist courte avant location, après connexion et avant arrêt.
+- `campaigns/gpu/plan.yaml` : campagnes C-003 à C-006, C-009/C-010 et C-011/C-012, avec les valeurs à figer avant location.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.

@@ -1,5 +1,5 @@
 id: WEB-03
-revision: 1
+revision: 2
 name: Keep only the latest search result
 category: web
 difficulty: medium
@@ -14,7 +14,7 @@ runtime:
   internet: false
   max_iterations: 3
   timeout_seconds: 120
-  max_output_tokens: 5000
+  max_output_tokens: 12000
 workspace:
   source: workspace
   include:

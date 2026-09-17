@@ -1,0 +1,117 @@
+schema_version: "1.0"
+name: enterprise-gpu-campaigns
+version: "0.5.4"
+
+# The Qwen repositories and revisions are pinned to the Hugging Face main
+# commits observed on 2026-09-17. The NVFP4 artifact is published by NVIDIA
+# and is a separate ModelOpt checkpoint. vLLM loads the complete safetensors
+# snapshot for each variant; the immutable revision is the artifact anchor.
+model:
+  name: Qwen3.8-27B
+  source_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  tokenizer_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  artifact_variants:
+    - id: bf16
+      quantization: BF16
+      dtype: BF16
+      source_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+      revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+      snapshot_url: https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    - id: fp8
+      quantization: FP8
+      dtype: FP8
+      source_repository: https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+      revision: 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+      snapshot_url: https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+    - id: nvfp4
+      quantization: NVFP4-MIXED
+      dtype: NVFP4/FP8
+      source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
+      revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
+      snapshot_url: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/tree/dbb8f445b3145f8a4c18ddc769f032d57d32867c
+
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  kv_cache_dtype: fp8
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+
+campaigns:
+  - id: C-003
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-bf16
+    hardware_model: NVIDIA H200
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: Reference BF16 campaign on one H200.
+  - id: C-004
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-bf16
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: Reference BF16 campaign on one RTX PRO 6000 Blackwell Server Edition.
+  - id: C-005
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-fp8
+    hardware_model: NVIDIA H200
+    gpu_count: 1
+    artifact_variant: fp8
+    notes: Reference FP8 campaign on one H200 using the official Qwen checkpoint.
+  - id: C-006
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-fp8
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: fp8
+    notes: Reference FP8 campaign on one RTX PRO 6000 Blackwell Server Edition using the official Qwen checkpoint.
+  - id: C-009
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-bf16
+    hardware_model: NVIDIA DGX Spark / GB10
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: Reference BF16 campaign on one DGX Spark / GB10 system.
+  - id: C-010
+    status: planned
+    comparison_type: controlled_hardware
+    comparison_group: hardware-fp8
+    hardware_model: NVIDIA DGX Spark / GB10
+    gpu_count: 1
+    artifact_variant: fp8
+    notes: Reference FP8 campaign on one DGX Spark / GB10 system using the official Qwen checkpoint.
+  - id: C-011
+    status: exploratory
+    comparison_type: controlled_quantization
+    comparison_group: quantization-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: nvfp4
+    notes: NVFP4 quantization campaign on RTX PRO 6000 Server Edition; compare with C-004/C-006 after the vLLM compatibility smoke.
+  - id: C-012
+    status: exploratory
+    comparison_type: controlled_quantization
+    comparison_group: quantization-dgx-spark
+    hardware_model: NVIDIA DGX Spark / GB10
+    gpu_count: 1
+    artifact_variant: nvfp4
+    notes: NVFP4 quantization campaign on DGX Spark / GB10; compare with C-009/C-010 after the vLLM compatibility smoke.
+  - id: C-013
+    status: exploratory
+    comparison_type: operational_solution
+    comparison_group: thinking-mode-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: BF16 no-thinking request profile; compare operationally with C-004, not as a controlled hardware result.

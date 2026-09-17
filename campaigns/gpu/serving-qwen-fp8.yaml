@@ -1,0 +1,59 @@
+schema_version: "1.0"
+name: enterprise-serving-qwen3.8-fp8-vllm
+version: "0.25.9-qwen3.8-fp8-vllm"
+endpoint:
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+model: Qwen3.8-27B
+model_metadata:
+  source_repository: https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+  revision: 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: FP8
+  dtype: FP8
+tokenizer:
+  type: huggingface
+  repository: Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  local_files_only: false
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  launch_command: >-
+    HF_HOME=/workspace/models vllm serve Qwen/Qwen3.8-27B-FP8
+    --revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+    --tokenizer Qwen/Qwen3.8-27B --tokenizer-revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    --served-model-name Qwen3.8-27B
+    --tensor-parallel-size 1 --pipeline-parallel-size 1
+    --max-model-len 262144 --max-num-seqs 16 --reasoning-parser qwen3 --kv-cache-dtype fp8 --enable-prefix-caching
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+  prefix_caching: true
+  kv_cache_dtype: fp8
+  batch_size: null
+matrix:
+  concurrency: [1, 2, 5, 10]
+  context_tokens: [8000, 32000, 64000, 100000, 200000]
+  prefix_modes: [cold, shared-prefix]
+  warmup_requests: 1
+  repetitions: 3
+request:
+  timeout_seconds: 1800
+  max_output_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  seed: 42
+  stream: true
+  chat_template_kwargs:
+    enable_thinking: false

@@ -10,6 +10,11 @@ model_metadata:
   tokenizer_revision: null
   quantization: UD-Q4_K_XL
   dtype: GGUF/QAT
+tokenizer:
+  type: fallback
+  repository: null
+  revision: null
+  local_files_only: true
 hardware:
   accelerator_model: null
   gpu_count: null
@@ -27,6 +32,8 @@ serving:
   max_model_length: null
   prefix_caching: null
   batch_size: null
+  max_num_seqs: null
+  reasoning_parser: null
 matrix:
   concurrency: [1, 2, 5, 10]
   context_tokens: [8000, 32000, 64000, 100000, 200000]

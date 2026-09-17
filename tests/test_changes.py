@@ -38,6 +38,17 @@ class ChangeProtocolTests(unittest.TestCase):
         ):
             apply_file_changes('{"changes":[],"explanation":"done"}', Path(directory))
 
+    def test_accepts_json_fence_without_closing_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            changed = apply_file_changes(
+                '```json\n{"changes":[{"path":"result.txt","content":"ok"}]}',
+                workspace,
+            )
+
+            self.assertEqual(changed, ["result.txt"])
+            self.assertEqual((workspace / "result.txt").read_text(encoding="utf-8"), "ok")
+
 
 if __name__ == "__main__":
     unittest.main()

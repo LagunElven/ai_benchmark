@@ -31,7 +31,7 @@ def main(arguments: list[str] | None = None) -> int:
     if options.plan_only:
         print(json.dumps(benchmark.plan(), ensure_ascii=False, indent=2))
         return 0
-    result = benchmark.run()
+    result = benchmark.run(progress=lambda message: print(message, flush=True))
     print(result)
     return 0
 

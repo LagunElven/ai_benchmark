@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/quality-campaign-result.schema.json",
+  "title": "Quality campaign result index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "campaign", "started_at", "ended_at", "status", "runs", "summary"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "type": {"const": "quality_campaign_result"},
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mode", "suite", "config_path", "config_sha256", "git_commit"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^C-[0-9]{3,}$"},
+        "mode": {"enum": ["one-shot", "repair"]},
+        "suite": {"type": ["string", "null"]},
+        "category": {"type": ["string", "null"]},
+        "config_path": {"type": "string"},
+        "config_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "git_commit": {"type": ["string", "null"]}
+      }
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["completed", "completed_with_failures", "failed"]},
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "status", "validation_outcome", "result_path"],
+        "properties": {
+          "task_id": {"type": "string"},
+          "status": {"type": "string"},
+          "validation_outcome": {"type": "string"},
+          "result_path": {"type": "string"},
+          "error": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tasks_total", "tasks_passed", "tasks_failed", "tasks_with_errors"],
+      "properties": {
+        "tasks_total": {"type": "integer", "minimum": 0},
+        "tasks_passed": {"type": "integer", "minimum": 0},
+        "tasks_failed": {"type": "integer", "minimum": 0},
+        "tasks_with_errors": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

@@ -28,6 +28,8 @@ réparation et le serving GPU sont des extensions distinctes.
   tokenisation et calcule la précision/rappel des fichiers pertinents.
 - `runner/catalogue.py` vérifie la couverture entre l'inventaire des scénarios et les
   définitions de tâches réellement découvrables.
+- `runner/gpu_preflight.py` fige les configurations, les révisions de tâches et les
+  empreintes des seuls fichiers model-visible avant une campagne distante.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
 - `serving/client.py` appelle un endpoint OpenAI-compatible en streaming SSE et capture
   TTFT, usage, erreurs OOM/timeout et métriques serveur exposées par headers.
@@ -74,3 +76,8 @@ de validation. `results/raw/runs.jsonl` est un index append-only. Les rapports p
 Les valeurs de matériel, modèle exact, quantification et configuration de serving sont
 déclarées dans `benchmark.yaml`. Les valeurs inconnues restent explicitement `null`; elles ne
 sont ni devinées ni remplacées par des valeurs implicites.
+
+Pour une campagne distante, le runner et les tests cachés restent sur le poste de contrôle.
+La machine louée expose uniquement l'endpoint d'inférence ; `scripts/capture_gpu_environment.py`
+enregistre son empreinte avant le smoke et `scripts/run_quality_campaign.py` conserve l'index
+des runs qualité associés à l'identifiant de campagne.

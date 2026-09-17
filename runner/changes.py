@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from runner.errors import ChangeProtocolError
 
-_FENCE = re.compile(r"^```(?:json)?\s*(.*?)\s*```$", re.DOTALL | re.IGNORECASE)
-
 
 def _parse_payload(content: str) -> dict[str, Any]:
     stripped = content.strip()
-    match = _FENCE.fullmatch(stripped)
-    if match:
-        stripped = match.group(1)
+    if stripped.startswith("```"):
+        stripped = stripped[3:]
+        if stripped.lower().startswith("json"):
+            stripped = stripped[4:]
+        stripped = stripped.lstrip()
+        if stripped.endswith("```"):
+            stripped = stripped[:-3].rstrip()
     try:
         payload = json.loads(stripped)
     except json.JSONDecodeError as exc:

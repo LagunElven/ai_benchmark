@@ -1,5 +1,6 @@
 .benchmark-work/
 .tmp/
+.campaign-prep/
 __pycache__/
 *.py[cod]
 .pytest_cache/

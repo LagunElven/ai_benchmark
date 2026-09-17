@@ -49,6 +49,22 @@ class ExecutionTests(unittest.TestCase):
             self.assertTrue((root / "results" / "raw" / "runs.jsonl").is_file())
             self.assertFalse(any((root / ".benchmark-work").iterdir()))
 
+    def test_result_records_effective_task_output_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = load_benchmark_config(create_repository(root))
+            config.data["model"]["generation"]["max_output_tokens"] = 12000
+            task = discover_tasks(config)[0]
+
+            result_path = run_one_shot(
+                config,
+                task,
+                FakeModelClient('{"changes":[{"path":"app.py","content":"VALUE = 2\\n"}]}'),
+            )
+            result = json.loads(result_path.read_text(encoding="utf-8"))
+
+            self.assertEqual(result["model"]["parameters"]["max_output_tokens"], 1000)
+
     def test_hidden_validation_runs_in_disposable_validator_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

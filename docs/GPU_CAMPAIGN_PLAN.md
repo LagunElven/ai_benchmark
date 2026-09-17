@@ -1,7 +1,7 @@
 # Plan des campagnes GPU — Milestone 11
 
-Ce document prépare les campagnes réelles sur une NVIDIA H200 et une NVIDIA
-RTX PRO 6000 Blackwell. Il sépare les comparaisons contrôlées, destinées à
+Ce document prépare les campagnes réelles sur une NVIDIA H200, une NVIDIA
+RTX PRO 6000 Blackwell Server Edition et un NVIDIA DGX Spark / GB10. Il sépare les comparaisons contrôlées, destinées à
 mesurer l'effet du matériel ou de la quantification, des profils opérationnels
 qui cherchent le meilleur service possible sur chaque carte.
 
@@ -9,40 +9,87 @@ Les campagnes listées ici sont planifiées, pas exécutées. Les résultats ne
 doivent être ajoutés à `docs/CAMPAIGN_MATRIX.md` qu'après la conservation des
 artefacts bruts et la génération des rapports.
 
+La préparation opérationnelle et le parcours de location sont décrits dans
+[`docs/GPU_REMOTE_RUNBOOK.md`](GPU_REMOTE_RUNBOOK.md). Le plan machine-readable
+se trouve dans [`campaigns/gpu/plan.yaml`](../campaigns/gpu/plan.yaml) ; les
+champs `null` restants indiquent les décisions qui doivent être figées avant de
+louer la machine ou de déclarer une campagne prête.
+
+## Artefacts Qwen figés
+
+Nous utilisons les dépôts officiels Qwen au format Safetensors, recommandé par
+Qwen pour vLLM :
+
+| Variante | Dépôt | Révision | Taille publiée |
+|---|---|---|---:|
+| BF16 | [`Qwen/Qwen3.8-27B`](https://huggingface.co/Qwen/Qwen3.8-27B/tree/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0) | `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0` | 55,6 GB |
+| FP8 | [`Qwen/Qwen3.8-27B-FP8`](https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a) | `017b9c7af6b5689d5dd426a76e0bc077eb5ca20a` | 30,9 GB |
+
+Les deux dépôts contiennent les fichiers de configuration, tokenizer et poids
+shardés nécessaires à vLLM. La révision immuable du dépôt est l'ancrage de
+reproductibilité ; le runner conservera en plus le manifeste des fichiers et
+les empreintes retournées par l'environnement de téléchargement.
+
+Le dépôt GGUF Unsloth et sa variante `UD-Q8_K_XL` ne font plus partie des
+campagnes planifiées. Cela évite de dépendre du support GGUF expérimental de
+vLLM et de son plugin externe.
+
+## Artefact NVFP4 distinct
+
+La variante NVFP4 est traitée comme un checkpoint séparé, publié sous le
+namespace NVIDIA et produit avec Model Optimizer. Il ne s'agit pas d'une option
+à appliquer à la volée au checkpoint BF16 ou FP8 :
+
+| Variante | Dépôt | Révision | Format interne |
+|---|---|---|---|
+| NVFP4 mixed | [`nvidia/Qwen3.8-27B-NVFP4`](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/tree/dbb8f445b3145f8a4c18ddc769f032d57d32867c) | `dbb8f445b3145f8a4c18ddc769f032d57d32867c` | NVFP4 pour MLP/LM head, FP8 pour les attentions |
+
+Le tokenizer reste celui du dépôt Qwen BF16 déjà utilisé par les autres
+campagnes. Le KV cache reste en `fp8`. Le checkpoint sera d'abord validé sur
+vLLM avant toute mesure de qualité ou de débit.
+
 ## Campagnes planifiées
 
 | ID | Statut | Matériel | Format | Type de comparaison | Objectif |
 |---|---|---|---|---|---|
 | C-003 | planifiée | 1x H200 | BF16 | contrôlée matériel | qualité de référence BF16 |
-| C-004 | planifiée | 1x RTX PRO 6000 Blackwell | BF16 | contrôlée matériel | qualité de référence BF16 |
-| C-005 | planifiée | 1x H200 | Q8_0 | contrôlée matériel | qualité de référence Q8_0 |
-| C-006 | planifiée | 1x RTX PRO 6000 Blackwell | Q8_0 | contrôlée matériel | qualité de référence Q8_0 |
-| C-007 | exploratoire | 1x H200 | UD-Q8_K_XL | opérationnelle | mesurer le compromis Unsloth UD |
-| C-008 | exploratoire | 1x RTX PRO 6000 Blackwell | UD-Q8_K_XL | opérationnelle | mesurer le compromis Unsloth UD |
+| C-004 | planifiée | 1x RTX PRO 6000 Blackwell Server Edition | BF16 | contrôlée matériel | qualité de référence BF16 |
+| C-009 | planifiée | 1x DGX Spark / GB10 | BF16 | contrôlée matériel | qualité de référence BF16 |
+| C-005 | planifiée | 1x H200 | FP8 | contrôlée matériel | qualité de référence FP8 |
+| C-006 | planifiée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 | contrôlée matériel | qualité de référence FP8 |
+| C-010 | planifiée | 1x DGX Spark / GB10 | FP8 | contrôlée matériel | qualité de référence FP8 |
+| C-011 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | NVFP4 mixed | contrôlée quantification | NVFP4 sur RTX PRO Server Edition, après smoke vLLM |
+| C-012 | exploratoire | 1x DGX Spark / GB10 | NVFP4 mixed | contrôlée quantification | NVFP4 sur GB10, après smoke vLLM |
 
-C-003/C-004 forment la comparaison matérielle BF16 et C-005/C-006 la
-comparaison matérielle Q8_0. C-003/C-005 et C-004/C-006 permettent ensuite une
-comparaison de quantification sur chaque carte. C-007/C-008 restent séparées :
-une quantification UD, un fichier et potentiellement une révision différente
-ne permettent pas d'attribuer un écart uniquement au GPU.
+C-003/C-004/C-009 forment la comparaison matérielle BF16 et C-005/C-006/C-010 la
+comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent
+ensuite une comparaison de quantification sur chaque plateforme. C-011 se
+compare à C-004/C-006 et C-012 à C-009/C-010, en conservant la distinction entre
+la série contrôlée et le statut exploratoire du support NVFP4.
 
 ## Configuration contrôlée de départ
 
-Les quatre campagnes C-003 à C-006 doivent partager les paramètres ci-dessous.
-Seuls le GPU et le format BF16/Q8_0 changent dans chaque comparaison annoncée.
+Les six campagnes contrôlées C-003 à C-006 et C-009/C-010 doivent partager les
+paramètres ci-dessous. Seuls le GPU et le format BF16/FP8 changent dans chaque
+comparaison annoncée.
 
-- Modèle : `Qwen3.8-27B-GGUF`, même dépôt, même révision et même tokenizer pour
-  les quatre campagnes.
-- Moteur : même moteur, même version et même build CUDA ; le backend GGUF
-  effectivement utilisé doit être consigné dans le run.
+- Modèle : `Qwen3.8-27B`, checkpoints officiels Qwen, tokenizer du dépôt BF16
+  épinglé à la révision `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`.
+- Moteur : vLLM `0.29.0`, même image et même build CUDA lorsque l'architecture
+  le permet ; l'image et son digest doivent être consignés dans le run.
+- Parser de raisonnement : `qwen3`, afin que le thinking activé en qualité soit
+  séparé du contenu final transmis au protocole `file_changes_v1`.
 - GPU : un seul accélérateur, tensor parallelism 1, pipeline parallelism 1.
-- KV cache : `Q8_0`, K et V ; aucune modification silencieuse entre les cartes.
+- KV cache : `fp8`, K et V ; aucune modification silencieuse entre les cartes.
+- Nombre maximal de séquences vLLM : `16`, supérieur à la concurrence maximale
+  initiale de 10 ; cette valeur évite le défaut `1024` incompatible avec les
+  blocs Mamba disponibles sur la RTX PRO 6000 et reste commune aux variantes.
 - Contexte : cible native 262 144 tokens, validée par une montée progressive
   `64k -> 128k -> 262k`. Une limite inférieure effectivement imposée par le
   moteur doit être enregistrée comme un résultat de capacité, pas masquée.
 - Concurrence qualité : 1, slots 1 et prefix caching désactivé.
 - Batch qualité : valeur commune conservatrice, à fixer après le smoke mémoire
-  et à conserver pour C-003 à C-006.
+  et à conserver pour C-003 à C-006, C-009/C-010 et les campagnes NVFP4.
 - Thinking : activé ; `reasoning_effort=xhigh` lorsque le serveur et le
   template Qwen le supportent.
 - Échantillonnage thinking : température 1.0, `top_p=0.95`, `top_k=20`,
@@ -71,10 +118,31 @@ qu'un GPU est intrinsèquement plus rapide qu'un autre.
 
 La séquence retenue est donc :
 
-1. quatre campagnes qualité contrôlées C-003 à C-006 ;
-2. campagne serving contrôlée avec la configuration commune ;
-3. profils serving optimisés séparément par carte ;
-4. essais UD-Q8_K_XL C-007/C-008 après validation des profils Q8_0.
+1. six campagnes qualité contrôlées C-003 à C-006, C-009 et C-010 ;
+2. smoke de compatibilité du checkpoint NVFP4 sur C-011 et C-012 ;
+3. deux campagnes qualité/quantification NVFP4, puis leur serving ;
+4. profils serving optimisés séparément par carte ;
+5. comparaison vLLM de paramètres optimisés par carte, après la série contrôlée.
+
+### Configuration NVFP4
+
+C-011 et C-012 gardent les mêmes entrées, tokenizer, contexte, KV cache et
+paramètres de génération que la série BF16/FP8. Leur objectif est de mesurer
+l'effet de la quantification sur une carte donnée, pas de comparer directement
+le RTX PRO au GB10. Elles restent `exploratory` jusqu'à validation du chargement
+et du backend de calcul effectif.
+
+- Checkpoint : `nvidia/Qwen3.8-27B-NVFP4`, révision
+  `dbb8f445b3145f8a4c18ddc769f032d57d32867c`.
+- Quantification : `NVFP4-MIXED` ; les couches exactes sont celles déclarées
+  par le fichier de quantification du checkpoint.
+- Moteur : vLLM, avec version et digest d'image enregistrés. Le backend linéaire
+  effectivement sélectionné doit être conservé dans les logs.
+- KV cache : `fp8`, identique aux campagnes BF16/FP8.
+- Première passe : speculative decoding/MTP désactivé ; une campagne MTP
+  séparée pourra mesurer le bénéfice opérationnel après la baseline.
+- Contexte et concurrence : mêmes paliers `64k -> 128k -> 262k`, puis la même
+  matrice serving 1/2/5/10 utilisateurs.
 
 ## Profils opérationnels à tester après la série contrôlée
 
@@ -84,18 +152,19 @@ configuration du run.
 
 ### H200
 
-- Commencer par BF16 puis Q8_0 avec contexte 262k.
+- Commencer par BF16 puis FP8 avec contexte 262k.
 - Tester ensuite un contexte supérieur uniquement si la montée de capacité
   précédente est stable.
 - Augmenter progressivement `batch_size` et le nombre de slots ; la H200 peut
   être testée avec une enveloppe plus agressive grâce à sa mémoire HBM, mais la
-  capacité réelle doit être mesurée avec KV Q8.
+  capacité réelle doit être mesurée avec KV `fp8`, comme dans la série
+  contrôlée ; un autre format de KV ferait l'objet d'une campagne distincte.
 - Activer le speculative decoding/MTP seulement dans une campagne dédiée,
   après avoir établi le débit sans spéculation.
 
-### RTX PRO 6000 Blackwell
+### RTX PRO 6000 Blackwell Server Edition
 
-- Commencer par BF16 avec contexte 128k puis 262k, et par Q8_0 avec le même
+- Commencer par BF16 avec contexte 128k puis 262k, et par FP8 avec le même
   protocole de montée.
 - Garder un seul slot au smoke initial ; tester 2 puis 4 slots seulement après
   validation de la mémoire et de la stabilité.
@@ -103,8 +172,21 @@ configuration du run.
 - Tester MTP dans une campagne séparée, car son coût mémoire peut modifier la
   capacité de contexte disponible.
 
-Ces profils ne remplacent pas C-003 à C-006 : ils répondent à une question
-d'exploitation et non à une comparaison contrôlée.
+### DGX Spark / GB10
+
+- Identifier le périphérique comme `GB10` et enregistrer l'architecture Arm,
+  l'OS/image et le driver réellement visibles dans le conteneur.
+- Traiter les 128 Go comme mémoire système unifiée ; ne pas comparer une valeur
+  `memory.total` de `nvidia-smi` à de la VRAM discrète sans préciser sa
+  signification.
+- Commencer par un seul slot, batch conservateur et contexte 64k, puis monter à
+  128k et 262k uniquement si le serveur reste stable.
+- Conserver séparément les observations de bande passante, pression mémoire
+  CPU/GPU et éventuel partage avec l'OS ; ces caractéristiques font partie de
+  la comparaison opérationnelle du Spark.
+
+Ces profils ne remplacent pas C-003 à C-006, C-009/C-010 ni C-011/C-012 : ils
+répondent à une question d'exploitation et non à une comparaison contrôlée.
 
 ## Ordre de reprise demain
 
@@ -113,20 +195,21 @@ d'exploitation et non à une comparaison contrôlée.
 Capturer et conserver :
 
 - commit Git du benchmark ;
-- modèle, dépôt, révision, tokenizer et SHA-256 de chaque fichier GGUF ;
+- modèle, dépôt, révision, tokenizer et snapshot de poids Safetensors ;
 - version du moteur, build CUDA, pilote et OS/image ;
 - modèle exact du GPU, mémoire, température et mémoire hôte ;
 - commande de lancement complète, paramètres effectifs et logs serveur.
 
-Vérifier également que le fichier BF16, le fichier Q8_0 et leurs éventuels
-fichiers MTP/mmproj proviennent bien de la source choisie. Ne pas mélanger un
-Q8_0 `ggml-org` avec un UD-Q8_K_XL `Unsloth` dans une comparaison contrôlée.
+Vérifier également que le checkpoint BF16, FP8 ou NVFP4 provient bien du dépôt
+planifié et de la révision planifiée. Pour chaque machine, capturer l'image vLLM exacte,
+son digest, la version CUDA et le résultat du chargement avant de lancer la
+suite qualité.
 
 ### 2. Smoke et montée mémoire
 
-Pour chaque format et chaque carte :
+Pour chaque format et chaque carte concernée :
 
-1. démarrer le serveur avec slots 1, batch conservateur et KV Q8 ;
+1. démarrer le serveur avec slots 1, batch conservateur et KV `fp8` ;
 2. exécuter une requête courte de validation du template et du thinking ;
 3. tester environ 64k, 128k puis 262k tokens ;
 4. noter la mémoire utilisée, le temps de démarrage, les erreurs HTTP, OOM,
@@ -140,7 +223,8 @@ le même identifiant de campagne.
 ### 3. Qualité
 
 Lancer la suite complète des 74 tâches en mode `repair`, avec le même ordre et
-les mêmes budgets pour C-003 à C-006. Produire pour chaque campagne :
+les mêmes budgets pour C-003 à C-006, C-009/C-010 et C-011/C-012. Produire
+pour chaque campagne :
 
 - résultats bruts JSON/JSONL non écrasés ;
 - synthèse par catégorie ;
@@ -150,8 +234,10 @@ les mêmes budgets pour C-003 à C-006. Produire pour chaque campagne :
 
 ### 4. Serving
 
-Lancer séparément la matrice serving définie dans `serving/config.yaml` après
-avoir remplacé ses métadonnées Gemma par celles de la campagne Qwen. Conserver
+Lancer séparément la matrice serving définie dans
+`campaigns/gpu/serving-qwen.yaml`, `campaigns/gpu/serving-qwen-fp8.yaml` ou
+`campaigns/gpu/serving-qwen-nvfp4.yaml`.
+Conserver
 la séparation entre `cold` et `shared-prefix`, et ne pas mélanger les mesures
 avec les résultats qualité.
 
@@ -173,6 +259,13 @@ révision, le tokenizer, le format, le moteur, les paramètres de génération, 
 contexte, le batch, les slots, le KV cache et les entrées sont identiques. Le
 GPU est alors la variable étudiée.
 
+Une campagne est `controlled quantization comparison` si le GPU, le moteur,
+l'image, le tokenizer, les paramètres de service et les entrées sont maintenus
+constants, tandis que seul le checkpoint/format de quantification change. Pour
+NVFP4, cette qualification dépendra du smoke : un changement de version vLLM ou
+de backend imposé par la carte doit être signalé comme une comparaison
+opérationnelle.
+
 Une campagne devient `operational solution comparison` dès qu'un ou plusieurs
 de ces éléments sont adaptés à la carte. Les rapports doivent le dire
 explicitement et conserver les paramètres complets de chaque run.
@@ -180,8 +273,11 @@ explicitement et conserver les paramètres complets de chaque run.
 ## Références techniques
 
 - [Qwen3.8-27B — fiche modèle](https://huggingface.co/Qwen/Qwen3.8-27B)
-- [Qwen3.8-27B — configuration officielle](https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/config.json)
-- [GGUF Qwen3.8-27B — dépôt ggml-org](https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/tree/main)
-- [GGUF Qwen3.8-27B — dépôt Unsloth](https://huggingface.co/unsloth/Qwen3.8-27B-GGUF/tree/main)
+- [Qwen3.8-27B — configuration officielle](https://huggingface.co/Qwen/Qwen3.8-27B/tree/main)
+- [Qwen3.8-27B-FP8 — dépôt officiel](https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/main)
+- [Qwen3.8-27B-NVFP4 — checkpoint NVIDIA ModelOpt](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/tree/dbb8f445b3145f8a4c18ddc769f032d57d32867c)
+- [vLLM — support Qwen3.8](https://docs.vllm.ai/en/latest/models/supported_models.html)
+- [vLLM — support NVIDIA Model Optimizer/NVFP4](https://docs.vllm.ai/en/latest/features/quantization/modelopt/)
 - [NVIDIA H200](https://www.nvidia.com/en-gb/data-center/h200/)
 - [NVIDIA RTX PRO 6000 Blackwell](https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000-family/)
+- [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/)

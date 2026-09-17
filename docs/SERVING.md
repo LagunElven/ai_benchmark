@@ -2,6 +2,9 @@
 
 Le benchmark serving est séparé des tâches de qualité. Il mesure la capacité
 d'un endpoint OpenAI-compatible sans dépendre des détails internes de vLLM.
+Les profils qui déclarent un tokenizer Hugging Face utilisent ce tokenizer exact
+pour construire les tailles de contexte ; le résultat conserve la révision et la
+méthode de comptage.
 L'adaptateur utilise `POST /chat/completions` en streaming SSE ; vLLM, un autre
 serveur compatible ou un faux endpoint local peuvent donc être comparés avec le
 même protocole.
@@ -26,6 +29,15 @@ Exécuter une campagne contre le endpoint configuré :
 ```powershell
 python scripts/run_serving_benchmark.py
 ```
+
+Pour les profils Qwen, installer d'abord le support tokenizer :
+
+```powershell
+python -m pip install -e ".[serving]"
+```
+
+Pendant l'exécution, le script affiche le cas courant et son état de fin. Une
+campagne interrompue avant sa fin ne produit pas de résultat complet.
 
 Le résultat est écrit dans `results/raw/serving/<run-id>/campaign.json` et ajouté
 à `results/raw/serving/campaigns.jsonl`. Chaque résultat conserve la configuration,

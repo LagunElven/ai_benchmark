@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/gpu-campaign-plan.schema.json",
+  "title": "GPU campaign plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "version", "model", "serving", "campaigns"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "name": {"type": "string", "minLength": 1},
+    "version": {"type": "string", "minLength": 1},
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+        "required": ["name", "source_repository", "revision", "tokenizer_repository", "tokenizer_revision", "artifact_variants"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "source_repository": {"type": ["string", "null"]},
+        "revision": {"type": ["string", "null"]},
+        "tokenizer_repository": {"type": ["string", "null"]},
+        "tokenizer_revision": {"type": ["string", "null"]},
+        "artifact_variants": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "quantization", "dtype", "source_repository", "revision", "snapshot_url"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+              "quantization": {"type": "string", "minLength": 1},
+              "dtype": {"type": "string", "minLength": 1},
+              "source_repository": {"type": ["string", "null"]},
+              "revision": {"type": ["string", "null"]},
+              "snapshot_url": {"type": ["string", "null"], "format": "uri", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "serving": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "engine_version", "kv_cache_dtype", "tensor_parallel_size", "pipeline_parallel_size", "max_model_length", "max_num_seqs", "reasoning_parser"],
+      "properties": {
+        "engine": {"type": ["string", "null"]},
+        "engine_version": {"type": ["string", "null"]},
+        "kv_cache_dtype": {"type": ["string", "null"]},
+        "tensor_parallel_size": {"type": "integer", "minimum": 1},
+        "pipeline_parallel_size": {"type": "integer", "minimum": 1},
+        "max_model_length": {"type": "integer", "minimum": 1},
+        "max_num_seqs": {"type": "integer", "minimum": 1},
+        "reasoning_parser": {"type": ["string", "null"]}
+      }
+    },
+    "campaigns": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "comparison_type", "comparison_group", "hardware_model", "gpu_count", "artifact_variant"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^C-[0-9]{3,}$"},
+          "status": {"enum": ["planned", "exploratory", "ready", "completed"]},
+          "comparison_type": {"enum": ["controlled_hardware", "controlled_quantization", "operational_solution"]},
+          "comparison_group": {"type": "string", "minLength": 1},
+          "hardware_model": {"type": "string", "minLength": 1},
+          "gpu_count": {"type": "integer", "minimum": 1},
+          "artifact_variant": {"type": "string", "minLength": 1},
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}

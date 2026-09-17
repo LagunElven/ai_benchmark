@@ -13,7 +13,7 @@ Cette matrice reste volontairement simple pour la milestone 10. La présentation
 
 Les résultats détaillés sont disponibles dans les rapports associés. Les résultats bruts restent dans results/raw et sont indexés par results/raw/runs.jsonl.
 
-Les campagnes GPU réservées pour la reprise de la milestone 11 sont décrites
+Les campagnes GPU C-003 à C-006, C-009/C-010 et C-011/C-012 réservées pour la reprise de la milestone 11 sont décrites
 dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Elles ne sont pas
 ajoutées à la matrice de résultats avant leur exécution effective.
 

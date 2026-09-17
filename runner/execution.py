@@ -62,6 +62,13 @@ def _empty_patch() -> dict[str, Any]:
     return PatchMetrics([], [], [], 0, 0, None, None).as_dict()
 
 
+def _effective_output_budget(config: BenchmarkConfig, task: TaskDefinition) -> int:
+    model_budget = config.data["model"]["generation"]["max_output_tokens"]
+    if config.data["runner"].get("override_task_max_output_tokens"):
+        return model_budget
+    return min(task.data["runtime"]["max_output_tokens"], model_budget)
+
+
 def _record_model_response(
     result: dict[str, Any], store: ResultStore, response: Any, iteration: int | None = None
 ) -> str:
@@ -167,6 +174,8 @@ def _base_result(
 ) -> dict[str, Any]:
     model = config.data["model"]
     generation = model["generation"]
+    generation_metadata = dict(generation)
+    generation_metadata["max_output_tokens"] = _effective_output_budget(config, task)
     return {
         "schema_version": "1.0",
         "benchmark": {
@@ -194,7 +203,7 @@ def _base_result(
             "tokenizer_revision": model.get("tokenizer_revision"),
             "quantization": model.get("quantization"),
             "dtype": model.get("dtype"),
-            "parameters": generation,
+            "parameters": generation_metadata,
         },
         "environment": {
             "hardware": {
@@ -312,9 +321,7 @@ def run_one_shot(
             messages = build_messages(task, workspace, config.data["runner"]["max_context_bytes"])
             model_client = client or create_client(config)
             result["usage"]["model_calls"] = 1
-            task_output_budget = task.data["runtime"]["max_output_tokens"]
-            if config.data["runner"].get("override_task_max_output_tokens"):
-                task_output_budget = config.data["model"]["generation"]["max_output_tokens"]
+            task_output_budget = _effective_output_budget(config, task)
             response = model_client.complete(messages, max_output_tokens=task_output_budget)
             _record_model_response(result, store, response)
             _accumulate_usage(result, response)
@@ -417,9 +424,7 @@ def run_repair(
         task.data["runtime"]["max_iterations"],
         config.data["runner"]["max_repair_iterations"],
     )
-    max_output_tokens = task.data["runtime"]["max_output_tokens"]
-    if config.data["runner"].get("override_task_max_output_tokens"):
-        max_output_tokens = config.data["model"]["generation"]["max_output_tokens"]
+    max_output_tokens = _effective_output_budget(config, task)
     max_total_output_tokens = config.data["runner"]["max_repair_total_output_tokens"]
     max_total_seconds = config.data["runner"]["max_repair_total_seconds"]
     requested_output_tokens = 0
