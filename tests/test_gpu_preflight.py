@@ -17,7 +17,19 @@ class GpuPreflightTests(unittest.TestCase):
         plan = load_gpu_plan(self.root / "campaigns" / "gpu" / "plan.yaml")
         self.assertEqual(
             {item["id"] for item in plan["campaigns"]},
-            {"C-003", "C-004", "C-005", "C-006", "C-009", "C-010", "C-011", "C-012", "C-013"},
+            {
+                "C-003",
+                "C-004",
+                "C-005",
+                "C-006",
+                "C-009",
+                "C-010",
+                "C-011",
+                "C-012",
+                "C-013",
+                "C-014",
+                "C-015",
+            },
         )
         self.assertEqual(
             {item["id"] for item in plan["model"]["artifact_variants"]},
@@ -46,7 +58,8 @@ class GpuPreflightTests(unittest.TestCase):
             item for item in plan["campaigns"] if "RTX PRO 6000" in item["hardware_model"]
         ]
         self.assertEqual(
-            {item["id"] for item in rtx_pro_campaigns}, {"C-004", "C-006", "C-011", "C-013"}
+            {item["id"] for item in rtx_pro_campaigns},
+            {"C-004", "C-006", "C-011", "C-013", "C-014", "C-015"},
         )
         self.assertTrue(
             all("Server Edition" in item["hardware_model"] for item in rtx_pro_campaigns)
@@ -115,6 +128,13 @@ class GpuPreflightTests(unittest.TestCase):
         plan = load_gpu_plan(self.root / "campaigns" / "gpu" / "plan.yaml")
         campaign = next(item for item in plan["campaigns"] if item["id"] == "C-013")
         self.assertEqual(campaign["comparison_type"], "operational_solution")
+        self.assertEqual(campaign["artifact_variant"], "bf16")
+
+    def test_low_thinking_profile_is_labeled_as_operational(self) -> None:
+        plan = load_gpu_plan(self.root / "campaigns" / "gpu" / "plan.yaml")
+        campaign = next(item for item in plan["campaigns"] if item["id"] == "C-015")
+        self.assertEqual(campaign["comparison_type"], "operational_solution")
+        self.assertEqual(campaign["comparison_group"], "thinking-effort-rtx-pro-6000")
         self.assertEqual(campaign["artifact_variant"], "bf16")
 
 

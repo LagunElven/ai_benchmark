@@ -2,6 +2,27 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.13 — Profil qualité BF16 avec thinking low
+
+- Ajout du profil qualité Qwen3.8 BF16 `C-015` avec prefix caching et
+  `reasoning_effort: low` transmis dans `chat_template_kwargs`.
+- Cette campagne est opérationnelle et doit être comparée à `C-014` pour
+  mesurer le compromis vitesse/qualité du niveau de raisonnement.
+
+## 0.25.12 — Profil qualité BF16 avec prefix caching
+
+- Ajout d'un profil qualité Qwen3.8 BF16 pour la RTX PRO 6000 avec prefix
+  caching activé.
+- Cette campagne est explicitement opérationnelle (`C-014`) et ne remplace pas
+  la baseline qualité contrôlée sans cache.
+
+## 0.25.11 — Profil serving shared-prefix ciblé
+
+- Ajout d'un profil serving BF16 RTX PRO 6000 limité au mode `shared-prefix`.
+- Les contextes, concurrences et répétitions restent identiques à la matrice
+  complète ; les modes `cold` et sans cache restent disponibles comme contrôles
+  séparés et ne sont pas inclus dans cette campagne opérationnelle.
+
 ## 0.25.10 — Profil serving sans prefix caching
 
 - Ajout d'un profil serving Qwen smoke sans cache de préfixe.

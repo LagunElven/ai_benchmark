@@ -1,6 +1,6 @@
 schema_version: "1.0"
-name: enterprise-serving-qwen3.8-smoke
-version: 0.25.9-qwen3.8-bf16-vllm-smoke
+name: enterprise-serving-qwen3.8-rtx-pro-6000-shared-prefix
+version: 0.25.11-qwen3.8-bf16-vllm-shared-prefix
 
 endpoint:
   base_url: http://127.0.0.1:8000/v1
@@ -25,7 +25,7 @@ hardware:
   gpu_memory_gb: 96
   driver_version: 610.43.02
   cuda_version: "13.3"
-  cpu_model: null
+  cpu_model: Xeon Platform 8559C
   host_memory_gb: null
 
 serving:
@@ -57,11 +57,11 @@ serving:
   batch_size: null
 
 matrix:
-  concurrency: [1, 5]
-  context_tokens: [8000, 32000, 64000]
-  prefix_modes: [cold, shared-prefix]
+  concurrency: [1, 2, 5, 10]
+  context_tokens: [8000, 32000, 64000, 100000, 200000]
+  prefix_modes: [shared-prefix]
   warmup_requests: 1
-  repetitions: 1
+  repetitions: 3
 
 request:
   timeout_seconds: 1800

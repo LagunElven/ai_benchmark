@@ -115,3 +115,19 @@ campaigns:
     gpu_count: 1
     artifact_variant: bf16
     notes: BF16 no-thinking request profile; compare operationally with C-004, not as a controlled hardware result.
+  - id: C-014
+    status: planned
+    comparison_type: operational_solution
+    comparison_group: shared-prefix-quality-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: BF16 repair quality profile with prefix caching enabled; compare operationally with C-004, not as a controlled hardware result.
+  - id: C-015
+    status: planned
+    comparison_type: operational_solution
+    comparison_group: thinking-effort-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: BF16 repair quality profile with prefix caching and Qwen3.8 reasoning_effort=low; compare operationally with C-014, not as a controlled hardware result.
