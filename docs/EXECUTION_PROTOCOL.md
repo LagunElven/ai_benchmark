@@ -52,3 +52,24 @@ ne sont pas conservés dans le workspace après le run.
 Une erreur de modèle, de protocole de réponse, d'application des changements, de lancement
 d'un validateur ou un timeout doit être enregistrée dans le résultat. Un run ayant démarré ne
 doit pas écraser un résultat précédent et doit conserver les artefacts déjà produits.
+
+## Reprise d'une campagne
+
+`scripts/run_quality_campaign.py` écrit un checkpoint dans
+`results/raw/campaigns/<run-id>/campaign-progress.json` au démarrage et après
+chaque tâche. En cas d'arrêt du processus, reprendre la dernière campagne
+incomplète compatible avec :
+
+```powershell
+python scripts/run_quality_campaign.py --campaign-id C-003 --resume
+```
+
+La reprise doit conserver les mêmes configuration, mode, suite, catégorie et
+sélection de tâches. Les tâches déjà enregistrées sont ignorées ; seules les
+tâches sans résultat de campagne sont exécutées. Un nouveau dossier de campagne
+est créé et le résultat précédent n'est jamais écrasé. Les anciens
+`campaign.json` partiels produits avant l'ajout des checkpoints sont également
+acceptés lorsque leur nombre de tâches correspond à la sélection courante. Si
+aucun index de campagne n'existe, le runner peut aussi reconstruire un préfixe
+interrompu depuis `results/raw/runs.jsonl`, à condition de retrouver la même
+empreinte de modèle/serving et le même ordre de tâches.

@@ -34,6 +34,19 @@ Le dépôt GGUF Unsloth et sa variante `UD-Q8_K_XL` ne font plus partie des
 campagnes planifiées. Cela évite de dépendre du support GGUF expérimental de
 vLLM et de son plugin externe.
 
+## Artefact INT8/W8A16 tiers pour vLLM
+
+Le checkpoint Q8 retenu pour l'exploration vLLM est distinct des GGUF et utilise
+le format Safetensors `compressed-tensors` :
+
+| Variante | Dépôt | Révision | Format |
+|---|---|---|---|
+| INT8 W8A16 | [`GotoAI-Inc/Qwen3.8-27B-W8A16`](https://huggingface.co/GotoAI-Inc/Qwen3.8-27B-W8A16/tree/e349969d1d27552c755c992ae64a2ea56007f3e4) | `e349969d1d27552c755c992ae64a2ea56007f3e4` | poids INT8, activations BF16 |
+
+Il est servi sous vLLM avec le tokenizer officiel Qwen BF16. Ce dépôt est tiers
+et non affilié à Qwen ; la campagne `C-017` reste exploratoire et doit être
+confirmée par une réplication documentaire et une matrice serving.
+
 ## Artefact NVFP4 distinct
 
 La variante NVFP4 est traitée comme un checkpoint séparé, publié sous le
@@ -66,6 +79,12 @@ comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent
 ensuite une comparaison de quantification sur chaque plateforme. C-011 se
 compare à C-004/C-006 et C-012 à C-009/C-010, en conservant la distinction entre
 la série contrôlée et le statut exploratoire du support NVFP4.
+
+Les profils opérationnels ajoutés pour la RTX PRO 6000 sont `C-013` (BF16
+no-thinking), `C-014` (BF16 avec prefix caching), `C-015` (thinking low), `C-016`
+(thinking medium) et `C-017` (INT8/W8A16 thinking medium). Ils ne doivent pas
+être mélangés aux campagnes matérielles contrôlées sans conserver leurs
+différences de profil et leurs artefacts bruts.
 
 ## Configuration contrôlée de départ
 

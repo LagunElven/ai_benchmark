@@ -19,12 +19,27 @@
         "category": {"type": ["string", "null"]},
         "config_path": {"type": "string"},
         "config_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
-        "git_commit": {"type": ["string", "null"]}
+        "git_commit": {"type": ["string", "null"]},
+        "task_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "resumed_from": {"type": "string", "minLength": 1}
       }
     },
     "started_at": {"type": "string", "format": "date-time"},
     "ended_at": {"type": "string", "format": "date-time"},
-    "status": {"enum": ["completed", "completed_with_failures", "failed"]},
+    "status": {
+      "enum": [
+        "running",
+        "interrupted",
+        "stopped",
+        "completed",
+        "completed_with_failures",
+        "failed"
+      ]
+    },
     "runs": {
       "type": "array",
       "items": {

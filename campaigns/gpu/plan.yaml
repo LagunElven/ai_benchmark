@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-gpu-campaigns
-version: "0.5.4"
+version: "0.5.6"
 
 # The Qwen repositories and revisions are pinned to the Hugging Face main
 # commits observed on 2026-09-17. The NVFP4 artifact is published by NVIDIA
@@ -31,6 +31,12 @@ model:
       source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
       revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
       snapshot_url: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/tree/dbb8f445b3145f8a4c18ddc769f032d57d32867c
+    - id: q8-w8a16
+      quantization: INT8-W8A16
+      dtype: BF16
+      source_repository: https://huggingface.co/GotoAI-Inc/Qwen3.8-27B-W8A16
+      revision: e349969d1d27552c755c992ae64a2ea56007f3e4
+      snapshot_url: https://huggingface.co/GotoAI-Inc/Qwen3.8-27B-W8A16/tree/e349969d1d27552c755c992ae64a2ea56007f3e4
 
 serving:
   engine: vllm
@@ -131,3 +137,19 @@ campaigns:
     gpu_count: 1
     artifact_variant: bf16
     notes: BF16 repair quality profile with prefix caching and Qwen3.8 reasoning_effort=low; compare operationally with C-014, not as a controlled hardware result.
+  - id: C-016
+    status: planned
+    comparison_type: operational_solution
+    comparison_group: thinking-effort-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: bf16
+    notes: BF16 repair quality diagnostic with prefix caching and Qwen3.8 reasoning_effort=medium; compare operationally with C-015 and C-013, not as a controlled hardware result.
+  - id: C-017
+    status: exploratory
+    comparison_type: controlled_quantization
+    comparison_group: quantization-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: q8-w8a16
+    notes: INT8 W8A16 third-party Safetensors checkpoint served by vLLM; compare with C-016 after smoke validation, while retaining the operational-solution label for the external quantizer.

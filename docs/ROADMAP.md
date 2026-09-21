@@ -173,6 +173,22 @@ Chaque playbook doit documenter :
 - commande full
 - collecte résultats
 
+### Actions GPU à reprendre le 22 septembre 2026
+
+- [ ] Répéter avec Q8 les tâches documentaires `DOC-02`, `DOC-03`, `DOC-05`,
+  `DOC-06`, `DOC-07` et `DOC-08`, idéalement en plusieurs répétitions et avec
+  la même sélection BF16.
+- [ ] Créer le profil serving Q8 dérivé de
+  `campaigns/gpu/serving-qwen-rtx-pro-6000-full.yaml`.
+- [ ] Exécuter la matrice serving Q8 1/2/5/10 utilisateurs, contextes
+  8k/32k/64k/100k/200k, modes `cold` et `shared-prefix`.
+- [ ] Comparer BF16/Q8 sur TTFT, TPOT, tokens/s, débit agrégé, mémoire GPU,
+  KV cache et taux d'échec/OOM.
+- [ ] Corriger le résumé de campagne afin qu'il comptabilise les erreurs de
+  protocole et les erreurs client présentes dans les `result.json`.
+- [ ] Recalibrer ou documenter définitivement `CTX-06`, dont le prompt réel
+  dépasse la fenêtre effective de 262144 tokens.
+
 ## Milestone 12 — Reporting
 
 - [ ] export CSV

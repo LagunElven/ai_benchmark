@@ -17,6 +17,11 @@ Ainsi, le dépôt complet n'a pas besoin d'être copié sur la machine GPU et
 `private-tests/` n'est jamais placé dans le contexte du modèle. Seuls les
 prompts et les workspaces visibles transitent dans les requêtes vers le serveur.
 
+Sur les instances équipées du portail `portal-aio`, Caddy peut déjà occuper le
+port distant `8000`. Dans ce cas, ne pas arrêter Caddy : lancer vLLM sur `8001`
+et créer le tunnel SSH avec `-L 8000:127.0.0.1:8001` afin de conserver le
+`base_url` local du benchmark.
+
 Vast.ai fournit des instances conteneurisées avec un GPU dédié, une image Docker
 choisie par l'utilisateur et une facturation à la seconde. Les templates
 définissent notamment l'image, le mode SSH/Jupyter, les ports et l'initialisation.
@@ -267,6 +272,17 @@ Pour chaque campagne :
    ```powershell
    python scripts/run_quality_campaign.py --campaign-id C-003 --config <config-campagne.yaml>
    ```
+
+   Si le processus est interrompu après une ou plusieurs tâches, reprendre la
+   campagne avec les mêmes options et `--resume` :
+
+   ```powershell
+   python scripts/run_quality_campaign.py --campaign-id C-003 --config <config-campagne.yaml> --resume
+   ```
+
+   Le runner réutilise les résultats de tâches déjà persistés et crée un nouvel
+   artefact de campagne ; il ne relance pas ces tâches et n'écrase pas l'ancien
+   résultat.
 
 7. lancer séparément le serving :
 

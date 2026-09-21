@@ -2,6 +2,33 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.16 — Campagne Q8 INT8 W8A16 avec vLLM
+
+- Ajout de la campagne exploratoire `C-017` avec le checkpoint Safetensors
+  `GotoAI-Inc/Qwen3.8-27B-W8A16`, épinglé à sa révision immuable.
+- Le profil conserve le thinking `medium`, le KV cache FP8 et le prefix caching
+  de C-016 ; seul l'artefact de poids change.
+- Le checkpoint tiers reste identifié comme une solution opérationnelle tant
+  que sa validation comparative n'est pas terminée.
+
+## 0.25.15 — Profil qualité BF16 avec thinking medium
+
+- Ajout du profil diagnostique Qwen3.8 BF16 `C-016`, identique à `C-015`
+  mais avec `reasoning_effort: medium`.
+- La campagne est limitée aux 11 tâches ayant servi à comparer le profil
+  `no-thinking` ; elle reste une comparaison opérationnelle.
+
+## 0.25.14 — Reprise des campagnes qualité interrompues
+
+- `scripts/run_quality_campaign.py` checkpoint désormais la progression après
+  chaque tâche et accepte `--resume` pour reprendre la dernière campagne
+  incomplète compatible.
+- Une reprise crée un nouvel artefact et conserve les résultats précédents ;
+  les anciens `campaign.json` partiels restent repris lorsque leur sélection est
+  identifiable. Les campagnes interrompues avant la finalisation de leur index
+  peuvent être reconstruites depuis `results/raw/runs.jsonl` lorsque leur
+  préfixe et leur configuration sont vérifiables.
+
 ## 0.25.13 — Profil qualité BF16 avec thinking low
 
 - Ajout du profil qualité Qwen3.8 BF16 `C-015` avec prefix caching et

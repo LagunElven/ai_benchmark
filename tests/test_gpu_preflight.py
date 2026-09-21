@@ -29,11 +29,13 @@ class GpuPreflightTests(unittest.TestCase):
                 "C-013",
                 "C-014",
                 "C-015",
+                "C-016",
+                "C-017",
             },
         )
         self.assertEqual(
             {item["id"] for item in plan["model"]["artifact_variants"]},
-            {"bf16", "fp8", "nvfp4"},
+            {"bf16", "fp8", "nvfp4", "q8-w8a16"},
         )
         self.assertEqual(plan["serving"]["engine"], "vllm")
         self.assertEqual(plan["serving"]["engine_version"], "0.29.0")
@@ -48,7 +50,7 @@ class GpuPreflightTests(unittest.TestCase):
                 item["artifact_variant"]
                 for item in plan["campaigns"]
             },
-            {"bf16", "fp8", "nvfp4"},
+            {"bf16", "fp8", "nvfp4", "q8-w8a16"},
         )
         spark_campaigns = [
             item for item in plan["campaigns"] if "DGX Spark" in item["hardware_model"]
@@ -59,7 +61,7 @@ class GpuPreflightTests(unittest.TestCase):
         ]
         self.assertEqual(
             {item["id"] for item in rtx_pro_campaigns},
-            {"C-004", "C-006", "C-011", "C-013", "C-014", "C-015"},
+            {"C-004", "C-006", "C-011", "C-013", "C-014", "C-015", "C-016", "C-017"},
         )
         self.assertTrue(
             all("Server Edition" in item["hardware_model"] for item in rtx_pro_campaigns)
@@ -119,6 +121,8 @@ class GpuPreflightTests(unittest.TestCase):
             "benchmark.qwen3.8-bf16.yaml",
             "benchmark.qwen3.8-fp8.yaml",
             "benchmark.qwen3.8-nvfp4.yaml",
+            "benchmark.qwen3.8-bf16-shared-prefix-medium-thinking.yaml",
+            "benchmark.qwen3.8-q8-w8a16-shared-prefix-medium-thinking.yaml",
         ):
             with self.subTest(filename=filename):
                 config = yaml.safe_load((self.root / filename).read_text(encoding="utf-8"))
@@ -136,6 +140,24 @@ class GpuPreflightTests(unittest.TestCase):
         self.assertEqual(campaign["comparison_type"], "operational_solution")
         self.assertEqual(campaign["comparison_group"], "thinking-effort-rtx-pro-6000")
         self.assertEqual(campaign["artifact_variant"], "bf16")
+
+    def test_medium_thinking_profile_is_labeled_as_operational(self) -> None:
+        plan = load_gpu_plan(self.root / "campaigns" / "gpu" / "plan.yaml")
+        campaign = next(item for item in plan["campaigns"] if item["id"] == "C-016")
+        self.assertEqual(campaign["comparison_type"], "operational_solution")
+        self.assertEqual(campaign["comparison_group"], "thinking-effort-rtx-pro-6000")
+        self.assertEqual(campaign["artifact_variant"], "bf16")
+
+    def test_q8_w8a16_profile_is_pinned_and_uses_the_quantized_variant(self) -> None:
+        plan = load_gpu_plan(self.root / "campaigns" / "gpu" / "plan.yaml")
+        campaign = next(item for item in plan["campaigns"] if item["id"] == "C-017")
+        variant = next(
+            item for item in plan["model"]["artifact_variants"] if item["id"] == "q8-w8a16"
+        )
+        self.assertEqual(campaign["comparison_type"], "controlled_quantization")
+        self.assertEqual(campaign["artifact_variant"], "q8-w8a16")
+        self.assertEqual(variant["quantization"], "INT8-W8A16")
+        self.assertEqual(variant["revision"], "e349969d1d27552c755c992ae64a2ea56007f3e4")
 
 
 if __name__ == "__main__":

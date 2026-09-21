@@ -43,6 +43,8 @@ python scripts/check_catalogue.py
 python scripts/run_serving_benchmark.py --plan-only
 python scripts/prepare_gpu_campaign.py --campaign-id C-003 --config benchmark.qwen3.8-bf16.yaml --serving-config campaigns/gpu/serving-qwen.yaml
 python scripts/run_quality_campaign.py --campaign-id C-003 --plan-only
+# Reprendre la dernière campagne incomplète compatible
+python scripts/run_quality_campaign.py --campaign-id C-003 --resume
 python -m unittest discover -s tests -v
 ```
 
