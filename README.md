@@ -69,6 +69,8 @@ les résultats.
 - `docs/REMOTE_GPU_CHECKLIST.md` : checklist courte avant location, après connexion et avant arrêt.
 - `campaigns/gpu/plan.yaml` : campagnes C-003 à C-006, C-009/C-010 et C-011/C-012, avec les valeurs à figer avant location.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
+- `docs/TASK_REFERENCE.md` : référence synthétique par tâche, critères de réussite,
+  d'échec et pièges à surveiller.
 - `docs/ROADMAP.md` : milestones.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.
 

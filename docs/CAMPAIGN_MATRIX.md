@@ -10,6 +10,8 @@ Cette matrice reste volontairement simple pour la milestone 10. La présentation
 |---|---|---|---|
 | C-001 | 2026-09-16 | Gemma 4 local — baseline, thinking désactivé | [Synthèse](../results/reports/gemma4-local-20260916.md) |
 | C-002 | 2026-09-16 | Gemma 4 local — thinking / contexte 100k | [Synthèse](../results/reports/gemma4-thinking-100k-20260916.md) |
+| C-016 | 2026-09-21 | Qwen3.8-27B BF16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T110238.257698Z-c-016-81173711/campaign.json) |
+| C-017 | 2026-09-21/22 | Qwen3.8-27B Q8/W8A16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T155315.525802Z-c-017-35d4e399/campaign.json) |
 
 Les résultats détaillés sont disponibles dans les rapports associés. Les résultats bruts restent dans results/raw et sont indexés par results/raw/runs.jsonl.
 
@@ -21,27 +23,44 @@ ajoutées à la matrice de résultats avant leur exécution effective.
 
 Les valeurs de catégorie sont au format réussites/total. Les tokens sont ceux rapportés par l’endpoint OpenAI-compatible et le temps est le temps cumulé des runs qualité.
 
-| Métrique | C-001 | C-002 |
-|---|---:|---:|
-| ABAL | 4/4 | 4/4 |
-| Axon | 8/10 | 9/10 |
-| COBOL | 3/5 | 4/5 |
-| Context | 1/6 | 3/6 |
-| Delphi | 4/4 | 4/4 |
-| Documents | 1/10 | 2/10 |
-| E2E | 2/3 | 2/3 |
-| Java | 6/8 | 6/8 |
-| Spring | 8/10 | 8/10 |
-| Web | 5/10 | 5/10 |
-| WinDev | 3/4 | 4/4 |
-| **Total réussi** | **45/74** | **51/74** |
-| Pass@1 | 43/74 | 47/74 |
-| Pass@2 | 45/74 | 51/74 |
-| Pass@3 | 45/74 | 51/74 |
-| Appels modèle | 94 | 101 |
-| Tokens entrée | 83 612 | 212 558 |
-| Tokens générés | 48 041 | 867 269 |
-| Temps cumulé | 30 min 29 s | 2 h 50 min 31 s |
+| Métrique | C-001 | C-002 | C-016 | C-017 |
+|---|---:|---:|---:|---:|
+| ABAL | 4/4 | 4/4 | 4/4 | 4/4 |
+| Axon | 8/10 | 9/10 | 10/10 | 10/10 |
+| COBOL | 3/5 | 4/5 | 5/5 | 5/5 |
+| Context | 1/6 | 3/6 | 5/6 | 5/6 |
+| Delphi | 4/4 | 4/4 | 4/4 | 4/4 |
+| Documents | 1/10 | 2/10 | 7/10 | 4/10 |
+| E2E | 2/3 | 2/3 | 2/3 | 2/3 |
+| Java | 6/8 | 6/8 | 6/8 | 6/8 |
+| Spring | 8/10 | 8/10 | 9/10 | 10/10 |
+| Web | 5/10 | 5/10 | 8/10 | 8/10 |
+| WinDev | 3/4 | 4/4 | 4/4 | 4/4 |
+| **Total réussi** | **45/74** | **51/74** | **64/74** | **62/74** |
+| Pass@1 | 43/74 | 47/74 | — | — |
+| Pass@2 | 45/74 | 51/74 | — | — |
+| Pass@3 | 45/74 | 51/74 | — | — |
+| Appels modèle | 94 | 101 | — | — |
+| Tokens entrée | 83 612 | 212 558 | — | — |
+| Tokens générés | 48 041 | 867 269 | — | — |
+| Temps cumulé | 30 min 29 s | 2 h 50 min 31 s | 1 h 40 min 29 s | 1 h 00 min 04 s |
+
+C-016 et C-017 sont des profils opérationnels, pas une comparaison contrôlée
+de quantification : C-017 utilise le checkpoint tiers
+`GotoAI-Inc/Qwen3.8-27B-W8A16`, tandis que C-016 utilise le checkpoint officiel
+BF16 Qwen.
+
+## Serving exécuté
+
+| Profil | Couverture | Résultat |
+|---|---|---|
+| BF16 smoke | 12 cas, concurrence 1/5, contextes 8k/32k/64k, `cold` et `shared-prefix` | Campagne de contrôle partielle |
+| BF16 complet | 20 cas, toutes les concurrences et contextes, `shared-prefix` | Terminée |
+| Q8 complet | 40 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k, `cold` et `shared-prefix` | 540/540 requêtes réussies |
+
+Le détail de la couverture et l'analyse BF16/Q8 sont consignés dans
+[`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md). Les cellules
+`cold` non exécutées en BF16 restent explicitement non testées.
 
 ## Paramètres des campagnes
 

@@ -64,15 +64,30 @@ Les percentiles utilisent une règle nearest-rank déterministe. Les requêtes
 échouées restent dans le dénominateur du taux d'échec, mais pas dans les
 distributions de latence ou de débit réussi.
 
-## Profil serving Q8 à préparer
+## Profils serving BF16 et Q8 exécutés
 
-Le profil BF16 RTX PRO 6000
-(`campaigns/gpu/serving-qwen-rtx-pro-6000-full.yaml`) doit être dupliqué pour
-le checkpoint `GotoAI-Inc/Qwen3.8-27B-W8A16` avant la comparaison de concurrence.
-La matrice, le tokenizer, le KV cache FP8, le contexte cible et les paramètres
-de requête doivent rester identiques ; seuls le checkpoint, la quantification et
-le nom servi changent. Le profil serving conserve `enable_thinking: false` afin
-de mesurer le moteur et le cache plutôt que la longueur variable du raisonnement.
+La campagne Q8 complète a été exécutée le 22 septembre 2026 avec
+`campaigns/gpu/serving-qwen-rtx-pro-6000-q8-full.yaml`. Elle reprend la matrice
+BF16 : 1/2/5/10 utilisateurs, contextes 8k/32k/64k/100k/200k, modes `cold` et
+`shared-prefix`, un warmup et trois répétitions. Les 40 cas et 540 requêtes Q8
+ont abouti sans échec.
+
+La campagne BF16 disponible comprend une campagne complète de 20 cas en
+`shared-prefix` et un smoke séparé de 12 cas couvrant `cold` et `shared-prefix`
+uniquement pour les concurrences 1/5 et les contextes 8k/32k/64k. Les cellules
+BF16 `cold` manquantes ne doivent pas être extrapolées ; les futurs rapports
+doivent les afficher comme « non testées ».
+
+Le profil conserve `enable_thinking: false` afin de mesurer le moteur et le
+cache plutôt que la longueur variable du raisonnement. Le détail des résultats
+et de la comparaison se trouve dans
+[`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md).
+
+Les métriques de ressource capturées par le runner sont celles de la machine
+qui exécute le benchmark. Pour ces campagnes distantes, elles décrivent donc
+le poste local lorsque `nvidia-smi` est lancé côté runner, pas le GPU distant.
+Les métriques `server_metrics` et KV-cache distantes n'étaient pas exposées par
+l'endpoint ; elles restent absentes plutôt que d'être déduites.
 
 Sur l'instance utilisée le portail Caddy occupe le port distant `8000` ; vLLM
 Q8 écoute sur `8001` et le tunnel SSH mappe le port local `8000` vers ce port.

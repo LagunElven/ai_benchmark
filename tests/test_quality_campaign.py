@@ -12,11 +12,46 @@ from runner.config import load_benchmark_config
 from runner.discovery import discover_tasks
 from runner.execution import run_one_shot as execute_one_shot
 from scripts import run_quality_campaign as campaign_script
-from scripts.run_quality_campaign import _find_resume_source, _sha256
+from scripts.run_quality_campaign import (
+    _campaign_result,
+    _campaign_run_entry,
+    _find_resume_source,
+    _sha256,
+)
 from tests.support import create_repository
 
 
 class QualityCampaignResumeTests(unittest.TestCase):
+    def test_campaign_counts_errors_from_individual_run_results(self) -> None:
+        run = _campaign_run_entry(
+            {
+                "task": {"id": "DOC-02"},
+                "run": {"status": "completed"},
+                "validation": {"outcome": "failed"},
+                "artifacts": {"result": "results/raw/doc-02/result.json"},
+                "errors": [
+                    {"type": "ChangeProtocolError", "message": "invalid changes"},
+                    {"type": "ModelClientError", "message": "temporary failure"},
+                ],
+            }
+        )
+        self.assertIsNotNone(run)
+        assert run is not None
+        campaign = _campaign_result(
+            metadata={"id": "C-003"},
+            started_at="2026-09-22T08:00:00Z",
+            ended_at="2026-09-22T08:00:01Z",
+            status="completed_with_failures",
+            runs=[run],
+            tasks_total=1,
+        )
+
+        self.assertEqual(campaign["summary"]["tasks_with_errors"], 1)
+        self.assertEqual(
+            campaign["summary"]["error_counts"],
+            {"ChangeProtocolError": 1, "ModelClientError": 1},
+        )
+
     def test_resume_reconstructs_campaign_without_global_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

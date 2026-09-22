@@ -157,19 +157,22 @@ def _campaign_run_entry(run: dict[str, Any]) -> dict[str, Any] | None:
     if not isinstance(result_path, str) or not isinstance(task_id, str):
         return None
     errors = run.get("errors", [])
-    error = None
-    if errors:
-        error = "; ".join(
-            f"{item.get('type', 'error')}: {item.get('message', '')}"
-            for item in errors
-            if isinstance(item, dict)
-        )
+    error_items = (
+        [item for item in errors if isinstance(item, dict)]
+        if isinstance(errors, list)
+        else []
+    )
+    error = "; ".join(
+        f"{item.get('type', 'error')}: {item.get('message', '')}" for item in error_items
+    ) or None
+    error_types = sorted({item.get("type", "error") for item in error_items})
     return {
         "task_id": task_id,
         "status": run_metadata.get("status", "failed"),
         "validation_outcome": validation.get("outcome", "not_run"),
         "result_path": result_path,
         "error": error,
+        "error_types": error_types,
     }
 
 
@@ -247,7 +250,10 @@ def _legacy_run_source(
             "tasks_total": len(task_ids),
             "tasks_passed": sum(item["validation_outcome"] == "passed" for item in runs),
             "tasks_failed": sum(item["validation_outcome"] != "passed" for item in runs),
-            "tasks_with_errors": sum(bool(item["error"]) for item in runs),
+            "tasks_with_errors": sum(
+                bool(item.get("error_types")) or bool(item.get("error")) for item in runs
+            ),
+            "error_counts": _error_counts(runs),
         },
     }
     return index_path, source
@@ -438,7 +444,9 @@ def _campaign_result(
 ) -> dict[str, Any]:
     tasks_passed = sum(run["validation_outcome"] == "passed" for run in runs)
     tasks_failed = len(runs) - tasks_passed
-    tasks_with_errors = sum(bool(run.get("error")) for run in runs)
+    tasks_with_errors = sum(
+        bool(run.get("error_types")) or bool(run.get("error")) for run in runs
+    )
     return {
         "schema_version": "1.0",
         "type": "quality_campaign_result",
@@ -452,8 +460,23 @@ def _campaign_result(
             "tasks_passed": tasks_passed,
             "tasks_failed": tasks_failed,
             "tasks_with_errors": tasks_with_errors,
+            "error_counts": _error_counts(runs),
         },
     }
+
+
+def _error_counts(runs: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for run in runs:
+        error_types = run.get("error_types", [])
+        if not isinstance(error_types, list):
+            error_types = []
+        if not error_types and run.get("error"):
+            error_types = ["unknown"]
+        for error_type in error_types:
+            if isinstance(error_type, str):
+                counts[error_type] = counts.get(error_type, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def main(arguments: list[str] | None = None) -> int:
@@ -565,15 +588,11 @@ def main(arguments: list[str] | None = None) -> int:
                 validation_outcome = result["validation"]["outcome"]
                 passed = validation_outcome == "passed"
                 relative = result_path.relative_to(config.root).as_posix()
-                runs.append(
-                    {
-                        "task_id": task.id,
-                        "status": result["run"]["status"],
-                        "validation_outcome": validation_outcome,
-                        "result_path": relative,
-                        "error": None,
-                    }
-                )
+                campaign_run = _campaign_run_entry(result)
+                if campaign_run is None:
+                    raise ValueError(f"invalid run result for {task.id}")
+                campaign_run["result_path"] = relative
+                runs.append(campaign_run)
                 print(f"  {validation_outcome}: {relative}", flush=True)
                 progress = _campaign_result(
                     metadata=campaign_metadata,
@@ -594,6 +613,7 @@ def main(arguments: list[str] | None = None) -> int:
                         "validation_outcome": "not_run",
                         "result_path": "",
                         "error": f"{type(exc).__name__}: {exc}",
+                        "error_types": [type(exc).__name__],
                     }
                 )
                 print(f"  error: {exc}", file=sys.stderr, flush=True)

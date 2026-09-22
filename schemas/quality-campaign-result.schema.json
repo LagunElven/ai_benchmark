@@ -51,19 +51,24 @@
           "status": {"type": "string"},
           "validation_outcome": {"type": "string"},
           "result_path": {"type": "string"},
-          "error": {"type": ["string", "null"]}
+          "error": {"type": ["string", "null"]},
+          "error_types": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
         }
       }
     },
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["tasks_total", "tasks_passed", "tasks_failed", "tasks_with_errors"],
+      "required": ["tasks_total", "tasks_passed", "tasks_failed", "tasks_with_errors", "error_counts"],
       "properties": {
         "tasks_total": {"type": "integer", "minimum": 0},
         "tasks_passed": {"type": "integer", "minimum": 0},
         "tasks_failed": {"type": "integer", "minimum": 0},
-        "tasks_with_errors": {"type": "integer", "minimum": 0}
+        "tasks_with_errors": {"type": "integer", "minimum": 0},
+        "error_counts": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        }
       }
     }
   }

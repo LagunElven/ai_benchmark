@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.17 — Consolidation des campagnes Q8 et du reporting d'erreurs
+
+- Les résultats de campagne qualité conservent maintenant les types d'erreur
+  remontés par chaque run et leur agrégation (`error_counts`), notamment les
+  erreurs de protocole et de client modèle.
+- Ajout du profil serving Q8 complet pour la RTX PRO 6000, avec la même matrice
+  de concurrence/contexte que le profil BF16.
+- Les résultats BF16/Q8 du 22 septembre sont documentés comme comparaison
+  opérationnelle ; le checkpoint Q8 tiers ne permet pas d'isoler la seule
+  quantification.
+
 ## 0.25.16 — Campagne Q8 INT8 W8A16 avec vLLM
 
 - Ajout de la campagne exploratoire `C-017` avec le checkpoint Safetensors
