@@ -1,20 +1,19 @@
 # Plan des campagnes GPU — Milestone 11
 
 Ce document prépare les campagnes réelles sur une NVIDIA H200, une NVIDIA
-RTX PRO 6000 Blackwell Server Edition et un NVIDIA DGX Spark / GB10. Il sépare les comparaisons contrôlées, destinées à
-mesurer l'effet du matériel ou de la quantification, des profils opérationnels
-qui cherchent le meilleur service possible sur chaque carte.
+RTX PRO 6000 Blackwell Server Edition et un NVIDIA DGX Spark / GB10. Il sépare les
+comparaisons contrôlées, destinées à mesurer l'effet du matériel ou de la quantification,
+des profils opérationnels qui cherchent une configuration exploitable.
 
-Les campagnes contrôlées et NVFP4 du tableau ci-dessous sont planifiées et restent
-à exécuter. Les profils opérationnels C-016 et C-017 ont déjà été évalués sur la RTX
-PRO 6000 ; leurs résultats figurent dans la matrice et le compte rendu de session.
-C-018, profil qualité FP8 officiel et future base opérationnelle, a été exécuté :
-la campagne qualité est terminée avec des échecs et le serving est terminé. C-019
-prépare le même checkpoint FP8 avec le draft DFlash2 ; son plan est
-isolé dans `campaigns/gpu/plan-c019-dflash2.yaml` afin de ne pas modifier les entrées
-de C-018 pendant son exécution ni empêcher une éventuelle reprise.
-Les résultats ne doivent être ajoutés à `docs/CAMPAIGN_MATRIX.md` qu'après la
-conservation des artefacts bruts et la génération des rapports.
+Les profils C-016 et C-017 ont été évalués sur la RTX PRO 6000. C-018 (FP8 officiel sans
+DFlash2) et C-019 (FP8 officiel avec DFlash2) ont aussi été exécutés : les deux campagnes
+qualité se sont terminées avec des échecs, et leur benchmark serving a été exécuté. Le pilote de cohorte
+a ensuite été réalisé sur la même configuration FP8 + DFlash2 que C-019. Ses résultats et
+limites figurent dans
+[`docs/COHORT_SESSION_2026-09-23.md`](COHORT_SESSION_2026-09-23.md). Les plans machine-readable
+utilisés pour C-018/C-019 sont des entrées historiques : ne pas les modifier pour refléter
+la roadmap ou préparer une nouvelle variante. Les nouvelles configurations recevront leurs
+propres plans et profils. Les résultats bruts antérieurs restent préservés.
 
 La préparation opérationnelle et le parcours de location sont décrits dans
 [`docs/GPU_REMOTE_RUNBOOK.md`](GPU_REMOTE_RUNBOOK.md). Le plan machine-readable
@@ -83,8 +82,59 @@ vLLM avant toute mesure de qualité ou de débit.
 | C-010 | planifiée | 1x DGX Spark / GB10 | FP8 | contrôlée matériel | qualité de référence FP8 |
 | C-011 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | NVFP4 mixed | contrôlée quantification | NVFP4 sur RTX PRO Server Edition, après smoke vLLM |
 | C-012 | exploratoire | 1x DGX Spark / GB10 | NVFP4 mixed | contrôlée quantification | NVFP4 sur GB10, après smoke vLLM |
-| C-018 | qualité terminée avec échecs / serving terminé | 1x RTX PRO 6000 Blackwell Server Edition | FP8 officiel | opérationnelle | future base qualité, thinking medium et shared-prefix, 74 tâches |
-| C-019 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; vérifier qualité, acceptance, prefix-cache hits et serving |
+| C-018 | qualité terminée avec échecs / serving terminé | 1x RTX PRO 6000 Blackwell Server Edition | FP8 officiel | opérationnelle | base FP8 sans DFlash2, thinking medium et shared-prefix, 74 tâches |
+| C-019 | qualité terminée avec échecs / serving terminé / cohorte séparée explorée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; la cohorte DFlash2 est documentée séparément |
+
+## Suite opérationnelle RTX PRO 6000 : moteur × poids × DFlash2
+
+La suite vise les huit cellules du croisement moteur (vLLM/SGLang), poids (FP8/NVFP4)
+et DFlash2 (désactivé/activé). C-018 et C-019 couvrent déjà vLLM + FP8 ; la matrice
+ci-dessous reprend exactement l'ordre de travail convenu. Cette comparaison est une
+matrice opérationnelle. Pour isoler l'effet d'une variable, comparer les cellules appariées
+qui ne diffèrent que par cette variable.
+
+| Ordre | Moteur | Poids | DFlash2 | Travaux restants |
+|---:|---|---|---|---|
+| 1 | vLLM | FP8 | non | cohorte appariée ; qualité et serving déjà exécutés en C-018 |
+| 2 | vLLM | NVFP4 | non | campagne qualité, serving, cohorte |
+| 3 | vLLM | NVFP4 | oui | campagne qualité, serving, cohorte |
+| 4 | SGLang | FP8 | non | campagne qualité, serving, cohorte |
+| 5 | SGLang | FP8 | oui | campagne qualité, serving, cohorte |
+| 6 | SGLang | NVFP4 | non | campagne qualité, serving, cohorte |
+| 7 | SGLang | NVFP4 | oui | campagne qualité, serving, cohorte |
+
+### Garde-fous d'exécution
+
+- Avant chaque campagne SGLang complète, lancer un smoke de chargement et d'API OpenAI,
+  vérifier le raisonnement medium, le streaming, les appels d'outils et le protocole de sortie,
+  les contextes visés, puis l'acceptance DFlash2 lorsque le draft est activé. Avant la cohorte,
+  vérifier aussi l'isolation des sorties sur plusieurs requêtes concurrentes aux prompts
+  distincts ; un [signalement SGLang](https://github.com/sgl-project/sglang/issues/36548)
+  décrit un possible mélange de contexte avec DFlash2 sous forte concurrence sur RTX PRO 6000.
+- Dans tous les profils avec DFlash2, garder le KV cache en FP8, y compris lorsque les poids
+  cibles sont NVFP4. La quantification des poids et celle du KV cache sont deux paramètres
+  distincts ; un problème SGLang a été signalé avec DFlash et un KV cache NVFP4
+  ([issue SGLang #36010](https://github.com/sgl-project/sglang/issues/36010)).
+- Le serving de cette campagne utilise shared-prefix uniquement. Ne pas considérer le cache
+  comme validé parce que son option est activée : relever les compteurs côté serveur avant et
+  après le test, et confirmer des hits réels. Pour SGLang, activer ses métriques et enregistrer
+  les valeurs RadixCache pertinentes ; les échantillons de ressources du runner local ne sont
+  pas des mesures GPU du serveur distant.
+- Réaliser au moins trois cohortes par cellule de concurrence comparée. Pour chaque répétition,
+  conserver la même sélection et révision de tâches, le même seed et les mêmes conditions de
+  démarrage/warmup ; noter les redémarrages et toute charge étrangère. Les résultats actuels
+  à 6 et 8 agents n'ont que deux répétitions et restent exploratoires.
+- Apparier les comparaisons sur le checkpoint et sa révision, le tokenizer, les tâches et leurs
+  prompts, le matériel, le raisonnement medium, les limites de contexte/sortie et le mode cache.
+  Épingler une version du moteur par série SGLang ; consigner les options propres à chaque
+  moteur, notamment la taille de bloc DFlash2, au lieu de supposer que les mêmes valeurs de
+  drapeaux signifient le même réglage effectif.
+
+Le cookbook officiel SGLang documente Qwen3.8-27B en FP8 et avec l'export NVIDIA NVFP4,
+ainsi que DFlash2 et des validations sur RTX PRO 6000. Cette validation établit la
+compatibilité, pas un avantage de débit face à vLLM ; le pilote ci-dessus doit mesurer ce
+comparatif sur notre propre charge
+([cookbook Qwen3.8-27B](https://github.com/sgl-project/sglang/blob/main/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx)).
 
 C-003/C-004/C-009 forment la comparaison matérielle BF16 et C-005/C-006/C-010 la
 comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent
@@ -131,16 +181,19 @@ python scripts/run_quality_campaign.py `
 Le serving Q8 et FP8 se lance séparément avec le profil dédié correspondant ; la
 matrice des deux variantes est identique.
 
-### C-019 — validation DFlash2 sur la cible FP8
+### C-019 — configuration exécutée : DFlash2 sur la cible FP8
 
-C-019 conserve exactement la cible officielle `Qwen/Qwen3.8-27B-FP8`, son tokenizer,
+C-019 conservait exactement la cible officielle `Qwen/Qwen3.8-27B-FP8`, son tokenizer,
 les paramètres medium/shared-prefix et vLLM 0.29.0. La seule différence opérationnelle
-est l'ajout du draft BF16 DFlash2, `incoai/Qwen3.8-27B-DFlash2`, révision
+était l'ajout du draft BF16 DFlash2, `incoai/Qwen3.8-27B-DFlash2`, révision
 `015e795645c74b1a0eeef3b570031fb62e769bc5`. La fiche z-lab indique que son dépôt est
 un miroir du checkpoint IncoAI, et la recette vLLM utilise le dépôt IncoAI. Le plan
-séparé de C-019 fige cette révision sans altérer le plan de C-018.
+séparé de C-019 fige cette révision sans altérer le plan de C-018. La campagne qualité
+s'est terminée avec des échecs ; le serving a été exécuté. Les résultats du pilote de
+cohorte correspondant à cette configuration sont rapportés séparément.
 
-Télécharger uniquement le draft (le modèle FP8 et le tokenizer Qwen sont déjà en cache) :
+Commande de téléchargement utilisée (pour reproduction, le modèle FP8 et le tokenizer Qwen
+étaient déjà en cache) :
 
 ```bash
 export HF_HOME=/workspace/models
@@ -149,9 +202,8 @@ hf download incoai/Qwen3.8-27B-DFlash2 \
   --local-dir /workspace/models/Qwen3.8-27B-DFlash2-015e795645c74b1a0eeef3b570031fb62e769bc5
 ```
 
-Après la fin des campagnes qualité et serving C-018, arrêter le vLLM FP8 courant puis
-lancer le serveur DFlash2 sur le port `8001` (le tunnel existant continue d'exposer
-le port local `8000`) :
+Commande de lancement utilisée pour C-019 : arrêter le vLLM FP8, puis lancer le serveur
+DFlash2 sur le port `8001` (le tunnel exposait le port local `8000`) :
 
 ```bash
 nohup env HF_HOME=/workspace/models vllm serve Qwen/Qwen3.8-27B-FP8 \
@@ -169,16 +221,19 @@ echo $!
 ```
 
 La recette vLLM demande v0.28.0 ou plus et `num_speculative_tokens=7` ; le vLLM
-0.29.0 déjà prévu convient sans installation depuis une PR/nightly. Avant les campagnes,
-valider le chargement, une requête courte, les contextes jusqu'à 200k, les appels de
-fonctions/protocole utilisés, ainsi que le taux d'acceptation DFlash2. Vérifier aussi
+0.29.0 utilisé convenait sans installation depuis une PR/nightly. Pour toute nouvelle
+configuration spéculative, valider le chargement, une requête courte, les contextes jusqu'à
+200k, les appels de fonctions/protocole utilisés, ainsi que le taux d'acceptation DFlash2.
+Vérifier aussi
 que les requêtes répétées partagent effectivement leur préfixe : une
 [régression vLLM](https://github.com/vllm-project/vllm/issues/54360) a été signalée
 sur des modèles Qwen3.8 hybrides où le prefix cache restait à zéro avec la spéculation
 active. Si les hits ne progressent pas, ne pas lancer la matrice en la présentant comme
 un test shared-prefix.
 
-Préflight puis lancement qualité C-019 après validation du smoke :
+Commandes historiques de préflight, qualité et serving C-019. Ne pas les relancer sous le
+même identifiant ; toute nouvelle exécution doit recevoir son propre identifiant et ses
+propres fichiers d'entrée :
 
 ```powershell
 python scripts/prepare_gpu_campaign.py `
@@ -198,8 +253,8 @@ python scripts/run_serving_benchmark.py `
   --config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-dflash2-shared-prefix-medium-thinking.yaml
 ```
 
-La qualité C-019 sert de contrôle de non-régression du même modèle cible ; la comparaison
-de performance est opérationnelle (décodage spéculatif activé). Le rapport devra inclure
+La qualité C-019 servait de contrôle de non-régression du même modèle cible ; la comparaison
+de performance est opérationnelle (décodage spéculatif activé). L'analyse doit inclure
 le coût mémoire du draft, les tokens acceptés par étape, les échecs éventuels et les
 observations de cache, sans attribuer au draft une différence de qualité comme s'il
 s'agissait d'un modèle cible distinct.

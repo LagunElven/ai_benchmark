@@ -151,8 +151,10 @@ et des validations.
 
 - [x] créer l'orchestrateur de cohorte fermée, son plan et son schéma de résultat
 - [x] exécuter le pilote FP8 + DFlash2 à 1/4/5/6/8/10 agents et documenter les résultats
-- [ ] exécuter une cohorte FP8 sans DFlash2 appariée aux niveaux retenus
-- [ ] répliquer les points 5/6/8 et instrumenter cache/charge serveur avant une conclusion
+- [ ] exécuter une cohorte vLLM FP8 sans DFlash2 appariée à la référence FP8 + DFlash2,
+  avec au moins trois répétitions par niveau de concurrence retenu
+- [ ] porter à au moins trois répétitions les cellules DFlash2 retenues (notamment 6 et 8 agents)
+  et relever l'état de cache/warmup ainsi que la charge serveur distante
 
 ## Milestone 11 — GPU campaigns
 
@@ -174,8 +176,32 @@ RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
 - [x] exécuter C-018 : Qwen FP8 officiel, suite qualité full (terminée avec
   échecs) et serving shared-prefix en thinking medium
 - [ ] analyser les échecs qualité de C-018 avant d'en faire une base de référence
-- [ ] campagne exploratoire C-019 : même cible FP8 avec draft DFlash2 BF16 ;
-  contrôler l'acceptance et les hits prefix-cache avant la matrice serving
+- [x] exécuter C-019 : cible FP8 + draft DFlash2, qualité terminée avec échecs,
+  serving exécuté et cohorte agentique explorée
+- [ ] réaliser la matrice opérationnelle RTX PRO 6000 ci-dessous ; C-018/C-019
+  restent les cellules vLLM/FP8 déjà mesurées, et les plans ayant servi à ces runs
+  sont conservés comme entrées historiques immuables
+
+Ordre de reprise convenu pour compléter les comparaisons :
+
+1. vLLM + FP8 sans DFlash2 : cohorte appariée (campagne qualité et serving déjà exécutés).
+2. vLLM + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
+3. vLLM + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+4. SGLang + FP8 sans DFlash2 : campagne qualité, serving et cohorte.
+5. SGLang + FP8 avec DFlash2 : campagne qualité, serving et cohorte.
+6. SGLang + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
+7. SGLang + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+
+Garde-fous de cette matrice : smoke SGLang avant toute campagne complète (API,
+raisonnement medium, appels d'outils/protocole, contexte, cache et acceptance DFlash2 si
+activé) ; KV cache FP8 pour toutes les variantes DFlash2, y compris avec poids NVFP4 ;
+confirmation de vrais hits cache avant d'interpréter les cas shared-prefix ; au moins
+trois cohortes par cellule de concurrence comparée. Les comparaisons doivent être appariées
+sur les mêmes tâches/révisions, prompts, seed, matériel, limites de contexte/sortie et
+réglages de raisonnement. Toute différence nécessaire propre au moteur doit être enregistrée.
+Les métriques d'utilisation GPU doivent provenir du serveur distant, jamais être déduites
+des mesures du poste runner. Le protocole détaillé est dans
+[`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md).
 
 Chaque playbook doit documenter :
 

@@ -1,7 +1,8 @@
 # Serving benchmark
 
 Le benchmark serving est séparé des tâches de qualité. Il mesure la capacité
-d'un endpoint OpenAI-compatible sans dépendre des détails internes de vLLM.
+d'un endpoint OpenAI-compatible sans dépendre des détails internes d'un moteur
+spécifique.
 Les profils qui déclarent un tokenizer Hugging Face utilisent ce tokenizer exact
 pour construire les tailles de contexte ; le résultat conserve la révision et la
 méthode de comptage.
@@ -183,9 +184,10 @@ Pour 8 agents, remplacer `6` par `8`. Les valeurs configurées dans le plan rest
 enregistrées comme points de référence ; chaque manifeste conserve séparément le nombre
 effectivement utilisé (`agent_count`).
 
-Chaque commande est une campagne indépendante. Pour des points comparables, arrêter puis
-relancer vLLM avant chaque campagne afin de repartir d'un cache de préfixe vide ; utiliser
-le même serveur, le même endpoint, et éviter toute autre charge pendant le lot. Chaque run
+Chaque commande est une campagne indépendante. Pour des points comparables, redémarrer le
+moteur (ou vider explicitement son cache) avant chaque campagne afin de repartir du même état
+de cache ; appliquer le même protocole de warmup, utiliser le même endpoint et éviter toute
+autre charge pendant le lot. Chaque run
 persiste sous `results/raw/cohort/`, tandis que les résultats détaillés des tâches restent
 dans le stockage brut standard. En cas d'interruption, les runs déjà achevés restent
 conservés, mais la cohorte incomplète n'a pas de `campaign.json` final.
@@ -221,3 +223,33 @@ dtype/quantification, le matériel et la configuration de serving doivent être
 conservés dans les métadonnées de campagne. Une comparaison contrôlée ne change
 qu'une dimension à la fois ; une matrice où plusieurs champs diffèrent doit être
 étiquetée comme comparaison opérationnelle.
+
+## Comparaison vLLM / SGLang pour Qwen3.8-27B
+
+Le client du benchmark utilise l'API OpenAI-compatible ; les profils SGLang peuvent
+donc réutiliser le protocole HTTP et la matrice de requêtes. Les options de lancement,
+versions et réglages internes au moteur restent spécifiques et doivent être enregistrés
+dans chaque profil. La matrice et son ordre de reprise sont décrits dans
+[`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md).
+
+Pour les comparaisons partagées, le seul mode de préfixe visé est `shared-prefix`.
+L'option de cache activée n'est pas une preuve que des tokens ont été réutilisés :
+confirmer les hits par les métriques du serveur. SGLang expose ses métriques Prometheus
+avec `--enable-metrics`; relever des compteurs/cache hits côté serveur avant et après la
+campagne. Le client actuel ne scrape pas automatiquement les métriques Prometheus propres
+à SGLang. Les statistiques GPU prélevées sur le poste de benchmark demeurent des métriques
+locales et ne doivent jamais être présentées comme une utilisation du serveur distant.
+
+Les cohortes sont bruitées par la longueur des sorties et les reprises : exécuter au moins
+trois répétitions par cellule de concurrence utilisée dans une comparaison. Garder la même
+sélection et révision de tâches, le même seed, les mêmes prompts, réglages de raisonnement,
+limites de contexte/sortie, matériel et conditions de warmup. Comparer les moteurs par paires
+équivalentes ; toute différence nécessaire de paramètre propre à un moteur doit être
+consignée.
+
+Pour Qwen3.8 + DFlash2, conserver le KV cache FP8 même avec une cible dont les poids sont
+NVFP4 : poids NVFP4 et KV cache NVFP4 ne sont pas synonymes. SGLang documente une
+incompatibilité signalée entre DFlash et le KV cache NVFP4 ; voir l'issue référencée dans le
+plan GPU. Avant les campagnes SGLang complètes, le smoke doit vérifier l'API, le raisonnement
+medium, les appels d'outils/protocole, les contextes, les hits cache et l'acceptance DFlash2
+le cas échéant.
