@@ -20,7 +20,7 @@ from runner.config import load_structured_file, validate_document
 from runner.context_dataset import count_tokens
 from serving.client import OpenAICompatibleServingClient, StreamMeasurement
 from serving.metrics import summarize_requests
-from serving.resources import json_safe, resource_summary, sample_resources
+from serving.resources import ResourceMonitor, json_safe
 
 
 @dataclass(frozen=True)
@@ -35,7 +35,7 @@ class CaseSpec:
     concurrency: int
     context_tokens: int
     prefix_mode: str
-    warmup_requests: int
+    warmup_batches: int
     repetitions: int
 
 
@@ -124,9 +124,7 @@ def load_serving_tokenizer(data: dict[str, Any]) -> tuple[Any | None, dict[str, 
             trust_remote_code=False,
         )
     except Exception as exc:
-        raise RuntimeError(
-            f"Unable to load tokenizer {repository}@{revision}: {exc}"
-        ) from exc
+        raise RuntimeError(f"Unable to load tokenizer {repository}@{revision}: {exc}") from exc
     return tokenizer, {
         "type": "huggingface",
         "method": "transformers",
@@ -175,9 +173,7 @@ def _fit_message_context(
     if base_count >= target_tokens:
         return base_messages, base_count
 
-    one_filler_count = _message_token_count(
-        make_messages(1), tokenizer, chat_template_kwargs
-    )
+    one_filler_count = _message_token_count(make_messages(1), tokenizer, chat_template_kwargs)
     per_filler = max(1, one_filler_count - base_count)
     filler_repetitions = max(1, (target_tokens - base_count) // per_filler)
     candidate = make_messages(filler_repetitions)
@@ -229,9 +225,7 @@ def build_messages(
         user = user_prefix + filler * repetitions + suffix
         return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
-    return _fit_message_context(
-        context_tokens, make_messages, tokenizer, chat_template_kwargs
-    )
+    return _fit_message_context(context_tokens, make_messages, tokenizer, chat_template_kwargs)
 
 
 def case_specs(config: ServingConfig) -> list[CaseSpec]:
@@ -242,7 +236,7 @@ def case_specs(config: ServingConfig) -> list[CaseSpec]:
             concurrency=concurrency,
             context_tokens=context_tokens,
             prefix_mode=prefix_mode,
-            warmup_requests=matrix["warmup_requests"],
+            warmup_batches=matrix["warmup_batches"],
             repetitions=matrix["repetitions"],
         )
         for concurrency, context_tokens, prefix_mode in itertools.product(
@@ -263,7 +257,7 @@ class ServingBenchmark:
                 "concurrency": spec.concurrency,
                 "context_tokens": spec.context_tokens,
                 "prefix_mode": spec.prefix_mode,
-                "warmup_requests": spec.warmup_requests,
+                "warmup_batches": spec.warmup_batches,
                 "repetitions": spec.repetitions,
             }
             for spec in case_specs(self.config)
@@ -304,7 +298,7 @@ class ServingBenchmark:
         ended_at = _utc_now()
         has_failures = any(case["metrics"]["requests_failed"] for case in cases)
         result = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "benchmark": {
                 "name": "enterprise-llm-bench-serving",
                 "version": data["version"],
@@ -340,9 +334,7 @@ class ServingBenchmark:
         run_directory.mkdir(parents=True, exist_ok=False)
         result_path = run_directory / "campaign.json"
         schema_path = (
-            Path(__file__).resolve().parents[1]
-            / "schemas"
-            / "serving-campaign-result.schema.json"
+            Path(__file__).resolve().parents[1] / "schemas" / "serving-campaign-result.schema.json"
         )
         validate_document(result, schema_path, result_path)
         result_path.write_text(
@@ -358,16 +350,22 @@ class ServingBenchmark:
     def _run_case(
         self, spec: CaseSpec, client: ServingClient, tokenizer: Any | None
     ) -> dict[str, Any]:
-        before = sample_resources()
         case_started = time.monotonic()
+        resource_monitor = ResourceMonitor()
+        resource_monitor.start()
         warmup_completed = 0
         warmup_failed = 0
-        for warmup_index in range(spec.warmup_requests):
-            measurement = self._request(client, spec, -(warmup_index + 1), tokenizer)
-            if measurement.status == "completed":
-                warmup_completed += 1
-            else:
-                warmup_failed += 1
+        for warmup_index in range(spec.warmup_batches):
+            warmup = self._run_batch(
+                client,
+                spec,
+                -(warmup_index + 1),
+                case_started,
+                case_started,
+                tokenizer,
+            )
+            warmup_completed += sum(item["status"] == "completed" for item in warmup)
+            warmup_failed += len(warmup) - sum(item["status"] == "completed" for item in warmup)
         request_started = time.monotonic()
         requests: list[dict[str, Any]] = []
         for repetition in range(spec.repetitions):
@@ -382,20 +380,22 @@ class ServingBenchmark:
                 )
             )
         request_wall = time.monotonic() - request_started
-        after = sample_resources()
+        resources = resource_monitor.stop()
         return {
             "case_id": spec.case_id,
             "concurrency": spec.concurrency,
             "context_tokens": spec.context_tokens,
             "prefix_mode": spec.prefix_mode,
+            "measurement_batches": spec.repetitions,
             "warmup": {
-                "requested": spec.warmup_requests,
+                "requested": spec.warmup_batches * spec.concurrency,
+                "batches_requested": spec.warmup_batches,
                 "completed": warmup_completed,
                 "failed": warmup_failed,
             },
             "requests": sorted(requests, key=lambda item: item["request_id"]),
             "metrics": summarize_requests(requests, wall_seconds=request_wall),
-            "resources": resource_summary(before, after),
+            "resources": resources,
         }
 
     def _run_batch(
@@ -475,4 +475,8 @@ class ServingBenchmark:
             error_type=measurement.error_type,
             error_message=measurement.error_message,
             server_metrics=measurement.server_metrics,
+            input_tokens_method=(
+                "tokenizer_chat_template" if tokenizer is not None else "fallback:regex"
+            ),
+            output_tokens_method=measurement.output_tokens_method,
         )

@@ -17,7 +17,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from runner.config import BenchmarkConfig, load_benchmark_config, validate_document  # noqa: E402
+from runner.config import load_benchmark_config, validate_document  # noqa: E402
 from runner.discovery import discover_tasks, filter_tasks  # noqa: E402
 from runner.execution import run_one_shot, run_repair  # noqa: E402
 from runner.gpu_preflight import load_gpu_plan  # noqa: E402
@@ -32,6 +32,63 @@ def _utc_now() -> str:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _campaign_input_fingerprint(
+    *,
+    root: Path,
+    private_tests_root: Path,
+    tasks: list[Any],
+    config_path: Path,
+    plan_path: Path,
+    seed: int | None,
+) -> tuple[str, int]:
+    """Fingerprint all code and task inputs that can affect this campaign."""
+    files: dict[str, str] = {}
+
+    def add_file(path: Path, label: str) -> None:
+        if path.is_file() and not path.is_symlink():
+            files[label] = _sha256(path)
+
+    def add_tree(directory: Path, label: str, suffix: str | None = None) -> None:
+        if not directory.is_dir():
+            return
+        for path in sorted(directory.rglob("*")):
+            if (
+                path.is_file()
+                and not path.is_symlink()
+                and not any(part in {".git", "__pycache__", ".pytest_cache"} for part in path.parts)
+                and (suffix is None or path.suffix == suffix)
+            ):
+                files[f"{label}/{path.relative_to(directory).as_posix()}"] = _sha256(path)
+
+    add_file(config_path, f"repo/{config_path.name}")
+    add_file(plan_path, f"plan/{plan_path.name}")
+    runtime_root = Path(__file__).resolve().parents[1]
+    add_tree(runtime_root / "runner", "runtime/runner", ".py")
+    add_tree(runtime_root / "schemas", "runtime/schemas", ".json")
+    add_tree(runtime_root / "scripts", "runtime/scripts", ".py")
+    add_file(runtime_root / "pyproject.toml", "runtime/pyproject.toml")
+    for task in tasks:
+        task_root = task.directory
+        try:
+            task_label = task_root.relative_to(root).as_posix()
+        except ValueError:
+            task_label = f"external-task/{task.id}"
+        add_tree(task_root, task_label)
+        private_root = private_tests_root / task.id
+        add_tree(private_root, f"repo/private-tests/{task.id}")
+    serialized = json.dumps(
+        {"files": files, "seed": seed}, ensure_ascii=False, sort_keys=True
+    ).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest(), len(files)
+
+
+def _relative_or_name(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return path.name
 
 
 def _git_commit(root: Path) -> str | None:
@@ -107,44 +164,6 @@ def _read_campaign_snapshot(path: Path) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else None
 
 
-def _same_config_values(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
-    return all(value is None or actual.get(key) == value for key, value in expected.items())
-
-
-def _run_matches_config(run: dict[str, Any], config: BenchmarkConfig) -> bool:
-    benchmark = run.get("benchmark", {})
-    model = run.get("model", {})
-    environment = run.get("environment", {})
-    if not isinstance(benchmark, dict) or not isinstance(model, dict):
-        return False
-    if benchmark.get("name") != config.data["benchmark"]["name"]:
-        return False
-    if benchmark.get("version") != config.data["benchmark"]["version"]:
-        return False
-    model_config = config.data["model"]
-    model_keys = ("provider", "name", "revision", "tokenizer_revision", "quantization", "dtype")
-    if any(model.get(key) != model_config.get(key) for key in model_keys):
-        return False
-    parameters = model.get("parameters", {})
-    if not isinstance(parameters, dict):
-        return False
-    generation = {
-        key: value
-        for key, value in model_config["generation"].items()
-        if key != "max_output_tokens"
-    }
-    if not _same_config_values(generation, parameters):
-        return False
-    return all(
-        isinstance(environment.get(section), dict)
-        and _same_config_values(values, environment[section])
-        for section, values in (
-            ("hardware", config.data["hardware"]),
-            ("serving", config.data["serving"]),
-        )
-    )
-
-
 def _campaign_run_entry(run: dict[str, Any]) -> dict[str, Any] | None:
     task = run.get("task", {})
     run_metadata = run.get("run", {})
@@ -158,105 +177,55 @@ def _campaign_run_entry(run: dict[str, Any]) -> dict[str, Any] | None:
         return None
     errors = run.get("errors", [])
     error_items = (
-        [item for item in errors if isinstance(item, dict)]
-        if isinstance(errors, list)
-        else []
+        [item for item in errors if isinstance(item, dict)] if isinstance(errors, list) else []
     )
-    error = "; ".join(
-        f"{item.get('type', 'error')}: {item.get('message', '')}" for item in error_items
-    ) or None
+    error = (
+        "; ".join(f"{item.get('type', 'error')}: {item.get('message', '')}" for item in error_items)
+        or None
+    )
     error_types = sorted({item.get("type", "error") for item in error_items})
+    messages = " ".join(str(item.get("message", "")) for item in error_items).lower()
+    outcome = validation.get("outcome", "not_run")
+    capacity_markers = (
+        "maximum context",
+        "max context",
+        "context length",
+        "context window",
+        "max_model_len",
+        "max_position_embeddings",
+        "prompt is too long",
+        "input is too long",
+        "token limit",
+        "too many tokens",
+        "sequence length",
+        "max_context_bytes",
+    )
+    if outcome == "passed":
+        failure_class = "passed"
+    elif any(marker in messages for marker in capacity_markers) or (
+        "ContextCapacityError" in error_types
+    ):
+        failure_class = "capacity_rejection"
+    elif any(name in error_types for name in ("ChangeProtocolError", "ChangeApplicationError")):
+        failure_class = "protocol_failure"
+    elif any(
+        name in error_types
+        for name in ("ModelClientError", "TimeoutError", "ConnectionError", "URLError")
+    ):
+        failure_class = "infrastructure_failure"
+    elif outcome in {"failed", "public_passed"}:
+        failure_class = "functional_failure"
+    else:
+        failure_class = "execution_failure"
     return {
         "task_id": task_id,
         "status": run_metadata.get("status", "failed"),
-        "validation_outcome": validation.get("outcome", "not_run"),
+        "validation_outcome": outcome,
+        "failure_class": failure_class,
         "result_path": result_path,
         "error": error,
         "error_types": error_types,
     }
-
-
-def _legacy_run_source(
-    root: Path,
-    *,
-    config: BenchmarkConfig,
-    campaign_id: str,
-    mode: str,
-    suite: str | None,
-    category: str | None,
-    config_path: Path,
-    config_sha256: str,
-    task_ids: list[str],
-) -> tuple[Path, dict[str, Any]] | None:
-    index_path = root / "results" / "raw" / "runs.jsonl"
-    if not index_path.is_file() or not task_ids:
-        return None
-
-    entries: list[dict[str, Any]] = []
-    try:
-        lines = index_path.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        return None
-    for line in lines:
-        try:
-            run = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(run, dict):
-            entries.append(run)
-
-    candidates: list[tuple[int, list[dict[str, Any]]]] = []
-    for start, run in enumerate(entries):
-        if run.get("task", {}).get("id") != task_ids[0]:
-            continue
-        sequence: list[dict[str, Any]] = []
-        for expected_id, candidate in zip(task_ids, entries[start:], strict=False):
-            if (
-                candidate.get("run", {}).get("mode") != mode
-                or not _run_matches_config(candidate, config)
-                or candidate.get("task", {}).get("id") != expected_id
-            ):
-                break
-            campaign_run = _campaign_run_entry(candidate)
-            if campaign_run is None:
-                break
-            sequence.append(campaign_run)
-        if 0 < len(sequence) < len(task_ids):
-            candidates.append((start, sequence))
-    if not candidates:
-        return None
-
-    start, runs = max(candidates, key=lambda item: item[0])
-    source = {
-        "schema_version": "1.0",
-        "type": "quality_campaign_result",
-        "campaign": {
-            "id": campaign_id,
-            "mode": mode,
-            "suite": suite,
-            "category": category,
-            "config_path": config_path.relative_to(config_path.parent).as_posix(),
-            "config_sha256": config_sha256,
-            "git_commit": _git_commit(root),
-            "task_ids": task_ids,
-        },
-        "started_at": entries[start].get("timing", {}).get("started_at", _utc_now()),
-        "ended_at": entries[start + len(runs) - 1]
-        .get("timing", {})
-        .get("ended_at", _utc_now()),
-        "status": "interrupted",
-        "runs": runs,
-        "summary": {
-            "tasks_total": len(task_ids),
-            "tasks_passed": sum(item["validation_outcome"] == "passed" for item in runs),
-            "tasks_failed": sum(item["validation_outcome"] != "passed" for item in runs),
-            "tasks_with_errors": sum(
-                bool(item.get("error_types")) or bool(item.get("error")) for item in runs
-            ),
-            "error_counts": _error_counts(runs),
-        },
-    }
-    return index_path, source
 
 
 def _campaign_matches(
@@ -268,6 +237,15 @@ def _campaign_matches(
     category: str | None,
     config_path: Path,
     config_sha256: str,
+    plan_path: Path,
+    plan_sha256: str,
+    comparison_type: str,
+    comparison_group: str,
+    artifact_variant: str,
+    git_commit: str | None,
+    input_fingerprint_sha256: str,
+    seed: int | None,
+    task_revisions: dict[str, int],
     task_ids: list[str],
 ) -> bool:
     if (
@@ -277,37 +255,45 @@ def _campaign_matches(
         or campaign.get("category") != category
         or campaign.get("config_path") != config_path.relative_to(config_path.parent).as_posix()
         or campaign.get("config_sha256") != config_sha256
+        or campaign.get("plan_path") != _relative_or_name(config_path.parent, plan_path)
+        or campaign.get("plan_sha256") != plan_sha256
+        or campaign.get("comparison_type") != comparison_type
+        or campaign.get("comparison_group") != comparison_group
+        or campaign.get("artifact_variant") != artifact_variant
+        or campaign.get("git_commit") != git_commit
+        or campaign.get("input_fingerprint_sha256") != input_fingerprint_sha256
+        or campaign.get("seed") != seed
     ):
         return False
     saved_task_ids = campaign.get("task_ids")
-    return saved_task_ids is None or saved_task_ids == task_ids
+    return (saved_task_ids is None or saved_task_ids == task_ids) and campaign.get(
+        "task_revisions"
+    ) == task_revisions
 
 
 def _find_resume_source(
     root: Path,
     *,
-    config: BenchmarkConfig,
     campaign_id: str,
     mode: str,
     suite: str | None,
     category: str | None,
     config_path: Path,
     config_sha256: str,
+    plan_path: Path,
+    plan_sha256: str,
+    comparison_type: str,
+    comparison_group: str,
+    artifact_variant: str,
+    git_commit: str | None,
+    input_fingerprint_sha256: str,
+    seed: int | None,
+    task_revisions: dict[str, int],
     task_ids: list[str],
 ) -> tuple[Path, dict[str, Any]] | None:
     campaigns_root = root / "results" / "raw" / "campaigns"
     if not campaigns_root.is_dir():
-        return _legacy_run_source(
-            root,
-            config=config,
-            campaign_id=campaign_id,
-            mode=mode,
-            suite=suite,
-            category=category,
-            config_path=config_path,
-            config_sha256=config_sha256,
-            task_ids=task_ids,
-        )
+        return None
 
     snapshots: dict[Path, dict[str, Any]] = {}
     for directory in campaigns_root.iterdir():
@@ -351,9 +337,7 @@ def _find_resume_source(
             parent = snapshots.get(source_path, {})
             parent_campaign = parent.get("campaign")
             source = (
-                parent_campaign.get("resumed_from")
-                if isinstance(parent_campaign, dict)
-                else None
+                parent_campaign.get("resumed_from") if isinstance(parent_campaign, dict) else None
             )
 
     candidates: list[tuple[float, Path, dict[str, Any]]] = []
@@ -388,23 +372,22 @@ def _find_resume_source(
             category=category,
             config_path=config_path,
             config_sha256=config_sha256,
+            plan_path=plan_path,
+            plan_sha256=plan_sha256,
+            comparison_type=comparison_type,
+            comparison_group=comparison_group,
+            artifact_variant=artifact_variant,
+            git_commit=git_commit,
+            input_fingerprint_sha256=input_fingerprint_sha256,
+            seed=seed,
+            task_revisions=task_revisions,
             task_ids=task_ids,
         ):
             continue
         candidates.append((path.stat().st_mtime, path, snapshot))
 
     if not candidates:
-        return _legacy_run_source(
-            root,
-            config=config,
-            campaign_id=campaign_id,
-            mode=mode,
-            suite=suite,
-            category=category,
-            config_path=config_path,
-            config_sha256=config_sha256,
-            task_ids=task_ids,
-        )
+        return None
     _, path, snapshot = max(candidates, key=lambda item: item[0])
     return path, snapshot
 
@@ -417,7 +400,17 @@ def _campaign_metadata(
     category: str | None,
     config_path: Path,
     config_sha256: str,
+    plan_path: Path,
+    plan_sha256: str,
+    comparison_type: str,
+    comparison_group: str,
+    artifact_variant: str,
+    artifact_revision: str | None,
     git_commit: str | None,
+    input_fingerprint_sha256: str,
+    input_file_count: int,
+    seed: int | None,
+    task_revisions: dict[str, int],
     task_ids: list[str],
 ) -> dict[str, Any]:
     metadata: dict[str, Any] = {
@@ -427,7 +420,17 @@ def _campaign_metadata(
         "category": category,
         "config_path": config_path.relative_to(config_path.parent).as_posix(),
         "config_sha256": config_sha256,
+        "plan_path": _relative_or_name(config_path.parent, plan_path),
+        "plan_sha256": plan_sha256,
+        "comparison_type": comparison_type,
+        "comparison_group": comparison_group,
+        "artifact_variant": artifact_variant,
+        "artifact_revision": artifact_revision,
         "git_commit": git_commit,
+        "input_fingerprint_sha256": input_fingerprint_sha256,
+        "input_file_count": input_file_count,
+        "seed": seed,
+        "task_revisions": task_revisions,
         "task_ids": task_ids,
     }
     return metadata
@@ -444,11 +447,23 @@ def _campaign_result(
 ) -> dict[str, Any]:
     tasks_passed = sum(run["validation_outcome"] == "passed" for run in runs)
     tasks_failed = len(runs) - tasks_passed
-    tasks_with_errors = sum(
-        bool(run.get("error_types")) or bool(run.get("error")) for run in runs
+    classifications = [run.get("failure_class", "execution_failure") for run in runs]
+    class_counts = {
+        name: classifications.count(name)
+        for name in (
+            "functional_failure",
+            "protocol_failure",
+            "capacity_rejection",
+            "infrastructure_failure",
+            "execution_failure",
+        )
+    }
+    quality_evaluated = (
+        tasks_passed + class_counts["functional_failure"] + class_counts["protocol_failure"]
     )
+    tasks_with_errors = sum(bool(run.get("error_types")) or bool(run.get("error")) for run in runs)
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "type": "quality_campaign_result",
         "campaign": metadata,
         "started_at": started_at,
@@ -460,6 +475,13 @@ def _campaign_result(
             "tasks_passed": tasks_passed,
             "tasks_failed": tasks_failed,
             "tasks_with_errors": tasks_with_errors,
+            "tasks_functional_failures": class_counts["functional_failure"],
+            "tasks_protocol_failures": class_counts["protocol_failure"],
+            "tasks_capacity_rejections": class_counts["capacity_rejection"],
+            "tasks_infrastructure_failures": class_counts["infrastructure_failure"],
+            "tasks_execution_failures": class_counts["execution_failure"],
+            "tasks_quality_evaluated": quality_evaluated,
+            "quality_success_rate": tasks_passed / quality_evaluated if quality_evaluated else None,
             "error_counts": _error_counts(runs),
         },
     }
@@ -479,6 +501,52 @@ def _error_counts(runs: list[dict[str, Any]]) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
+def _valid_resumed_runs(
+    root: Path, runs: list[Any], tasks: list[Any], mode: str
+) -> list[dict[str, Any]]:
+    """Retain only completed entries backed by an existing matching raw result."""
+    expected_revisions = {task.id: task.data["revision"] for task in tasks}
+    valid: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for entry in runs:
+        if not isinstance(entry, dict):
+            continue
+        task_id = entry.get("task_id")
+        result_path = entry.get("result_path")
+        if (
+            not isinstance(task_id, str)
+            or task_id not in expected_revisions
+            or task_id in seen
+            or not isinstance(result_path, str)
+            or not result_path
+        ):
+            continue
+        candidate = (root / result_path).resolve()
+        try:
+            candidate.relative_to(root.resolve())
+        except ValueError:
+            continue
+        if not candidate.is_file():
+            continue
+        try:
+            result = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        task = result.get("task", {})
+        run = result.get("run", {})
+        if (
+            not isinstance(task, dict)
+            or task.get("id") != task_id
+            or task.get("revision") != expected_revisions[task_id]
+            or not isinstance(run, dict)
+            or run.get("mode") != mode
+        ):
+            continue
+        seen.add(task_id)
+        valid.append(entry)
+    return valid
+
+
 def main(arguments: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--campaign-id", required=True, help="planned id, for example C-003")
@@ -490,6 +558,7 @@ def main(arguments: list[str] | None = None) -> int:
     parser.add_argument("--suite", default="full")
     parser.add_argument("--category")
     parser.add_argument("--task-id", action="append")
+    parser.add_argument("--seed", type=int, help="override the configured generation seed")
     parser.add_argument("--plan-only", action="store_true")
     parser.add_argument("--stop-on-error", action="store_true")
     parser.add_argument(
@@ -499,10 +568,20 @@ def main(arguments: list[str] | None = None) -> int:
     )
     options = parser.parse_args(arguments)
     config_path = options.config.resolve()
-    plan = load_gpu_plan(options.plan)
+    plan_path = options.plan.resolve()
+    plan = load_gpu_plan(plan_path)
     if options.campaign_id not in {item["id"] for item in plan["campaigns"]}:
         parser.error(f"campaign id is not present in {options.plan}: {options.campaign_id}")
+    selected_plan = next(item for item in plan["campaigns"] if item["id"] == options.campaign_id)
+    artifact = next(
+        item
+        for item in plan["model"]["artifact_variants"]
+        if item["id"] == selected_plan["artifact_variant"]
+    )
     config = load_benchmark_config(config_path)
+    if options.seed is not None:
+        config.data["model"]["generation"]["seed"] = options.seed
+    effective_seed = config.data["model"]["generation"].get("seed")
     tasks = filter_tasks(discover_tasks(config), suite=options.suite, category=options.category)
     if options.task_id:
         requested = set(options.task_id)
@@ -518,6 +597,16 @@ def main(arguments: list[str] | None = None) -> int:
 
     task_ids = [task.id for task in tasks]
     config_sha256 = _sha256(config_path)
+    plan_sha256 = _sha256(plan_path)
+    input_fingerprint_sha256, input_file_count = _campaign_input_fingerprint(
+        root=config.root,
+        private_tests_root=config.repository_path("private_tests"),
+        tasks=tasks,
+        config_path=config_path,
+        plan_path=plan_path,
+        seed=effective_seed,
+    )
+    git_commit = _git_commit(config.root)
     campaign_metadata = _campaign_metadata(
         campaign_id=options.campaign_id,
         mode=options.mode,
@@ -525,7 +614,17 @@ def main(arguments: list[str] | None = None) -> int:
         category=options.category,
         config_path=config_path,
         config_sha256=config_sha256,
-        git_commit=_git_commit(config.root),
+        plan_path=plan_path,
+        plan_sha256=plan_sha256,
+        comparison_type=selected_plan["comparison_type"],
+        comparison_group=selected_plan["comparison_group"],
+        artifact_variant=selected_plan["artifact_variant"],
+        artifact_revision=artifact.get("revision"),
+        git_commit=git_commit,
+        input_fingerprint_sha256=input_fingerprint_sha256,
+        input_file_count=input_file_count,
+        seed=effective_seed,
+        task_revisions={task.id: task.data["revision"] for task in tasks},
         task_ids=task_ids,
     )
 
@@ -534,25 +633,33 @@ def main(arguments: list[str] | None = None) -> int:
     if options.resume:
         source = _find_resume_source(
             config.root,
-            config=config,
             campaign_id=options.campaign_id,
             mode=options.mode,
             suite=options.suite,
             category=options.category,
             config_path=config_path,
             config_sha256=config_sha256,
+            plan_path=plan_path,
+            plan_sha256=plan_sha256,
+            comparison_type=selected_plan["comparison_type"],
+            comparison_group=selected_plan["comparison_group"],
+            artifact_variant=selected_plan["artifact_variant"],
+            git_commit=git_commit,
+            input_fingerprint_sha256=input_fingerprint_sha256,
+            seed=effective_seed,
+            task_revisions={task.id: task.data["revision"] for task in tasks},
             task_ids=task_ids,
         )
         if source is None:
             parser.error(
-                "no incomplete compatible campaign found; use the same campaign id, "
-                "config, mode, suite, category and task selection"
+                "no incomplete campaign with a matching input fingerprint found; use the same "
+                "commit, plan, config, runner, tasks, validators, seed and task selection"
             )
         source_path, source_snapshot = source
         source_runs = source_snapshot.get("runs", [])
         if not isinstance(source_runs, list):
             parser.error(f"invalid resume source (runs is not an array): {source_path}")
-        runs = list(source_runs)
+        runs = _valid_resumed_runs(config.root, source_runs, tasks, options.mode)
         campaign_metadata["resumed_from"] = source_path.relative_to(config.root).as_posix()
         started_at = source_snapshot.get("started_at", _utc_now())
         print(f"Resuming {source_path}", flush=True)
@@ -611,6 +718,7 @@ def main(arguments: list[str] | None = None) -> int:
                         "task_id": task.id,
                         "status": "failed",
                         "validation_outcome": "not_run",
+                        "failure_class": "execution_failure",
                         "result_path": "",
                         "error": f"{type(exc).__name__}: {exc}",
                         "error_types": [type(exc).__name__],

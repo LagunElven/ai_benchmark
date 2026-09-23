@@ -125,14 +125,35 @@ Qualité :
 
 - conserver chaque run individuellement ;
 - calculer success rate sur N runs ;
-- afficher N explicitement.
+- afficher N explicitement ;
+- utiliser des seeds distincts préétablis pour mesurer la variabilité, avec les
+  mêmes seeds pour toutes les configurations comparées ;
+- distinguer reproductibilité à seed identique et robustesse stochastique.
 
 Serving :
 
 - warmup séparé ;
 - médiane ;
 - p95 ;
+- nombre de requêtes et de lots mesurés ; marquer le p95 exploratoire sous 100
+  requêtes ;
 - éventuellement moyenne et écart-type, mais ne pas les utiliser seuls pour les latences.
+
+Les campagnes qualité distinguent les échecs fonctionnels/protocole des refus de
+capacité et des erreurs d'infrastructure/client. Publier le taux opérationnel
+sur toutes les tâches et le taux qualité sur les tâches effectivement évaluées.
+Dans une campagne complète, `campaign.json` définit
+`quality_success_rate = tasks_passed / tasks_quality_evaluated`. Ce dénominateur
+comprend les tâches réussies et les échecs fonctionnels/protocole, mais exclut
+les refus de capacité ainsi que les erreurs d'infrastructure/exécution. Le taux
+opérationnel se dérive des compteurs du résumé :
+`tasks_passed / tasks_total`.
+
+Chaque résultat de run contient aussi `context_budget`, avec le statut
+`not_configured`, `unverified_estimate`, `within_limit` ou `rejected`, le nombre
+de tokens d'entrée, la méthode et l'exactitude du comptage, la fenêtre, la sortie
+réservée et la marge. Un refus exact de capacité n'est pas compté comme échec
+fonctionnel du modèle.
 
 ## 9. Coût opérationnel
 

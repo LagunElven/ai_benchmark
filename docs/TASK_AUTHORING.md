@@ -107,6 +107,12 @@ metric_extractors: []
 
 Ce format sera ajusté après implémentation des premiers cas.
 
+Pour l'extraction documentaire structurée, `metric_extractors` peut déclarer un
+extracteur `document_fields` avec un JSON `actual` relatif au workspace et un
+`expected` JSON relatif à `private-tests/<task-id>/`. Le runner calcule les
+métriques après la fin des appels modèle ; la vérité terrain n'est jamais copiée
+dans le workspace ni envoyée dans le feedback de réparation.
+
 ## Prompt d'une tâche de développement
 
 Le prompt doit expliquer :

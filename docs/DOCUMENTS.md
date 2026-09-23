@@ -57,3 +57,8 @@ Les sorties sont des métriques brutes JSON et ne sont pas agrégées en score
 unique. L'exécution OCR native (Tesseract ou moteur hébergé) reste un adaptateur
 de campagne : l'absence de Tesseract sur la machine de développement ne bloque
 ni la génération ni le scoring.
+
+DOC-10 exécute aussi le scoring des champs après la fin du feedback modèle et
+des validations. La vérité terrain reste sous `private-tests/`, et les métriques
+structurées sont inscrites au résultat brut du run. Cela mesure l'extraction
+texte-vers-structure, pas la reconnaissance visuelle de PDF ou d'images.

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
+from runner.config import load_benchmark_config
+from runner.discovery import discover_tasks, find_task
 from runner.document_metrics import (
     character_error_rate,
     edit_distance,
@@ -10,6 +15,7 @@ from runner.document_metrics import (
     score_text,
     word_error_rate,
 )
+from runner.metric_extractors import extract_task_metrics
 
 
 class DocumentMetricsTests(unittest.TestCase):
@@ -58,6 +64,20 @@ class DocumentMetricsTests(unittest.TestCase):
         )
         self.assertTrue(result["json_validity"])
         self.assertTrue(result["schema_validity"])
+
+    def test_document_metric_extractor_reads_hidden_ground_truth_after_generation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        config = load_benchmark_config(root / "benchmark.yaml")
+        task = find_task(discover_tasks(config), "DOC-10")
+        expected_path = root / "private-tests" / "DOC-10" / "ground-truth.json"
+        expected = json.loads(expected_path.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            (workspace / "public-output.json").write_text(json.dumps(expected), encoding="utf-8")
+            metrics = extract_task_metrics(config, task, workspace)
+        self.assertEqual(metrics["structured_document"]["status"], "scored")
+        self.assertEqual(metrics["structured_document"]["exact_field_accuracy"], 1.0)
+        self.assertEqual(metrics["structured_document"]["missing_fields"], [])
 
 
 if __name__ == "__main__":

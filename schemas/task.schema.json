@@ -77,17 +77,33 @@
     "metric_extractors": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["name", "source", "pattern", "type"],
-        "properties": {
-          "name": {"type": "string", "minLength": 1},
-          "source": {"enum": ["stdout", "stderr"]},
-          "validator": {"type": ["string", "null"]},
-          "pattern": {"type": "string", "minLength": 1},
-          "group": {"type": "integer", "minimum": 0},
-          "type": {"enum": ["integer", "number", "string", "boolean"]}
-        }
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "source", "pattern", "type"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "source": {"enum": ["stdout", "stderr"]},
+              "validator": {"type": ["string", "null"]},
+              "pattern": {"type": "string", "minLength": 1},
+              "group": {"type": "integer", "minimum": 0},
+              "type": {"enum": ["integer", "number", "string", "boolean"]}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type", "actual", "expected"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "type": {"const": "document_fields"},
+              "actual": {"type": "string", "minLength": 1},
+              "expected": {"type": "string", "minLength": 1},
+              "schema": {"type": "string", "minLength": 1}
+            }
+          }
+        ]
       }
     }
   },

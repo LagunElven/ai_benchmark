@@ -175,7 +175,11 @@ def generate_context_variants(
             "distractor_directory": "generated-distractors",
             "files": files,
         }
-        (variant / "context-manifest.json").write_text(
+        # Keep scoring metadata outside the model-visible variant directory.
+        # In particular, relevant_files is ground truth and must never enter
+        # the workspace that the evaluated model receives.
+        manifest_path = destination / f"{variant.name}.context-manifest.json"
+        manifest_path.write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
             newline="",

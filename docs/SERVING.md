@@ -16,7 +16,8 @@ La matrice par défaut se trouve dans `serving/config.yaml` :
 - concurrence : 1, 2, 5 et 10 requêtes simultanées ;
 - contexte : 8k, 32k, 64k, 100k et 200k tokens estimés ;
 - préfixes : `cold` et `shared-prefix` ;
-- une requête de warmup, puis trois répétitions par cas.
+- un lot de warmup à la concurrence du cas, puis 20 lots mesurés par cas dans
+  les profils complets (les profils smoke restent courts).
 
 Afficher les 40 cas sans contacter le serveur :
 
@@ -50,27 +51,34 @@ Par cas, le résultat sépare :
 
 - TTFT, latence totale, durée de génération et TPOT/inter-token en p50/p95 ;
 - tokens/s par utilisateur, débit agrégé et requêtes/s ;
-- tokens d'entrée/sortie, échecs, taux d'échec, timeouts et OOM ;
+- tokens d'entrée/sortie avec leur provenance (`provider_usage`, tokenizer ou
+  `fallback:regex`), échecs, flux SSE incomplets, timeouts et OOM ;
 - métriques KV-cache lorsqu'elles sont exposées par les headers
   `X-KV-Cache-*` ;
-- échantillons avant/après pour mémoire GPU, utilisation GPU et mémoire hôte.
+- échantillons de ressources chaque seconde et maxima observés pour GPU, CPU et
+  mémoire hôte. Les échantillons décrivent explicitement le poste du runner,
+  pas un serveur d'inférence distant.
 
 Les métriques absentes sont représentées par `null`, une liste vide ou
 `available: false`. Le runner ne déduit pas une consommation GPU et ne transforme
 pas une absence de métrique en zéro. `nvidia-smi` et `psutil` sont utilisés lorsqu'ils
 sont disponibles ; le benchmark reste exécutable sans eux.
 
-Les percentiles utilisent une règle nearest-rank déterministe. Les requêtes
-échouées restent dans le dénominateur du taux d'échec, mais pas dans les
-distributions de latence ou de débit réussi.
+Les percentiles utilisent une règle nearest-rank déterministe. Chaque mesure
+indique son nombre d'échantillons et marque le p95 comme exploratoire sous 100
+requêtes. Les requêtes échouées ou tronquées restent dans le dénominateur du
+taux d'échec, mais pas dans les distributions de latence ou débit réussi. Une
+réponse JSON non-streamée ne fournit pas de TTFT observable : cette valeur reste
+`null` au lieu d'être remplacée par la latence totale.
 
 ## Profils serving BF16 et Q8 exécutés
 
-La campagne Q8 complète a été exécutée le 22 septembre 2026 avec
+La campagne Q8 historique a été exécutée le 22 septembre 2026 avec
 `campaigns/gpu/serving-qwen-rtx-pro-6000-q8-full.yaml`. Elle reprend la matrice
 BF16 : 1/2/5/10 utilisateurs, contextes 8k/32k/64k/100k/200k, modes `cold` et
-`shared-prefix`, un warmup et trois répétitions. Les 40 cas et 540 requêtes Q8
-ont abouti sans échec.
+`shared-prefix`, un lot de warmup et trois répétitions. Les 40 cas et 540
+requêtes Q8 ont abouti sans échec. Les nouveaux profils complets utilisent 20
+lots mesurés ; les artefacts passés conservent leur configuration d'origine.
 
 La campagne BF16 disponible comprend une campagne complète de 20 cas en
 `shared-prefix` et un smoke séparé de 12 cas couvrant `cold` et `shared-prefix`

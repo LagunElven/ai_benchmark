@@ -23,7 +23,12 @@ def build_messages(
 ) -> list[dict[str, str]]:
     prompt = task.prompt_path.read_text(encoding="utf-8")
     sections = [f"# Task\n\n{prompt.rstrip()}", "# Workspace files"]
-    consumed = len(prompt.encode("utf-8"))
+    consumed = sum(len(section.encode("utf-8")) for section in sections)
+    consumed += len(SYSTEM_PROMPT.encode("utf-8"))
+    if consumed > max_context_bytes:
+        raise WorkspaceError(
+            f"Task {task.id} exceeds runner.max_context_bytes ({max_context_bytes})"
+        )
 
     for path in sorted(item for item in workspace.rglob("*") if item.is_file()):
         if path.is_symlink():
@@ -33,6 +38,10 @@ def build_messages(
         if _is_probably_binary(content):
             sections.append(f"## {relative}\n\n[binary file omitted]")
             consumed += len(relative.encode("utf-8")) + 32
+            if consumed > max_context_bytes:
+                raise WorkspaceError(
+                    f"Task {task.id} exceeds runner.max_context_bytes ({max_context_bytes})"
+                )
             continue
         try:
             text = content.decode("utf-8")

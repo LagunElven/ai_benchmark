@@ -1,5 +1,5 @@
 id: CTX-06
-revision: 1
+revision: 2
 name: Locate and fix a billing rule in a 200k-token repository
 category: context
 difficulty: hard

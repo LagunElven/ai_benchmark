@@ -14,9 +14,11 @@ from typing import Any
 from runner.changes import apply_file_changes
 from runner.client import ModelClient, create_client
 from runner.config import BenchmarkConfig
+from runner.context_budget import assess_context_budget
 from runner.diffing import PatchMetrics, calculate_patch_metrics, snapshot_files
 from runner.discovery import TaskDefinition
-from runner.errors import BenchmarkError, ChangeProtocolError
+from runner.errors import BenchmarkError, ChangeProtocolError, ContextCapacityError
+from runner.metric_extractors import extract_task_metrics
 from runner.prompting import build_messages
 from runner.results import ResultStore
 from runner.validation import CommandResult, format_log, run_validator
@@ -177,7 +179,7 @@ def _base_result(
     generation_metadata = dict(generation)
     generation_metadata["max_output_tokens"] = _effective_output_budget(config, task)
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "benchmark": {
             "name": config.data["benchmark"]["name"],
             "version": config.data["benchmark"]["version"],
@@ -255,6 +257,17 @@ def _base_result(
             "regression": _empty_group(),
         },
         "patch": _empty_patch(),
+        "context_budget": {
+            "status": "not_checked",
+            "input_tokens": None,
+            "input_token_count_method": None,
+            "input_token_count_exact": False,
+            "context_window_tokens": config.data["serving"].get("max_model_length"),
+            "reserved_output_tokens": _effective_output_budget(config, task),
+            "safety_margin_tokens": config.data["runner"].get("context_safety_margin_tokens", 1024),
+            "required_total_tokens": None,
+        },
+        "metrics": {},
         "artifacts": {
             "result": "",
             "run_log": None,
@@ -319,9 +332,20 @@ def run_one_shot(
         with CleanWorkspace(config, task, run_id) as workspace:
             baseline = snapshot_files(workspace)
             messages = build_messages(task, workspace, config.data["runner"]["max_context_bytes"])
+            task_output_budget = _effective_output_budget(config, task)
+            result["context_budget"] = assess_context_budget(
+                messages,
+                model=config.data["model"],
+                serving=config.data["serving"],
+                runner=config.data["runner"],
+                output_tokens=task_output_budget,
+            )
+            if result["context_budget"]["status"] == "rejected":
+                raise ContextCapacityError(
+                    "Serialized prompt plus output reserve exceeds configured context window"
+                )
             model_client = client or create_client(config)
             result["usage"]["model_calls"] = 1
-            task_output_budget = _effective_output_budget(config, task)
             response = model_client.complete(messages, max_output_tokens=task_output_budget)
             _record_model_response(result, store, response)
             _accumulate_usage(result, response)
@@ -381,6 +405,7 @@ def run_one_shot(
                 tokens = result["usage"]["input_tokens"], result["usage"]["output_tokens"]
                 if all(value is not None for value in tokens):
                     result["usage"]["tokens_until_success"] = sum(tokens)  # type: ignore[arg-type]
+            result["metrics"] = extract_task_metrics(config, task, workspace)
     except Exception as exc:
         result["errors"].append(
             {"stage": "execution", "type": type(exc).__name__, "message": str(exc)}
@@ -466,11 +491,23 @@ def run_repair(
                         {"role": "user", "content": _repair_feedback(iteration - 1, feedback)}
                     )
                 call_max_output_tokens = min(max_output_tokens, remaining_output_tokens)
-                requested_output_tokens += call_max_output_tokens
                 attempt_started = time.monotonic()
                 response_artifact: str | None = None
-                result["usage"]["model_calls"] += 1
                 try:
+                    result["context_budget"] = assess_context_budget(
+                        messages,
+                        model=config.data["model"],
+                        serving=config.data["serving"],
+                        runner=config.data["runner"],
+                        output_tokens=call_max_output_tokens,
+                    )
+                    if result["context_budget"]["status"] == "rejected":
+                        raise ContextCapacityError(
+                            "Serialized prompt plus output reserve exceeds "
+                            "configured context window"
+                        )
+                    requested_output_tokens += call_max_output_tokens
+                    result["usage"]["model_calls"] += 1
                     response = model_client.complete(
                         messages, max_output_tokens=call_max_output_tokens
                     )
@@ -601,6 +638,7 @@ def run_repair(
                 result["timing"]["time_until_success_seconds"] = time.monotonic() - started
                 result["usage"]["tokens_until_success"] = _tokens_used(result)
                 break
+            result["metrics"] = extract_task_metrics(config, task, workspace)
     except Exception as exc:
         fatal_error = True
         result["errors"].append(

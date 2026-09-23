@@ -46,10 +46,7 @@ class GpuPreflightTests(unittest.TestCase):
             "https://huggingface.co/Qwen/Qwen3.8-27B",
         )
         self.assertEqual(
-            {
-                item["artifact_variant"]
-                for item in plan["campaigns"]
-            },
+            {item["artifact_variant"] for item in plan["campaigns"]},
             {"bf16", "fp8", "nvfp4", "q8-w8a16"},
         )
         spark_campaigns = [
@@ -89,7 +86,10 @@ class GpuPreflightTests(unittest.TestCase):
             manifest["campaign"]["planned_model_revision"],
             "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
         )
-        self.assertNotIn("private-tests", json.dumps(manifest, ensure_ascii=False))
+        self.assertNotIn(
+            "private-tests",
+            json.dumps(manifest["inputs"]["visible_tasks"], ensure_ascii=False),
+        )
         self.assertTrue(
             all(
                 "sha256" in task_file
@@ -154,7 +154,8 @@ class GpuPreflightTests(unittest.TestCase):
         variant = next(
             item for item in plan["model"]["artifact_variants"] if item["id"] == "q8-w8a16"
         )
-        self.assertEqual(campaign["comparison_type"], "controlled_quantization")
+        self.assertEqual(campaign["comparison_type"], "operational_solution")
+        self.assertEqual(campaign["comparison_group"], "q8-operational-rtx-pro-6000")
         self.assertEqual(campaign["artifact_variant"], "q8-w8a16")
         self.assertEqual(variant["quantization"], "INT8-W8A16")
         self.assertEqual(variant["revision"], "e349969d1d27552c755c992ae64a2ea56007f3e4")

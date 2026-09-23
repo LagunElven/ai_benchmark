@@ -130,7 +130,7 @@ class ServingBenchmarkTests(unittest.TestCase):
                     "concurrency": [2],
                     "context_tokens": [32],
                     "prefix_modes": ["cold", "shared-prefix"],
-                    "warmup_requests": 1,
+                    "warmup_batches": 1,
                     "repetitions": 2,
                 },
                 "request": {
@@ -160,9 +160,13 @@ class ServingBenchmarkTests(unittest.TestCase):
         self.assertEqual(progress[0], "[1/2] c2-ctx32-cold started")
         self.assertIn("[2/2] c2-ctx32-shared-prefix completed", progress[-1])
         for case in result["cases"]:
-            self.assertEqual(case["warmup"]["completed"], 1)
+            self.assertEqual(case["warmup"]["requested"], 2)
+            self.assertEqual(case["warmup"]["batches_requested"], 1)
+            self.assertEqual(case["warmup"]["completed"], 2)
             self.assertEqual(case["metrics"]["requests_total"], 4)
             self.assertEqual(case["metrics"]["requests_failed"], 0)
+            self.assertEqual(case["resources"]["source_host_role"], "benchmark_runner")
+            self.assertGreaterEqual(case["resources"]["sample_count"], 2)
 
 
 if __name__ == "__main__":

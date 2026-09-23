@@ -1,6 +1,6 @@
 benchmark:
   name: enterprise-llm-bench
-  version: 0.21.0
+  version: 0.21.1
 
 paths:
   tasks: tasks
@@ -15,6 +15,7 @@ model:
   name: unsloth/gemma-4-12B-it-qat-GGUF
   revision: null
   tokenizer_revision: null
+  tokenizer_repository: null
   quantization: UD-Q4_K_XL
   dtype: GGUF/QAT
   request_timeout_seconds: 600
@@ -52,6 +53,7 @@ serving:
 runner:
   response_protocol: file_changes_v1
   max_context_bytes: 2000000
+  context_safety_margin_tokens: 1024
   max_repair_iterations: 3
   max_repair_total_output_tokens: 36000
   max_repair_total_seconds: 1800

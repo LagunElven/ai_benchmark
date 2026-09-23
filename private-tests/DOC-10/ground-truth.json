@@ -1,0 +1,22 @@
+{
+  "currency": "EUR",
+  "invoice_date": "2026-02-14",
+  "invoice_number": "INV-2026-0042",
+  "line_items": [
+    {
+      "amount": 200.0,
+      "description": "Monthly platform support",
+      "quantity": 2,
+      "unit_price": 100.0
+    },
+    {
+      "amount": 1034.5,
+      "description": "Security review",
+      "quantity": 1,
+      "unit_price": 1034.5
+    }
+  ],
+  "subtotal": 1234.5,
+  "tax": 246.9,
+  "total": 1481.4
+}

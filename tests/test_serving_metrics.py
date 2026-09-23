@@ -71,6 +71,7 @@ class ServingMetricsTests(unittest.TestCase):
         self.assertEqual(summary["requests_total"], 4)
         self.assertEqual(summary["requests_completed"], 2)
         self.assertEqual(summary["requests_failed"], 2)
+        self.assertEqual(summary["incomplete_streams"], 0)
         self.assertEqual(summary["timeouts"], 1)
         self.assertEqual(summary["out_of_memory"], 1)
         self.assertEqual(summary["output_tokens_total"], 30)
@@ -79,6 +80,18 @@ class ServingMetricsTests(unittest.TestCase):
         self.assertEqual(summary["aggregate_output_tokens_per_second"], 15.0)
         self.assertEqual(summary["kv_cache"]["hit_tokens_total"], 8)
         self.assertEqual(summary["kv_cache"]["miss_tokens_total"], 12)
+
+    def test_incomplete_responses_are_failures_and_not_counted_in_throughput(self) -> None:
+        requests = [
+            request("done", "completed", output_tokens=10, end=2.0),
+            request("cut", "incomplete", output_tokens=20, start=0.0, end=2.0),
+        ]
+        summary = summarize_requests(requests, wall_seconds=2.0)
+        self.assertEqual(summary["requests_failed"], 1)
+        self.assertEqual(summary["incomplete_streams"], 1)
+        self.assertEqual(summary["output_tokens_total"], 30)
+        self.assertEqual(summary["completed_output_tokens_total"], 10)
+        self.assertEqual(summary["aggregate_output_tokens_per_second"], 5.0)
 
 
 if __name__ == "__main__":

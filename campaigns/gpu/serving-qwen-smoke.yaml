@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-serving-qwen3.8-smoke
-version: 0.25.9-qwen3.8-bf16-vllm-smoke
+version: 0.25.18-qwen3.8-bf16-vllm-smoke
 
 endpoint:
   base_url: http://127.0.0.1:8000/v1
@@ -60,7 +60,7 @@ matrix:
   concurrency: [1, 5]
   context_tokens: [8000, 32000, 64000]
   prefix_modes: [cold, shared-prefix]
-  warmup_requests: 1
+  warmup_batches: 1
   repetitions: 1
 
 request:

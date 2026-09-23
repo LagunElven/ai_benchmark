@@ -24,6 +24,8 @@ class StreamMeasurement:
     error_type: str | None
     error_message: str | None
     server_metrics: dict[str, int | float | str]
+    input_tokens_method: str | None = None
+    output_tokens_method: str | None = None
 
     @property
     def total_seconds(self) -> float:
@@ -58,7 +60,9 @@ class StreamMeasurement:
             "generation_seconds": self.generation_seconds,
             "tpot_seconds": self.tpot_seconds,
             "input_tokens": self.input_tokens,
+            "input_tokens_method": self.input_tokens_method,
             "output_tokens": self.output_tokens,
+            "output_tokens_method": self.output_tokens_method,
             "error_type": self.error_type,
             "error_message": self.error_message,
             "server_metrics": self.server_metrics,
@@ -225,6 +229,7 @@ class OpenAICompatibleServingClient:
         ended = time.monotonic()
         payload = json.loads(body)
         input_tokens, output_tokens = _usage(payload)
+        output_tokens_method = "provider_usage" if output_tokens is not None else "fallback:regex"
         if output_tokens is None:
             content = payload.get("choices", [{}])[0].get("message", {}).get("content", "")
             output_tokens = count_tokens(content).tokens if content else 0
@@ -232,12 +237,15 @@ class OpenAICompatibleServingClient:
             status="completed",
             started=started,
             ended=ended,
-            first_token=ended,
+            # A non-streaming response contains no observation of the first token time.
+            first_token=None,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             error_type=None,
             error_message=None,
             server_metrics=_server_metrics(headers),
+            input_tokens_method="provider_usage" if input_tokens is not None else None,
+            output_tokens_method=output_tokens_method,
         )
 
     def _read_stream(
@@ -248,14 +256,18 @@ class OpenAICompatibleServingClient:
         first_token: float | None = None
         input_tokens: int | None = None
         output_tokens: int | None = None
+        stream_terminated = False
         try:
             for raw_line in response:
                 line = raw_line.decode("utf-8", errors="replace").strip()
                 if not line.startswith("data:"):
                     continue
                 data = line[5:].strip()
-                if not data or data == "[DONE]":
+                if not data:
                     continue
+                if data == "[DONE]":
+                    stream_terminated = True
+                    break
                 payload = json.loads(data)
                 stream_error = payload.get("error")
                 if isinstance(stream_error, dict):
@@ -278,6 +290,10 @@ class OpenAICompatibleServingClient:
                 output_tokens = completion_count if completion_count is not None else output_tokens
                 choices = payload.get("choices") or []
                 delta = choices[0].get("delta") if choices and isinstance(choices[0], dict) else {}
+                if choices and isinstance(choices[0], dict):
+                    stream_terminated = (
+                        stream_terminated or choices[0].get("finish_reason") is not None
+                    )
                 content = delta.get("content", "") if isinstance(delta, dict) else ""
                 if content:
                     content_parts.append(content)
@@ -312,8 +328,23 @@ class OpenAICompatibleServingClient:
                 error_message=message[:500],
                 server_metrics=_server_metrics(headers),
             )
+        output_tokens_method = "provider_usage" if output_tokens is not None else "fallback:regex"
         if output_tokens is None:
             output_tokens = count_tokens("".join(content_parts)).tokens if content_parts else 0
+        if not stream_terminated:
+            return StreamMeasurement(
+                status="incomplete",
+                started=started,
+                ended=ended,
+                first_token=first_token,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                error_type="incomplete_stream",
+                error_message="SSE stream ended without a terminal event",
+                server_metrics=_server_metrics(headers),
+                input_tokens_method="provider_usage" if input_tokens is not None else None,
+                output_tokens_method=output_tokens_method,
+            )
         return StreamMeasurement(
             status="completed",
             started=started,
@@ -324,4 +355,6 @@ class OpenAICompatibleServingClient:
             error_type=None,
             error_message=None,
             server_metrics=_server_metrics(headers),
+            input_tokens_method="provider_usage" if input_tokens is not None else None,
+            output_tokens_method=output_tokens_method,
         )

@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-serving-qwen3.8-rtx-pro-6000-full
-version: 0.25.10-qwen3.8-bf16-vllm-rtx-pro-6000-full
+version: 0.25.18-qwen3.8-bf16-vllm-rtx-pro-6000-full
 
 endpoint:
   base_url: http://127.0.0.1:8000/v1
@@ -60,8 +60,8 @@ matrix:
   concurrency: [1, 2, 5, 10]
   context_tokens: [8000, 32000, 64000, 100000, 200000]
   prefix_modes: [cold, shared-prefix]
-  warmup_requests: 1
-  repetitions: 3
+  warmup_batches: 1
+  repetitions: 20
 
 request:
   timeout_seconds: 1800

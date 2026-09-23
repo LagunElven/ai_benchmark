@@ -5,9 +5,11 @@ RTX PRO 6000 Blackwell Server Edition et un NVIDIA DGX Spark / GB10. Il sépare 
 mesurer l'effet du matériel ou de la quantification, des profils opérationnels
 qui cherchent le meilleur service possible sur chaque carte.
 
-Les campagnes listées ici sont planifiées, pas exécutées. Les résultats ne
-doivent être ajoutés à `docs/CAMPAIGN_MATRIX.md` qu'après la conservation des
-artefacts bruts et la génération des rapports.
+Les campagnes contrôlées et NVFP4 du tableau ci-dessous sont planifiées et restent
+à exécuter. Les profils opérationnels C-016 et C-017 ont déjà été évalués sur la RTX
+PRO 6000 ; leurs résultats figurent dans la matrice et le compte rendu de session.
+Les résultats ne doivent être ajoutés à `docs/CAMPAIGN_MATRIX.md` qu'après la
+conservation des artefacts bruts et la génération des rapports.
 
 La préparation opérationnelle et le parcours de location sont décrits dans
 [`docs/GPU_REMOTE_RUNBOOK.md`](GPU_REMOTE_RUNBOOK.md). Le plan machine-readable
@@ -44,8 +46,11 @@ le format Safetensors `compressed-tensors` :
 | INT8 W8A16 | [`GotoAI-Inc/Qwen3.8-27B-W8A16`](https://huggingface.co/GotoAI-Inc/Qwen3.8-27B-W8A16/tree/e349969d1d27552c755c992ae64a2ea56007f3e4) | `e349969d1d27552c755c992ae64a2ea56007f3e4` | poids INT8, activations BF16 |
 
 Il est servi sous vLLM avec le tokenizer officiel Qwen BF16. Ce dépôt est tiers
-et non affilié à Qwen ; la campagne `C-017` reste exploratoire et doit être
-confirmée par une réplication documentaire et une matrice serving.
+et non affilié à Qwen. La réplication documentaire de C-017 et sa matrice serving
+complète ont été exécutées le 22 septembre 2026. C-017 reste une comparaison
+opérationnelle/exploratoire : le checkpoint tiers ne permet pas d'isoler l'effet
+de la quantification par rapport au checkpoint Qwen BF16. Les résultats et limites
+sont décrits dans [`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md).
 
 ## Artefact NVFP4 distinct
 
@@ -163,9 +168,11 @@ et du backend de calcul effectif.
 - Contexte et concurrence : mêmes paliers `64k -> 128k -> 262k`, puis la même
   matrice serving 1/2/5/10 utilisateurs.
 
-## Profils opérationnels à tester après la série contrôlée
+## Pistes de serving opérationnel par plateforme
 
-Les valeurs ci-dessous sont des points de départ, pas des valeurs garanties.
+Les profils C-016 et C-017 ont servi de diagnostics RTX PRO avant la série
+contrôlée ; ils ne remplacent pas celle-ci. Les valeurs ci-dessous sont des points
+de départ pour de futures campagnes opérationnelles, pas des valeurs garanties.
 Chaque changement doit être précédé d'un smoke court et consigné dans la
 configuration du run.
 
@@ -207,7 +214,7 @@ configuration du run.
 Ces profils ne remplacent pas C-003 à C-006, C-009/C-010 ni C-011/C-012 : ils
 répondent à une question d'exploitation et non à une comparaison contrôlée.
 
-## Ordre de reprise demain
+## Procédure pour chaque campagne GPU
 
 ### 1. Préflight logiciel et matériel
 

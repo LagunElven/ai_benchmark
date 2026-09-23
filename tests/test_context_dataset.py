@@ -7,11 +7,15 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
+from runner.config import load_benchmark_config
 from runner.context_dataset import (
     count_tokens,
     generate_context_variants,
     score_relevant_files,
 )
+from runner.discovery import discover_tasks, find_task
+from runner.prompting import build_messages
+from runner.workspace import CleanWorkspace
 
 
 class ContextDatasetTests(unittest.TestCase):
@@ -31,23 +35,31 @@ class ContextDatasetTests(unittest.TestCase):
         }
         actual_tokens = []
         for task_id, target in targets.items():
-            workspace = root / "tasks" / "context" / task_id / "workspace"
+            task_root = root / "tasks" / "context" / task_id
+            workspace = task_root / "workspace"
             manifest = json.loads(
-                (workspace / "context-manifest.json").read_text(encoding="utf-8")
+                (task_root / "fixtures" / "context-manifest.json").read_text(encoding="utf-8")
             )
             self.assertEqual(manifest["target_tokens"], target)
             self.assertGreaterEqual(manifest["actual_tokens"], target)
             self.assertEqual(manifest["relevant_files"], ["src/billing.py"])
-            self.assertEqual(
-                manifest["source"], "tasks/context/CTX-01/workspace"
-            )
+            self.assertEqual(manifest["source"], "tasks/context/CTX-01/workspace")
             self.assertFalse(list(Draft202012Validator(schema).iter_errors(manifest)))
-            self.assertEqual(
-                (workspace / "src" / "billing.py").read_text(encoding="utf-8"), source
-            )
+            self.assertFalse((workspace / "context-manifest.json").exists())
+            self.assertEqual((workspace / "src" / "billing.py").read_text(encoding="utf-8"), source)
             self.assertTrue((workspace / "generated-distractors").is_dir())
             actual_tokens.append(manifest["actual_tokens"])
         self.assertEqual(actual_tokens, sorted(actual_tokens))
+
+    def test_context_ground_truth_never_enters_model_messages(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        config = load_benchmark_config(root / "benchmark.yaml")
+        task = find_task(discover_tasks(config), "CTX-02")
+        with CleanWorkspace(config, task, f"context-leak-test-{id(self)}") as workspace:
+            messages = build_messages(task, workspace, 2_000_000)
+        serialized = json.dumps(messages, ensure_ascii=False)
+        self.assertNotIn("context-manifest.json", serialized)
+        self.assertNotIn('"relevant_files"', serialized)
 
     def test_variants_reach_targets_and_validate_manifests(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -70,12 +82,15 @@ class ContextDatasetTests(unittest.TestCase):
             self.assertEqual([variant.name for variant in variants], ["ctx-100tokens", "ctx-1k"])
             for variant in variants:
                 manifest = json.loads(
-                    (variant / "context-manifest.json").read_text(encoding="utf-8")
+                    (variant.parent / f"{variant.name}.context-manifest.json").read_text(
+                        encoding="utf-8"
+                    )
                 )
                 self.assertGreaterEqual(manifest["actual_tokens"], manifest["target_tokens"])
                 self.assertEqual(manifest["relevant_files"], ["src/relevant.py"])
                 self.assertFalse(list(Draft202012Validator(schema).iter_errors(manifest)))
                 self.assertTrue((variant / "generated-distractors").is_dir())
+                self.assertFalse((variant / "context-manifest.json").exists())
 
     def test_seed_controls_generated_context_and_tokenizer_fallback_is_explicit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

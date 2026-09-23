@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from math import ceil
 from typing import Any
 
@@ -21,6 +22,9 @@ def distribution(values: list[float]) -> dict[str, float | int | None]:
         "count": len(values),
         "p50": percentile(values, 0.50),
         "p95": percentile(values, 0.95),
+        "p95_note": "fewer than 100 request samples; treat p95 as exploratory"
+        if len(values) < 100
+        else None,
     }
 
 
@@ -31,20 +35,15 @@ def summarize_requests(
     ttft = [item["ttft_seconds"] for item in completed if item["ttft_seconds"] is not None]
     total = [item["total_seconds"] for item in completed]
     generation = [
-        item["generation_seconds"]
-        for item in completed
-        if item["generation_seconds"] is not None
+        item["generation_seconds"] for item in completed if item["generation_seconds"] is not None
     ]
     tpot = [item["tpot_seconds"] for item in completed if item["tpot_seconds"] is not None]
     per_user = []
     for item in completed:
-        if (
-            item["output_tokens"]
-            and item["generation_seconds"]
-            and item["generation_seconds"] > 0
-        ):
+        if item["output_tokens"] and item["generation_seconds"] and item["generation_seconds"] > 0:
             per_user.append(item["output_tokens"] / item["generation_seconds"])
     output_tokens = sum(item["output_tokens"] or 0 for item in requests)
+    completed_output_tokens = sum(item["output_tokens"] or 0 for item in completed)
     input_tokens = sum(item["input_tokens"] or 0 for item in requests)
     effective_wall = wall_seconds
     if effective_wall is None and requests:
@@ -69,17 +68,37 @@ def summarize_requests(
         "requests_total": len(requests),
         "requests_completed": len(completed),
         "requests_failed": len(failed),
+        "incomplete_streams": sum(item["status"] == "incomplete" for item in requests),
         "failure_rate": len(failed) / len(requests) if requests else 0.0,
         "timeouts": len(timeouts),
         "out_of_memory": len(oom),
         "input_tokens_total": input_tokens,
         "output_tokens_total": output_tokens,
+        "completed_output_tokens_total": completed_output_tokens,
+        "input_tokens_method_counts": dict(
+            sorted(
+                Counter(
+                    str(item["input_tokens_method"])
+                    for item in requests
+                    if item.get("input_tokens_method") is not None
+                ).items()
+            )
+        ),
+        "output_tokens_method_counts": dict(
+            sorted(
+                Counter(
+                    str(item["output_tokens_method"])
+                    for item in requests
+                    if item.get("output_tokens_method") is not None
+                ).items()
+            )
+        ),
         "ttft_seconds": distribution(ttft),
         "generation_seconds": distribution(generation),
         "total_latency_seconds": distribution(total),
         "tpot_seconds": distribution(tpot),
         "tokens_per_second_per_user": distribution(per_user),
-        "aggregate_output_tokens_per_second": output_tokens / effective_wall
+        "aggregate_output_tokens_per_second": completed_output_tokens / effective_wall
         if effective_wall > 0
         else None,
         "requests_per_second": len(completed) / effective_wall if effective_wall > 0 else None,

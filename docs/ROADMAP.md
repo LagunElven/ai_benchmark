@@ -147,7 +147,9 @@ serveur ou la machine ne les expose pas.
 
 Le protocole des campagnes et l'ordre de reprise sont définis dans
 [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Les campagnes réelles restent
-à exécuter sur les accélérateurs cibles.
+à exécuter pour les comparaisons contrôlées H200, RTX PRO et DGX Spark, ainsi que pour
+NVFP4. Les profils opérationnels C-016 (BF16) et C-017 (Q8) ont déjà été exécutés sur
+RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
 
 - [x] protocole de comparaison contrôlée BF16/FP8 avec vLLM
 - [x] matrice initiale C-003 à C-006 et C-009/C-010
@@ -173,19 +175,18 @@ Chaque playbook doit documenter :
 - commande full
 - collecte résultats
 
-### Actions GPU à reprendre le 22 septembre 2026
+### Suivi de la session GPU du 22 septembre 2026
 
-- [ ] Répéter avec Q8 les tâches documentaires `DOC-02`, `DOC-03`, `DOC-05`,
-  `DOC-06`, `DOC-07` et `DOC-08`, idéalement en plusieurs répétitions et avec
-  la même sélection BF16.
-- [ ] Créer le profil serving Q8 dérivé de
-  `campaigns/gpu/serving-qwen-rtx-pro-6000-full.yaml`.
-- [ ] Exécuter la matrice serving Q8 1/2/5/10 utilisateurs, contextes
-  8k/32k/64k/100k/200k, modes `cold` et `shared-prefix`.
-- [ ] Comparer BF16/Q8 sur TTFT, TPOT, tokens/s, débit agrégé, mémoire GPU,
-  KV cache et taux d'échec/OOM.
-- [ ] Corriger le résumé de campagne afin qu'il comptabilise les erreurs de
-  protocole et les erreurs client présentes dans les `result.json`.
+- [x] Répéter trois fois avec Q8 les tâches documentaires `DOC-02`, `DOC-03`,
+  `DOC-05`, `DOC-06`, `DOC-07` et `DOC-08`. Chaque répétition a réussi 1/6
+  après réparation ; voir le [compte rendu](GPU_SESSION_2026-09-22.md).
+- [x] Créer et exécuter le profil serving Q8 complet : 40 cas et 540 requêtes,
+  sans échec.
+- [x] Documenter la comparaison BF16/Q8. Elle reste opérationnelle : le checkpoint
+  Q8 est tiers, le serving BF16 `cold` n'a que six cellules communes et les
+  métriques du GPU distant n'étaient pas exposées.
+- [x] Agréger dans les rapports les erreurs de protocole et les erreurs client
+  présentes dans les résultats de run.
 - [ ] Recalibrer ou documenter définitivement `CTX-06`, dont le prompt réel
   dépasse la fenêtre effective de 262144 tokens.
 

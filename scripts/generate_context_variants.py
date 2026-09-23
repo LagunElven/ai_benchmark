@@ -40,7 +40,9 @@ def main(arguments: list[str] | None = None) -> int:
         seed=options.seed,
     )
     summary = [
-        json.loads((variant / "context-manifest.json").read_text(encoding="utf-8"))
+        json.loads(
+            (variant.parent / f"{variant.name}.context-manifest.json").read_text(encoding="utf-8")
+        )
         for variant in variants
     ]
     print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))

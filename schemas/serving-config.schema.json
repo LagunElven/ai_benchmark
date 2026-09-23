@@ -77,12 +77,12 @@
     "matrix": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["concurrency", "context_tokens", "prefix_modes", "warmup_requests", "repetitions"],
+      "required": ["concurrency", "context_tokens", "prefix_modes", "warmup_batches", "repetitions"],
       "properties": {
         "concurrency": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1}},
         "context_tokens": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1}},
         "prefix_modes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["cold", "shared-prefix"]}},
-        "warmup_requests": {"type": "integer", "minimum": 0},
+        "warmup_batches": {"type": "integer", "minimum": 0},
         "repetitions": {"type": "integer", "minimum": 1}
       }
     },

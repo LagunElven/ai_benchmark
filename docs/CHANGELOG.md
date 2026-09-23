@@ -2,6 +2,27 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.18 — Intégrité des contextes et mesures de campagne
+
+- Les tâches CTX-01 à CTX-06 retirent des prompts les chemins de réponse et
+  gardent les manifestes de scoring hors workspace visible ; leurs révisions
+  passent à 2. Le runner effectue un préflight tokenizer local avec réserve de
+  sortie et marge de sécurité.
+- Les reprises de campagnes sont liées à une empreinte SHA-256 du runner, des
+  schémas, du plan, de la configuration, des tâches et des validateurs. Les
+  anciens checkpoints sans empreinte ne sont plus repris. Les résultats
+  conservent le type/groupe de comparaison, l'artefact, les révisions et le seed.
+- Les résumés distinguent échecs fonctionnels/protocole, refus de capacité et
+  erreurs d'infrastructure ; `--seed` permet des répétitions appariées.
+- Le serving produit un schéma résultat 1.1 : TTFT absent pour le JSON non
+  streamé, flux SSE incomplets signalés, origine des tokens conservée, warmup
+  concurrent, 20 lots sur les profils complets et échantillonnage des ressources
+  côté runner.
+- DOC-10 passe en révision 2 et stocke les métriques de champs structurés dans
+  le résultat brut sans rendre la vérité terrain visible.
+- C-017 est classé comme comparaison opérationnelle et C-016 comme campagne
+  terminée dans le plan GPU.
+
 ## 0.25.17 — Consolidation des campagnes Q8 et du reporting d'erreurs
 
 - Les résultats de campagne qualité conservent maintenant les types d'erreur

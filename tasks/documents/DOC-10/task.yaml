@@ -1,5 +1,5 @@
 id: DOC-10
-revision: 1
+revision: 2
 name: Extract a structured invoice record
 category: documents
 difficulty: hard
@@ -32,4 +32,8 @@ validation:
     - name: hidden-tests
       command: [python, check.py, document.txt, extract.py]
 metrics: [build_success, hidden_tests_passed, pass_at_1, pass_at_3, files_modified, unnecessary_files_modified]
-metric_extractors: []
+metric_extractors:
+  - name: structured_document
+    type: document_fields
+    actual: public-output.json
+    expected: ground-truth.json

@@ -1,12 +1,12 @@
 # Architecture
 
-## Périmètre initial
+## Périmètre actuel
 
-La fondation sépare quatre dimensions : qualité de code, capacité de réparation,
-documents/OCR et performances de serving. Le runner de Phase 1 implémente la découverte,
-le mode `one-shot`, un client OpenAI-compatible, des workspaces propres, la validation
-publique, l'isolation des tests cachés et la persistance des résultats. La boucle de
-réparation et le serving GPU sont des extensions distinctes.
+Le benchmark sépare quatre dimensions : qualité de code, capacité de réparation,
+documents/OCR et performances de serving. Le runner couvre la découverte et la validation
+des tâches, les modes `one-shot` et `repair`, les workspaces propres, l'isolation des tests
+cachés et la persistance des résultats. Le serving reste un parcours indépendant des runs
+de qualité afin que leurs métriques ne soient pas confondues.
 
 ## Composants
 
@@ -14,6 +14,8 @@ réparation et le serving GPU sont des extensions distinctes.
 - `runner/discovery.py` découvre et valide les fichiers `task.yaml`.
 - `runner/workspace.py` copie uniquement le workspace visible de la tâche dans un dossier neuf.
 - `runner/prompting.py` construit un contexte textuel à partir du prompt et du workspace.
+- `runner/context_budget.py` compte le chat template local quand disponible et vérifie
+  fenêtre, sortie réservée et marge sans traiter une estimation comme exacte.
 - `runner/client.py` isole l'accès au modèle derrière une interface commune.
 - `runner/changes.py` applique les modifications structurées en empêchant toute sortie du workspace.
 - `runner/validation.py` exécute des commandes sans passer par un shell.
@@ -22,6 +24,8 @@ réparation et le serving GPU sont des extensions distinctes.
   reproductibles sans dépendance OCR native.
 - `runner/document_metrics.py` calcule CER/WER et les métriques de sortie structurée sans
   les réduire à un score unique.
+- `runner/metric_extractors.py` exécute le scoring structuré après le feedback du modèle,
+  en gardant les vérités terrain sous `private-tests/`.
 - `runner/legacy.py` valide les manifestes legacy, compare des vecteurs d'équivalence et
   détecte les compilateurs natifs sans les exécuter implicitement.
 - `runner/context_dataset.py` génère les variantes de contexte, conserve un manifeste de
@@ -31,6 +35,9 @@ réparation et le serving GPU sont des extensions distinctes.
 - `runner/gpu_preflight.py` fige les configurations, les révisions de tâches et les
   empreintes des seuls fichiers model-visible avant une campagne distante.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
+- `scripts/run_quality_campaign.py` orchestre les campagnes qualité, conserve leur
+  progression et permet de reprendre seulement une campagne dont l'empreinte complète
+  des entrées correspond.
 - `serving/client.py` appelle un endpoint OpenAI-compatible en streaming SSE et capture
   TTFT, usage, erreurs OOM/timeout et métriques serveur exposées par headers.
 - `serving/benchmark.py` construit la matrice concurrence/contexte/préfixe, exécute les
@@ -38,7 +45,8 @@ réparation et le serving GPU sont des extensions distinctes.
 - `serving/metrics.py` calcule les distributions p50/p95, TPOT, tok/s par utilisateur et
   débit agrégé sans réduire les dimensions à un score opaque.
 - `serving/resources.py` échantillonne `nvidia-smi` et la mémoire hôte si disponibles ;
-  les données non exposées restent explicitement indisponibles.
+  les séries sont attribuées au poste runner et les données non exposées restent
+  explicitement indisponibles.
 
 ## Protocole de réponse `file_changes_v1`
 
@@ -80,4 +88,6 @@ sont ni devinées ni remplacées par des valeurs implicites.
 Pour une campagne distante, le runner et les tests cachés restent sur le poste de contrôle.
 La machine louée expose uniquement l'endpoint d'inférence ; `scripts/capture_gpu_environment.py`
 enregistre son empreinte avant le smoke et `scripts/run_quality_campaign.py` conserve l'index
-des runs qualité associés à l'identifiant de campagne.
+des runs qualité associés à l'identifiant de campagne. Les métriques échantillonnées par le
+runner décrivent le poste de contrôle ; les ressources du GPU distant ne sont disponibles que
+si le serveur les expose explicitement.

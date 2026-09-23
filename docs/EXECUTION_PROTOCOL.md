@@ -61,15 +61,25 @@ chaque tâche. En cas d'arrêt du processus, reprendre la dernière campagne
 incomplète compatible avec :
 
 ```powershell
-python scripts/run_quality_campaign.py --campaign-id C-003 --resume
+python scripts/run_quality_campaign.py --campaign-id C-003 --seed 43 --resume
 ```
 
-La reprise doit conserver les mêmes configuration, mode, suite, catégorie et
-sélection de tâches. Les tâches déjà enregistrées sont ignorées ; seules les
-tâches sans résultat de campagne sont exécutées. Un nouveau dossier de campagne
-est créé et le résultat précédent n'est jamais écrasé. Les anciens
-`campaign.json` partiels produits avant l'ajout des checkpoints sont également
-acceptés lorsque leur nombre de tâches correspond à la sélection courante. Si
-aucun index de campagne n'existe, le runner peut aussi reconstruire un préfixe
-interrompu depuis `results/raw/runs.jsonl`, à condition de retrouver la même
-empreinte de modèle/serving et le même ordre de tâches.
+La reprise doit conserver les mêmes configuration, plan et libellés de
+comparaison, mode, suite, catégorie, sélection de tâches, seed et commit. Un
+SHA-256 des entrées est aussi vérifié : configuration et plan, sources du
+runner et scripts Python, schémas, arborescences des tâches sélectionnées et
+leurs tests cachés. Toute différence refuse la reprise automatique ;
+les anciens checkpoints sans empreinte et les préfixes reconstruits depuis
+`runs.jsonl` ne sont pas repris, car leurs révisions ne sont pas vérifiables.
+Seuls les résultats bruts existants correspondant à la révision de tâche et au
+mode sont ignorés. La reprise crée toujours un nouveau dossier et ne remplace
+jamais les résultats précédents.
+
+Si `--seed` a été fourni au lancement, il doit être répété à l'identique pour
+reprendre la campagne. Ce paramètre permet également d'exécuter des séries de
+seeds appariés entre configurations sans mélanger leurs résultats.
+
+Le résultat de campagne conserve les libellés de comparaison et classe les
+échecs en catégories fonctionnelle, protocole, capacité, infrastructure ou
+exécution. Les refus de capacité et erreurs d'infrastructure/exécution sont
+rapportés séparément et exclus du dénominateur de `quality_success_rate`.

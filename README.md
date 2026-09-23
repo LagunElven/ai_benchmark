@@ -3,11 +3,17 @@
 Suite reproductible pour comparer la qualité, la réparation agentique, les capacités
 documentaires/OCR et les performances de serving de modèles locaux ou hébergés.
 
-La fondation actuelle couvre les milestones 0 à 10 : schémas, découverte des tâches,
-workspace propre, exécution `one-shot`, endpoint OpenAI-compatible, faux adaptateur
-déterministe, validation publique et cachée isolée, boucle `repair` et résultats JSON/JSONL.
-Le benchmark serving dispose d'une matrice reproductible concurrence/contexte/préfixe et
-conserve ses résultats séparément des résultats de qualité.
+Les milestones 0 à 10 sont en place : schémas, découverte des tâches, workspaces propres,
+exécutions `one-shot` et `repair`, validation publique et cachée isolée, résultats JSON/JSONL,
+catalogue de 74 tâches et matrice de serving reproductible.
+
+Le milestone 11 est en cours. Les profils opérationnels Qwen C-016 (BF16) et C-017 (Q8)
+ont été évalués sur RTX PRO 6000. La réplication documentaire Q8 et sa matrice serving sont
+terminées ; la comparaison BF16/Q8 reste opérationnelle, notamment parce que C-017 utilise
+un checkpoint tiers. Les campagnes matérielles contrôlées H200, RTX PRO et DGX Spark ainsi
+que les campagnes NVFP4 restent à exécuter. Le reporting comparatif est planifié au
+milestone 12. Voir la [roadmap](docs/ROADMAP.md), la [matrice des campagnes](docs/CAMPAIGN_MATRIX.md)
+et le [compte rendu GPU du 22 septembre](docs/GPU_SESSION_2026-09-22.md).
 
 Une smoke suite hors ligne de sept tâches représentatives (Java, Spring, Axon, Web,
 COBOL, documents et long contexte) peut être lancée avec :
@@ -26,7 +32,7 @@ Python 3.11 ou plus récent est requis.
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -e .
+python -m pip install -e ".[dev]"
 ```
 
 ## Commandes
@@ -38,14 +44,17 @@ python -m runner list-tasks --suite smoke --category java
 python -m runner run --task-id JAVA-03 --mode one-shot
 python scripts/run_smoke.py
 python scripts/generate_context_variants.py tasks/context/CTX-01/workspace .tmp/context-ctx01 --relevant-file src/billing.py
-python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k/context-manifest.json --modified-file src/billing.py
+python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k.context-manifest.json --modified-file src/billing.py
 python scripts/check_catalogue.py
 python scripts/run_serving_benchmark.py --plan-only
 python scripts/prepare_gpu_campaign.py --campaign-id C-003 --config benchmark.qwen3.8-bf16.yaml --serving-config campaigns/gpu/serving-qwen.yaml
 python scripts/run_quality_campaign.py --campaign-id C-003 --plan-only
-# Reprendre la dernière campagne incomplète compatible
-python scripts/run_quality_campaign.py --campaign-id C-003 --resume
+# Lancer puis reprendre avec le même seed explicite
+python scripts/run_quality_campaign.py --campaign-id C-003 --seed 43
+python scripts/run_quality_campaign.py --campaign-id C-003 --seed 43 --resume
+# Pour comparer plusieurs seeds, répéter le même jeu sur chaque configuration
 python -m unittest discover -s tests -v
+python -m ruff check runner serving scripts tests
 ```
 
 L'URL du serveur et le modèle se configurent dans `benchmark.yaml`. La clé d'API est lue
@@ -67,11 +76,13 @@ les résultats.
 - `docs/GPU_CAMPAIGN_PLAN.md` : protocole et ordre des futures campagnes GPU.
 - `docs/GPU_REMOTE_RUNBOOK.md` : préparation et exécution sur une machine GPU louée.
 - `docs/REMOTE_GPU_CHECKLIST.md` : checklist courte avant location, après connexion et avant arrêt.
-- `campaigns/gpu/plan.yaml` : campagnes C-003 à C-006, C-009/C-010 et C-011/C-012, avec les valeurs à figer avant location.
+- `campaigns/gpu/plan.yaml` : plan machine-readable des campagnes GPU et configurations à figer.
+- `docs/CAMPAIGN_MATRIX.md` : résultats de qualité et de serving effectivement documentés.
+- `docs/GPU_SESSION_2026-09-22.md` : résultats et limites de la session BF16/Q8 sur RTX PRO 6000.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/TASK_REFERENCE.md` : référence synthétique par tâche, critères de réussite,
   d'échec et pièges à surveiller.
-- `docs/ROADMAP.md` : milestones.
+- `docs/ROADMAP.md` : état courant des milestones et prochaines actions.
 - `docs/CHANGELOG.md` : changements affectant la comparabilité.
 
 ## État des fonctions sensibles

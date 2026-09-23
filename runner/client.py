@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from runner.config import BenchmarkConfig
-from runner.errors import ConfigurationError, ModelClientError
+from runner.errors import ConfigurationError, ContextCapacityError, ModelClientError
 
 
 @dataclass(frozen=True)
@@ -78,6 +78,25 @@ class OpenAICompatibleClient:
                 request, timeout=self.model["request_timeout_seconds"]
             ) as response:
                 raw = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            with exc:
+                response_body = exc.read().decode("utf-8", errors="replace")[:1000]
+            message = f"HTTP {exc.code} {exc.reason}: {response_body}"
+            lowered = message.lower()
+            if any(
+                marker in lowered
+                for marker in (
+                    "maximum context",
+                    "context length",
+                    "context window",
+                    "max_model_len",
+                    "prompt is too long",
+                    "input is too long",
+                    "token limit",
+                )
+            ):
+                raise ContextCapacityError(message) from exc
+            raise ModelClientError(f"OpenAI-compatible request failed: {message}") from exc
         except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
             raise ModelClientError(f"OpenAI-compatible request failed: {exc}") from exc
         duration = time.monotonic() - started

@@ -52,75 +52,64 @@ class QualityCampaignResumeTests(unittest.TestCase):
             {"ChangeProtocolError": 1, "ModelClientError": 1},
         )
 
-    def test_resume_reconstructs_campaign_without_global_checkpoint(self) -> None:
+    def test_campaign_summary_separates_capacity_from_quality_failures(self) -> None:
+        run = _campaign_run_entry(
+            {
+                "task": {"id": "CTX-06"},
+                "run": {"status": "failed"},
+                "validation": {"outcome": "failed"},
+                "artifacts": {"result": "results/raw/ctx06/result.json"},
+                "errors": [
+                    {
+                        "type": "ContextCapacityError",
+                        "message": "Serialized prompt exceeds configured context window",
+                    }
+                ],
+            }
+        )
+        assert run is not None
+        campaign = _campaign_result(
+            metadata={"id": "C-003"},
+            started_at="2026-09-22T08:00:00Z",
+            ended_at="2026-09-22T08:00:01Z",
+            status="completed_with_failures",
+            runs=[run],
+            tasks_total=1,
+        )
+        self.assertEqual(campaign["summary"]["tasks_capacity_rejections"], 1)
+        self.assertEqual(campaign["summary"]["tasks_quality_evaluated"], 0)
+        self.assertIsNone(campaign["summary"]["quality_success_rate"])
+
+    def test_resume_refuses_unfingerprinted_legacy_runs_jsonl(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             config_path = create_repository(root)
-            second_task = root / "tasks" / "java" / "JAVA-98"
-            shutil.copytree(root / "tasks" / "java" / "JAVA-99", second_task)
-            task_yaml = second_task / "task.yaml"
-            task_yaml.write_text(
-                task_yaml.read_text(encoding="utf-8").replace("JAVA-99", "JAVA-98"),
-                encoding="utf-8",
-            )
             config = load_benchmark_config(config_path)
             tasks = discover_tasks(config)
             run_index = root / "results" / "raw" / "runs.jsonl"
             run_index.parent.mkdir(parents=True)
-            generation = {
-                key: value
-                for key, value in config.data["model"]["generation"].items()
-                if key != "max_output_tokens"
-            }
-            historical_run = {
-                "benchmark": config.data["benchmark"],
-                "model": {
-                    key: config.data["model"].get(key)
-                    for key in (
-                        "provider",
-                        "name",
-                        "revision",
-                        "tokenizer_revision",
-                        "quantization",
-                        "dtype",
-                    )
-                }
-                | {"parameters": generation},
-                "environment": {
-                    "hardware": config.data["hardware"],
-                    "serving": config.data["serving"],
-                },
-                "run": {"mode": "one-shot", "status": "completed"},
-                "task": {"id": tasks[0].id},
-                "validation": {"outcome": "passed"},
-                "artifacts": {"result": "results/raw/legacy-result.json"},
-                "errors": [],
-                "timing": {
-                    "started_at": "2026-09-21T08:00:00Z",
-                    "ended_at": "2026-09-21T08:00:01Z",
-                },
-            }
-            run_index.write_text(
-                json.dumps(historical_run) + "\n",
-                encoding="utf-8",
-            )
+            run_index.write_text(json.dumps({"legacy": True}) + "\n", encoding="utf-8")
+            plan_path = Path(__file__).resolve().parents[1] / "campaigns" / "gpu" / "plan.yaml"
             source = _find_resume_source(
                 config.root,
-                config=config,
                 campaign_id="C-003",
                 mode="one-shot",
                 suite="smoke",
                 category=None,
                 config_path=config_path.resolve(),
                 config_sha256=_sha256(config_path),
+                plan_path=plan_path,
+                plan_sha256=_sha256(plan_path),
+                comparison_type="controlled_hardware",
+                comparison_group="hardware-bf16",
+                artifact_variant="bf16",
+                git_commit=None,
+                input_fingerprint_sha256="0" * 64,
+                seed=42,
+                task_revisions={task.id: task.data["revision"] for task in tasks},
                 task_ids=[task.id for task in tasks],
             )
-
-            self.assertIsNotNone(source)
-            assert source is not None
-            self.assertEqual(source[0].resolve(), run_index.resolve())
-            self.assertEqual(source[1]["status"], "interrupted")
-            self.assertEqual(len(source[1]["runs"]), 1)
+            self.assertIsNone(source)
 
     def test_resume_continues_from_checkpoint_without_rerunning_completed_tasks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -134,7 +123,8 @@ class QualityCampaignResumeTests(unittest.TestCase):
                 encoding="utf-8",
             )
             config = load_benchmark_config(config_path)
-            expected_task_ids = [task.id for task in discover_tasks(config)]
+            tasks = discover_tasks(config)
+            expected_task_ids = [task.id for task in tasks]
             plan_path = Path(__file__).resolve().parents[1] / "campaigns" / "gpu" / "plan.yaml"
             response = '{"changes":[{"path":"app.py","content":"VALUE = 2\\n"}]}'
 
@@ -173,6 +163,50 @@ class QualityCampaignResumeTests(unittest.TestCase):
                 [run["task_id"] for run in interrupted["runs"]], [expected_task_ids[0]]
             )
 
+            first_prompt = tasks[0].prompt_path
+            original_prompt = first_prompt.read_text(encoding="utf-8")
+            first_prompt.write_text(
+                original_prompt + "\nchanged during interruption\n", encoding="utf-8"
+            )
+            with self.assertRaises(SystemExit) as changed_error:
+                campaign_script.main(
+                    [
+                        "--campaign-id",
+                        "C-003",
+                        "--config",
+                        str(config_path),
+                        "--plan",
+                        str(plan_path),
+                        "--mode",
+                        "one-shot",
+                        "--suite",
+                        "smoke",
+                        "--resume",
+                    ]
+                )
+            self.assertEqual(changed_error.exception.code, 2)
+            first_prompt.write_text(original_prompt, encoding="utf-8")
+
+            with self.assertRaises(SystemExit) as seed_error:
+                campaign_script.main(
+                    [
+                        "--campaign-id",
+                        "C-003",
+                        "--config",
+                        str(config_path),
+                        "--plan",
+                        str(plan_path),
+                        "--mode",
+                        "one-shot",
+                        "--suite",
+                        "smoke",
+                        "--seed",
+                        "2",
+                        "--resume",
+                    ]
+                )
+            self.assertEqual(seed_error.exception.code, 2)
+
             resumed_calls: list[str] = []
 
             def complete_resume(config, task):
@@ -204,10 +238,16 @@ class QualityCampaignResumeTests(unittest.TestCase):
             self.assertEqual(completed["status"], "completed")
             self.assertEqual(completed["summary"]["tasks_total"], 2)
             self.assertEqual(len(completed["runs"]), 2)
-            self.assertTrue(completed["campaign"]["resumed_from"].endswith("campaign-progress.json"))
-            index_lines = (campaign_root / "campaigns.jsonl").read_text(
-                encoding="utf-8"
-            ).splitlines()
+            self.assertEqual(completed["campaign"]["comparison_type"], "controlled_hardware")
+            self.assertEqual(completed["campaign"]["seed"], 1)
+            self.assertEqual(completed["campaign"]["task_revisions"]["JAVA-98"], 1)
+            self.assertEqual(len(completed["campaign"]["input_fingerprint_sha256"]), 64)
+            self.assertTrue(
+                completed["campaign"]["resumed_from"].endswith("campaign-progress.json")
+            )
+            index_lines = (
+                (campaign_root / "campaigns.jsonl").read_text(encoding="utf-8").splitlines()
+            )
             self.assertEqual(len(index_lines), 1)
 
             with self.assertRaises(SystemExit) as error:

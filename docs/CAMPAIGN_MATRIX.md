@@ -1,8 +1,13 @@
 # Matrice des campagnes
 
-Document de suivi initial des campagnes qualité. Les colonnes correspondent aux campagnes ; les lignes gardent les mêmes catégories et métriques pour faciliter les comparaisons futures.
+Document de suivi des campagnes qualité et serving exécutées. Les colonnes correspondent
+aux campagnes ; les lignes gardent les mêmes catégories et métriques pour faciliter les
+comparaisons.
 
-Cette matrice reste volontairement simple pour la milestone 10. La présentation et les analyses comparatives seront approfondies en milestone 12.
+La matrice conserve les métriques brutes par campagne. Les analyses comparatives et les
+exports prévus au milestone 12 restent à développer. Les liens vers `results/raw/` et
+`results/reports/` pointent vers des artefacts locaux ignorés par Git ; ils sont accessibles
+sur les postes où ces résultats ont été conservés.
 
 ## Campagnes référencées
 
@@ -15,9 +20,9 @@ Cette matrice reste volontairement simple pour la milestone 10. La présentation
 
 Les résultats détaillés sont disponibles dans les rapports associés. Les résultats bruts restent dans results/raw et sont indexés par results/raw/runs.jsonl.
 
-Les campagnes GPU C-003 à C-006, C-009/C-010 et C-011/C-012 réservées pour la reprise de la milestone 11 sont décrites
-dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Elles ne sont pas
-ajoutées à la matrice de résultats avant leur exécution effective.
+Les campagnes matérielles contrôlées C-003 à C-006, C-009/C-010 et exploratoires NVFP4
+C-011/C-012 sont décrites dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Elles
+ne sont pas ajoutées à la matrice de résultats avant leur exécution effective.
 
 ## Matrice qualité
 

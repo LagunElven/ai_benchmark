@@ -6,12 +6,12 @@
   "additionalProperties": false,
   "required": ["schema_version", "type", "campaign", "started_at", "ended_at", "status", "runs", "summary"],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.1"},
     "type": {"const": "quality_campaign_result"},
     "campaign": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "mode", "suite", "config_path", "config_sha256", "git_commit"],
+      "required": ["id", "mode", "suite", "config_path", "config_sha256", "plan_path", "plan_sha256", "comparison_type", "comparison_group", "artifact_variant", "git_commit", "input_fingerprint_sha256", "input_file_count", "seed", "task_revisions"],
       "properties": {
         "id": {"type": "string", "pattern": "^C-[0-9]{3,}$"},
         "mode": {"enum": ["one-shot", "repair"]},
@@ -19,7 +19,20 @@
         "category": {"type": ["string", "null"]},
         "config_path": {"type": "string"},
         "config_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "plan_path": {"type": "string", "minLength": 1},
+        "plan_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "comparison_type": {"enum": ["controlled_hardware", "controlled_quantization", "controlled_model", "operational_solution"]},
+        "comparison_group": {"type": "string", "minLength": 1},
+        "artifact_variant": {"type": "string", "minLength": 1},
+        "artifact_revision": {"type": ["string", "null"]},
         "git_commit": {"type": ["string", "null"]},
+        "input_fingerprint_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "input_file_count": {"type": "integer", "minimum": 0},
+        "seed": {"type": ["integer", "null"]},
+        "task_revisions": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 1}
+        },
         "task_ids": {
           "type": "array",
           "items": {"type": "string"},
@@ -45,26 +58,34 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["task_id", "status", "validation_outcome", "result_path"],
+        "required": ["task_id", "status", "validation_outcome", "result_path", "failure_class"],
         "properties": {
           "task_id": {"type": "string"},
           "status": {"type": "string"},
           "validation_outcome": {"type": "string"},
           "result_path": {"type": "string"},
           "error": {"type": ["string", "null"]},
-          "error_types": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+          "error_types": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "failure_class": {"enum": ["passed", "functional_failure", "protocol_failure", "capacity_rejection", "infrastructure_failure", "execution_failure"]}
         }
       }
     },
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["tasks_total", "tasks_passed", "tasks_failed", "tasks_with_errors", "error_counts"],
+      "required": ["tasks_total", "tasks_passed", "tasks_failed", "tasks_with_errors", "tasks_functional_failures", "tasks_protocol_failures", "tasks_capacity_rejections", "tasks_infrastructure_failures", "tasks_execution_failures", "tasks_quality_evaluated", "quality_success_rate", "error_counts"],
       "properties": {
         "tasks_total": {"type": "integer", "minimum": 0},
         "tasks_passed": {"type": "integer", "minimum": 0},
         "tasks_failed": {"type": "integer", "minimum": 0},
         "tasks_with_errors": {"type": "integer", "minimum": 0},
+        "tasks_functional_failures": {"type": "integer", "minimum": 0},
+        "tasks_protocol_failures": {"type": "integer", "minimum": 0},
+        "tasks_capacity_rejections": {"type": "integer", "minimum": 0},
+        "tasks_infrastructure_failures": {"type": "integer", "minimum": 0},
+        "tasks_execution_failures": {"type": "integer", "minimum": 0},
+        "tasks_quality_evaluated": {"type": "integer", "minimum": 0},
+        "quality_success_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
         "error_counts": {
           "type": "object",
           "additionalProperties": {"type": "integer", "minimum": 0}
