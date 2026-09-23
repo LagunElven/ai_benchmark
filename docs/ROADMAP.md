@@ -160,6 +160,11 @@ RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
 - [ ] playbook reproductible RTX PRO 6000 Blackwell spécifique au moteur retenu
 - [x] campagnes DGX Spark / GB10 ajoutées au plan contrôlé
 - [ ] playbook reproductible DGX Spark / GB10 spécifique au moteur retenu
+- [x] exécuter C-018 : Qwen FP8 officiel, suite qualité full (terminée avec
+  échecs) et serving shared-prefix en thinking medium
+- [ ] analyser les échecs qualité de C-018 avant d'en faire une base de référence
+- [ ] campagne exploratoire C-019 : même cible FP8 avec draft DFlash2 BF16 ;
+  contrôler l'acceptance et les hits prefix-cache avant la matrice serving
 
 Chaque playbook doit documenter :
 

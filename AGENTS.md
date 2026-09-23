@@ -81,6 +81,10 @@ native or uses a verified equivalent-output harness.
 ## Safety and execution boundaries
 
 - Treat model-generated shell commands as untrusted input.
+- Write shell commands so they are safe to copy and paste: never insert a literal line
+  break inside a quoted argument, JSON value, path or other string. Keep inline JSON on
+  one physical line; for long values, build them through a variable or config file and
+  check the resulting argument before launch.
 - Keep validation commands bounded by the task workspace and configured timeout; do not
   silently grant network or host access.
 - Preserve the distinction between model-visible and validator-visible files.

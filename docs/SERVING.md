@@ -100,6 +100,52 @@ l'endpoint ; elles restent absentes plutôt que d'être déduites.
 Sur l'instance utilisée le portail Caddy occupe le port distant `8000` ; vLLM
 Q8 écoute sur `8001` et le tunnel SSH mappe le port local `8000` vers ce port.
 
+## Profils prévus Q8/FP8 — shared-prefix, thinking medium
+
+Les nouveaux profils dédiés sont :
+
+- `campaigns/gpu/serving-qwen-rtx-pro-6000-q8-shared-prefix-medium-thinking.yaml`
+- `campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml`
+
+Ils utilisent la même RTX PRO 6000, vLLM 0.29.0, le tokenizer officiel Qwen, le
+KV cache FP8, les concurrences 1/2/5/10, les contextes 8k/32k/64k/100k/200k et
+20 répétitions. Seuls les artefacts de poids/dtypes diffèrent ; le checkpoint Q8
+reste tiers, donc l'analyse est opérationnelle et non une comparaison contrôlée de
+quantification. Chaque profil ne contient que `shared-prefix`, active le prefix
+caching, et envoie `enable_thinking: true` avec `reasoning_effort: medium`.
+Cela représente 20 cas et 1 800 requêtes mesurées par variante. Le plafond de
+sortie reste à 256 tokens pour cette matrice de débit ; ces mesures ne remplacent
+pas les évaluations qualité.
+
+Exécuter après le smoke serveur, en sélectionnant explicitement le fichier voulu :
+
+```powershell
+python scripts/run_serving_benchmark.py `
+  --config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml
+python scripts/run_serving_benchmark.py `
+  --config campaigns/gpu/serving-qwen-rtx-pro-6000-q8-shared-prefix-medium-thinking.yaml
+```
+
+Ces profils futurs ne changent pas les résultats du 22 septembre : Q8 historique
+reste mesuré avec deux modes de préfixe, trois répétitions et thinking désactivé.
+Le profil Q8 dédié permettra une comparaison serving appariée au FP8 sous les
+nouveaux réglages.
+
+## Profil préparé DFlash2 — cible FP8, shared-prefix
+
+`campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-dflash2-shared-prefix-medium-thinking.yaml`
+reprend la matrice FP8 (20 cas, 20 répétitions par cas) et ajoute le draft BF16
+DFlash2 à la même cible FP8. Le checkpoint draft est épinglé à la révision
+`015e795645c74b1a0eeef3b570031fb62e769bc5` dans le plan C-019 ; le profil ne mesure
+donc pas un autre modèle cible ni une nouvelle quantification.
+
+Avant la matrice complète, smoke de chargement/génération, vérification de l'acceptance
+DFlash2 et des hits prefix-cache. Un ticket vLLM a documenté zéro hit de prefix cache
+avec speculative decoding sur certains déploiements Qwen3.8 hybrides ; tant que les hits
+ne sont pas confirmés sur vLLM 0.29.0 et cette RTX PRO, les mesures ne sont pas à
+interpréter comme une comparaison shared-prefix valide. Le détail d'exécution et les
+commandes sont dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md).
+
 ## Configuration et comparabilité
 
 Le fichier est validé par `schemas/serving-config.schema.json`, le résultat par

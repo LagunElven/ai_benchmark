@@ -2,6 +2,17 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.19 — Future baseline Qwen FP8 en profil opérationnel
+
+- Ajout de C-018 avec le checkpoint officiel Qwen3.8-27B-FP8 épinglé, la suite
+  qualité `full` de 74 tâches, `reasoning_effort: medium` et prefix caching.
+- Ajout de profils serving Q8/FP8 appariés sur RTX PRO 6000 : `shared-prefix`
+  uniquement, cache activé, thinking medium et 20 répétitions. Chaque profil
+  contient 20 cas et 1 800 requêtes mesurées.
+- C-017 et C-018 sont groupés comme comparaison opérationnelle ; le checkpoint Q8
+  tiers ne permet pas d'attribuer causalement les différences à la seule quantification.
+- Les profils historiques et leurs résultats bruts restent inchangés.
+
 ## 0.25.18 — Intégrité des contextes et mesures de campagne
 
 - Les tâches CTX-01 à CTX-06 retirent des prompts les chemins de réponse et

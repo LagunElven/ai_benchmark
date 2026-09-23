@@ -31,6 +31,7 @@ class GpuPreflightTests(unittest.TestCase):
                 "C-015",
                 "C-016",
                 "C-017",
+                "C-018",
             },
         )
         self.assertEqual(
@@ -58,7 +59,17 @@ class GpuPreflightTests(unittest.TestCase):
         ]
         self.assertEqual(
             {item["id"] for item in rtx_pro_campaigns},
-            {"C-004", "C-006", "C-011", "C-013", "C-014", "C-015", "C-016", "C-017"},
+            {
+                "C-004",
+                "C-006",
+                "C-011",
+                "C-013",
+                "C-014",
+                "C-015",
+                "C-016",
+                "C-017",
+                "C-018",
+            },
         )
         self.assertTrue(
             all("Server Edition" in item["hardware_model"] for item in rtx_pro_campaigns)
@@ -123,6 +134,7 @@ class GpuPreflightTests(unittest.TestCase):
             "benchmark.qwen3.8-nvfp4.yaml",
             "benchmark.qwen3.8-bf16-shared-prefix-medium-thinking.yaml",
             "benchmark.qwen3.8-q8-w8a16-shared-prefix-medium-thinking.yaml",
+            "benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml",
         ):
             with self.subTest(filename=filename):
                 config = yaml.safe_load((self.root / filename).read_text(encoding="utf-8"))
@@ -155,10 +167,82 @@ class GpuPreflightTests(unittest.TestCase):
             item for item in plan["model"]["artifact_variants"] if item["id"] == "q8-w8a16"
         )
         self.assertEqual(campaign["comparison_type"], "operational_solution")
-        self.assertEqual(campaign["comparison_group"], "q8-operational-rtx-pro-6000")
+        self.assertEqual(campaign["comparison_group"], "medium-shared-prefix-rtx-pro-6000")
         self.assertEqual(campaign["artifact_variant"], "q8-w8a16")
         self.assertEqual(variant["quantization"], "INT8-W8A16")
         self.assertEqual(variant["revision"], "e349969d1d27552c755c992ae64a2ea56007f3e4")
+        fp8_campaign = next(item for item in plan["campaigns"] if item["id"] == "C-018")
+        self.assertEqual(fp8_campaign["comparison_group"], campaign["comparison_group"])
+        self.assertEqual(fp8_campaign["comparison_type"], "operational_solution")
+
+    def test_fp8_medium_shared_prefix_campaign_is_ready(self) -> None:
+        manifest = build_preflight_manifest(
+            config_path=self.root / "benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml",
+            serving_config_path=self.root
+            / "campaigns"
+            / "gpu"
+            / "serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml",
+            plan_path=self.root / "campaigns" / "gpu" / "plan.yaml",
+            campaign_id="C-018",
+        )
+        self.assertEqual(manifest["status"], "ready")
+        self.assertEqual(manifest["campaign"]["comparison_type"], "operational_solution")
+        self.assertEqual(manifest["campaign"]["planned_quantization"], "FP8")
+        self.assertEqual(manifest["inputs"]["visible_task_count"], 74)
+
+    def test_fp8_and_q8_shared_prefix_serving_profiles_are_aligned(self) -> None:
+        fp8_path = (
+            self.root
+            / "campaigns"
+            / "gpu"
+            / "serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml"
+        )
+        q8_path = (
+            self.root
+            / "campaigns"
+            / "gpu"
+            / "serving-qwen-rtx-pro-6000-q8-shared-prefix-medium-thinking.yaml"
+        )
+        fp8 = yaml.safe_load(fp8_path.read_text(encoding="utf-8"))
+        q8 = yaml.safe_load(q8_path.read_text(encoding="utf-8"))
+        for profile in (fp8, q8):
+            self.assertEqual(profile["matrix"]["prefix_modes"], ["shared-prefix"])
+            self.assertEqual(profile["request"]["chat_template_kwargs"]["enable_thinking"], True)
+            self.assertEqual(
+                profile["request"]["chat_template_kwargs"]["reasoning_effort"], "medium"
+            )
+            self.assertTrue(profile["serving"]["prefix_caching"])
+            self.assertIn("--enable-prefix-caching", profile["serving"]["launch_command"])
+        self.assertEqual(fp8["matrix"], q8["matrix"])
+        self.assertEqual(fp8["request"], q8["request"])
+        self.assertEqual(fp8["hardware"], q8["hardware"])
+        self.assertEqual(fp8["serving"]["engine_version"], q8["serving"]["engine_version"])
+        self.assertEqual(fp8["model_metadata"]["quantization"], "FP8")
+        self.assertEqual(q8["model_metadata"]["quantization"], "INT8-W8A16")
+
+    def test_fp8_quality_profile_matches_q8_medium_shared_prefix_settings(self) -> None:
+        fp8 = yaml.safe_load(
+            (self.root / "benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        q8 = yaml.safe_load(
+            (self.root / "benchmark.qwen3.8-q8-w8a16-shared-prefix-medium-thinking.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        for profile in (fp8, q8):
+            self.assertEqual(
+                profile["model"]["generation"]["chat_template_kwargs"],
+                {"enable_thinking": True, "reasoning_effort": "medium"},
+            )
+            self.assertTrue(profile["serving"]["prefix_caching"])
+            self.assertIn("--enable-prefix-caching", profile["serving"]["launch_command"])
+        self.assertEqual(fp8["model"]["generation"], q8["model"]["generation"])
+        self.assertEqual(fp8["hardware"], q8["hardware"])
+        self.assertEqual(fp8["serving"]["engine_version"], q8["serving"]["engine_version"])
+        self.assertEqual(fp8["model"]["quantization"], "FP8")
+        self.assertEqual(q8["model"]["quantization"], "INT8-W8A16")
 
 
 if __name__ == "__main__":

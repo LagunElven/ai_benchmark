@@ -8,6 +8,11 @@ qui cherchent le meilleur service possible sur chaque carte.
 Les campagnes contrôlées et NVFP4 du tableau ci-dessous sont planifiées et restent
 à exécuter. Les profils opérationnels C-016 et C-017 ont déjà été évalués sur la RTX
 PRO 6000 ; leurs résultats figurent dans la matrice et le compte rendu de session.
+C-018, profil qualité FP8 officiel et future base opérationnelle, a été exécuté :
+la campagne qualité est terminée avec des échecs et le serving est terminé. C-019
+prépare le même checkpoint FP8 avec le draft DFlash2 ; son plan est
+isolé dans `campaigns/gpu/plan-c019-dflash2.yaml` afin de ne pas modifier les entrées
+de C-018 pendant son exécution ni empêcher une éventuelle reprise.
 Les résultats ne doivent être ajoutés à `docs/CAMPAIGN_MATRIX.md` qu'après la
 conservation des artefacts bruts et la génération des rapports.
 
@@ -78,6 +83,8 @@ vLLM avant toute mesure de qualité ou de débit.
 | C-010 | planifiée | 1x DGX Spark / GB10 | FP8 | contrôlée matériel | qualité de référence FP8 |
 | C-011 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | NVFP4 mixed | contrôlée quantification | NVFP4 sur RTX PRO Server Edition, après smoke vLLM |
 | C-012 | exploratoire | 1x DGX Spark / GB10 | NVFP4 mixed | contrôlée quantification | NVFP4 sur GB10, après smoke vLLM |
+| C-018 | qualité terminée avec échecs / serving terminé | 1x RTX PRO 6000 Blackwell Server Edition | FP8 officiel | opérationnelle | future base qualité, thinking medium et shared-prefix, 74 tâches |
+| C-019 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; vérifier qualité, acceptance, prefix-cache hits et serving |
 
 C-003/C-004/C-009 forment la comparaison matérielle BF16 et C-005/C-006/C-010 la
 comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent
@@ -87,9 +94,115 @@ la série contrôlée et le statut exploratoire du support NVFP4.
 
 Les profils opérationnels ajoutés pour la RTX PRO 6000 sont `C-013` (BF16
 no-thinking), `C-014` (BF16 avec prefix caching), `C-015` (thinking low), `C-016`
-(thinking medium) et `C-017` (INT8/W8A16 thinking medium). Ils ne doivent pas
-être mélangés aux campagnes matérielles contrôlées sans conserver leurs
-différences de profil et leurs artefacts bruts.
+(thinking medium), `C-017` (INT8/W8A16 thinking medium) et `C-018` (FP8 officiel,
+thinking medium). C-017/C-018 partagent le même groupe opérationnel et les mêmes
+74 tâches ; le checkpoint Q8 tiers empêche toutefois de qualifier leur résultat
+de comparaison contrôlée de quantification. C-018 ne remplace pas C-006, qui garde
+la sémantique de la série FP8 contrôlée.
+
+Les profils serving associés à C-017/C-018 ne mesurent que `shared-prefix`, avec
+prefix caching activé, `enable_thinking: true` et `reasoning_effort: medium`.
+Chaque variante couvre 20 cas (4 concurrences × 5 contextes), 20 répétitions par
+cas, plus un warmup : 1 800 requêtes mesurées par variante. Les profils historiques
+et leurs résultats ne sont pas modifiés. Avant la matrice complète, faire un smoke
+de chargement et de contexte jusqu'à 200k tokens, puis conserver les logs du kernel
+FP8 effectivement sélectionné.
+
+Préflight local du profil qualité FP8 (n'exécute pas le modèle) :
+
+```powershell
+python scripts/prepare_gpu_campaign.py `
+  --campaign-id C-018 `
+  --config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml `
+  --serving-config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml `
+  --require-clean
+```
+
+Une fois le préflight prêt et le smoke serveur validé, lancer la qualité sur la
+suite `full` (74 tâches) en mode réparation, seed 42 :
+
+```powershell
+python scripts/run_quality_campaign.py `
+  --campaign-id C-018 `
+  --config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml `
+  --mode repair --suite full --seed 42
+```
+
+Le serving Q8 et FP8 se lance séparément avec le profil dédié correspondant ; la
+matrice des deux variantes est identique.
+
+### C-019 — validation DFlash2 sur la cible FP8
+
+C-019 conserve exactement la cible officielle `Qwen/Qwen3.8-27B-FP8`, son tokenizer,
+les paramètres medium/shared-prefix et vLLM 0.29.0. La seule différence opérationnelle
+est l'ajout du draft BF16 DFlash2, `incoai/Qwen3.8-27B-DFlash2`, révision
+`015e795645c74b1a0eeef3b570031fb62e769bc5`. La fiche z-lab indique que son dépôt est
+un miroir du checkpoint IncoAI, et la recette vLLM utilise le dépôt IncoAI. Le plan
+séparé de C-019 fige cette révision sans altérer le plan de C-018.
+
+Télécharger uniquement le draft (le modèle FP8 et le tokenizer Qwen sont déjà en cache) :
+
+```bash
+export HF_HOME=/workspace/models
+hf download incoai/Qwen3.8-27B-DFlash2 \
+  --revision 015e795645c74b1a0eeef3b570031fb62e769bc5 \
+  --local-dir /workspace/models/Qwen3.8-27B-DFlash2-015e795645c74b1a0eeef3b570031fb62e769bc5
+```
+
+Après la fin des campagnes qualité et serving C-018, arrêter le vLLM FP8 courant puis
+lancer le serveur DFlash2 sur le port `8001` (le tunnel existant continue d'exposer
+le port local `8000`) :
+
+```bash
+nohup env HF_HOME=/workspace/models vllm serve Qwen/Qwen3.8-27B-FP8 \
+  --revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a \
+  --tokenizer Qwen/Qwen3.8-27B \
+  --tokenizer-revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0 \
+  --served-model-name Qwen3.8-27B \
+  --tensor-parallel-size 1 --pipeline-parallel-size 1 \
+  --max-model-len 262144 --max-num-seqs 16 --reasoning-parser qwen3 \
+  --kv-cache-dtype fp8 --enable-prefix-caching \
+  --speculative-config '{"method":"dflash","model":"/workspace/models/Qwen3.8-27B-DFlash2-015e795645c74b1a0eeef3b570031fb62e769bc5","num_speculative_tokens":7}' \
+  --port 8001 \
+  > /workspace/vllm-qwen38-fp8-dflash2.log 2>&1 &
+echo $!
+```
+
+La recette vLLM demande v0.28.0 ou plus et `num_speculative_tokens=7` ; le vLLM
+0.29.0 déjà prévu convient sans installation depuis une PR/nightly. Avant les campagnes,
+valider le chargement, une requête courte, les contextes jusqu'à 200k, les appels de
+fonctions/protocole utilisés, ainsi que le taux d'acceptation DFlash2. Vérifier aussi
+que les requêtes répétées partagent effectivement leur préfixe : une
+[régression vLLM](https://github.com/vllm-project/vllm/issues/54360) a été signalée
+sur des modèles Qwen3.8 hybrides où le prefix cache restait à zéro avec la spéculation
+active. Si les hits ne progressent pas, ne pas lancer la matrice en la présentant comme
+un test shared-prefix.
+
+Préflight puis lancement qualité C-019 après validation du smoke :
+
+```powershell
+python scripts/prepare_gpu_campaign.py `
+  --campaign-id C-019 `
+  --plan campaigns/gpu/plan-c019-dflash2.yaml `
+  --config benchmark.qwen3.8-fp8-dflash2-shared-prefix-medium-thinking.yaml `
+  --serving-config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-dflash2-shared-prefix-medium-thinking.yaml `
+  --require-clean
+
+python scripts/run_quality_campaign.py `
+  --campaign-id C-019 `
+  --plan campaigns/gpu/plan-c019-dflash2.yaml `
+  --config benchmark.qwen3.8-fp8-dflash2-shared-prefix-medium-thinking.yaml `
+  --mode repair --suite full --seed 42
+
+python scripts/run_serving_benchmark.py `
+  --config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-dflash2-shared-prefix-medium-thinking.yaml
+```
+
+La qualité C-019 sert de contrôle de non-régression du même modèle cible ; la comparaison
+de performance est opérationnelle (décodage spéculatif activé). Le rapport devra inclure
+le coût mémoire du draft, les tokens acceptés par étape, les échecs éventuels et les
+observations de cache, sans attribuer au draft une différence de qualité comme s'il
+s'agissait d'un modèle cible distinct.
 
 ## Configuration contrôlée de départ
 

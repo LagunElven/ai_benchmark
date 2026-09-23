@@ -1,0 +1,43 @@
+schema_version: "1.0"
+name: enterprise-gpu-campaign-c019-dflash2
+version: "0.1.0"
+
+model:
+  name: Qwen3.8-27B
+  source_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  tokenizer_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  artifact_variants:
+    - id: fp8
+      quantization: FP8
+      dtype: FP8
+      source_repository: https://huggingface.co/Qwen/Qwen3.8-27B-FP8
+      revision: 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+      snapshot_url: https://huggingface.co/Qwen/Qwen3.8-27B-FP8/tree/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a
+
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  kv_cache_dtype: fp8
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+
+campaigns:
+  - id: C-019
+    status: exploratory
+    comparison_type: operational_solution
+    comparison_group: medium-shared-prefix-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
+    gpu_count: 1
+    artifact_variant: fp8
+    notes: >-
+      Same official Qwen FP8 target as C-018 plus DFlash2 BF16 drafter;
+      incoai/Qwen3.8-27B-DFlash2 revision 015e795645c74b1a0eeef3b570031fb62e769bc5.
+      Run the quality suite as a non-regression check and serving as an operational
+      speculative-decoding comparison. Exploratory until vLLM load, prefix-cache
+      hit and tool/protocol smokes pass. This isolated plan file preserves the
+      inputs of the C-018 baseline run.
