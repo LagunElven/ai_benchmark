@@ -47,6 +47,7 @@ python scripts/generate_context_variants.py tasks/context/CTX-01/workspace .tmp/
 python scripts/score_context.py --manifest .tmp/context-ctx01/ctx-10k.context-manifest.json --modified-file src/billing.py
 python scripts/check_catalogue.py
 python scripts/run_serving_benchmark.py --plan-only
+python scripts/run_cohort_pilot.py --benchmark-config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml --plan-only
 python scripts/prepare_gpu_campaign.py --campaign-id C-003 --config benchmark.qwen3.8-bf16.yaml --serving-config campaigns/gpu/serving-qwen.yaml
 python scripts/run_quality_campaign.py --campaign-id C-003 --plan-only
 # Lancer puis reprendre avec le même seed explicite
@@ -56,6 +57,13 @@ python scripts/run_quality_campaign.py --campaign-id C-003 --seed 43 --resume
 python -m unittest discover -s tests -v
 python -m ruff check runner serving scripts tests
 ```
+
+Le pilote de cohorte agentique exécute un lot fini de tâches réelles en boucle fermée.
+Les points de référence sont 1, 5 et 10 agents, mais `--agents` accepte toute valeur
+de 1 à la limite la plus basse entre le nombre de tâches et `serving.max_num_seqs`.
+Il complète le serving à concurrence fixe et ne contacte pas le serveur en mode
+`--plan-only`. Voir le protocole et les précautions de comparaison dans
+[`docs/SERVING.md`](docs/SERVING.md#pilote-de-cohorte-agentique).
 
 L'URL du serveur et le modèle se configurent dans `benchmark.yaml`. La clé d'API est lue
 depuis la variable dont le nom figure dans `model.api_key_env`; elle n'est jamais stockée dans
@@ -78,6 +86,7 @@ les résultats.
 - `docs/REMOTE_GPU_CHECKLIST.md` : checklist courte avant location, après connexion et avant arrêt.
 - `campaigns/gpu/plan.yaml` : plan machine-readable des campagnes GPU et configurations à figer.
 - `docs/CAMPAIGN_MATRIX.md` : résultats de qualité et de serving effectivement documentés.
+- `docs/COHORT_SESSION_2026-09-23.md` : résultats du pilote de cohorte agentique DFlash2.
 - `docs/GPU_SESSION_2026-09-22.md` : résultats et limites de la session BF16/Q8 sur RTX PRO 6000.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/TASK_REFERENCE.md` : référence synthétique par tâche, critères de réussite,

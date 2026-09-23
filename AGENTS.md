@@ -85,6 +85,10 @@ native or uses a verified equivalent-output harness.
   break inside a quoted argument, JSON value, path or other string. Keep inline JSON on
   one physical line; for long values, build them through a variable or config file and
   check the resulting argument before launch.
+- For multi-argument PowerShell commands, provide a directly copy/pasteable multiline
+  command with a trailing backtick on every continued line and no whitespace after it.
+  Do not make the user rewrap a command or substitute a long one-line version. Keep each
+  quoted argument, path and inline JSON value intact on one physical line.
 - Keep validation commands bounded by the task workspace and configured timeout; do not
   silently grant network or host access.
 - Preserve the distinction between model-visible and validator-visible files.

@@ -67,6 +67,15 @@ Le détail de la couverture et l'analyse BF16/Q8 sont consignés dans
 [`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md). Les cellules
 `cold` non exécutées en BF16 restent explicitement non testées.
 
+## Pilote de cohorte agentique
+
+Le 23 septembre 2026, 13 cohortes Qwen3.8-27B-FP8 + DFlash2 ont été exécutées sur 18 tâches,
+avec 1/4/5/6/8/10 agents. Les données brutes restent sous `results/raw/cohort/` ; la synthèse,
+les limites et les liens par campagne sont dans
+[`docs/COHORT_SESSION_2026-09-23.md`](COHORT_SESSION_2026-09-23.md). Cette session est
+exploratoire : elle ne comprend pas de cohorte FP8 sans DFlash2 appariée et ne mesure pas les
+hits du prefix cache ni l'utilisation du GPU distant.
+
 ## Paramètres des campagnes
 
 ### C-001 — Gemma 4 local baseline

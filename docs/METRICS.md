@@ -79,6 +79,25 @@ Lorsque la vérité terrain permet de définir les fichiers attendus :
 - OOM count
 - timeout count
 
+### Cohorte agentique en boucle fermée
+
+Le pilote exécute un nombre fini de tâches réelles. Chaque agent prend la tâche suivante
+après avoir terminé la précédente, validations comprises ; aucun délai de réflexion ou
+arrivée artificielle n'est ajouté. Conserver séparément :
+
+- durée totale pour terminer la cohorte (makespan) ;
+- durée par tâche p50/p95, taux de réussite et tâches réussies par heure ;
+- appels, tokens et temps total passé dans les requêtes modèle ;
+- nombre moyen et maximal de requêtes modèle simultanées, mesuré côté client ;
+- nombre maximal d'agents occupés.
+
+Le nombre d'agents ne doit pas être présenté comme le nombre de requêtes modèle actives :
+les agents ne sollicitent pas le serveur pendant les validations locales. Ce protocole mesure
+un lot fini en boucle fermée, pas la stabilité sous un flux d'arrivées ouvert et constant.
+Les résultats qualité par tâche restent visibles et ne sont pas réduits à un score de débit.
+Les métriques GPU distantes restent indisponibles si elles ne sont pas exposées par le
+serveur ; les ressources du poste runner ne sont pas utilisées comme substitut.
+
 ## 6. OCR
 
 - CER

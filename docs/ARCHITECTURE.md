@@ -38,6 +38,12 @@ de qualité afin que leurs métriques ne soient pas confondues.
 - `scripts/run_quality_campaign.py` orchestre les campagnes qualité, conserve leur
   progression et permet de reprendre seulement une campagne dont l'empreinte complète
   des entrées correspond.
+- `runner/cohort.py` réutilise les exécutions qualité pour faire travailler un groupe fini
+  d'agents sur une file de tâches FIFO ; il mesure séparément l'activité des agents et le
+  chevauchement réel des appels modèle.
+- `scripts/run_cohort_pilot.py` valide un plan de cohorte, choisit le profil modèle/serving,
+  lance un seul niveau de concurrence et persiste un résultat dédié sans modifier les
+  artefacts des anciennes campagnes.
 - `serving/client.py` appelle un endpoint OpenAI-compatible en streaming SSE et capture
   TTFT, usage, erreurs OOM/timeout et métriques serveur exposées par headers.
 - `serving/benchmark.py` construit la matrice concurrence/contexte/préfixe, exécute les
@@ -47,6 +53,11 @@ de qualité afin que leurs métriques ne soient pas confondues.
 - `serving/resources.py` échantillonne `nvidia-smi` et la mémoire hôte si disponibles ;
   les séries sont attribuées au poste runner et les données non exposées restent
   explicitement indisponibles.
+
+Le pilote de cohorte complète ces dimensions sans les fusionner : les validations qualité
+restent les résultats de chaque tâche, tandis que la durée de cohorte et le débit décrivent
+la performance applicative. Le runner ne prélève pas de métriques GPU locales ou distantes
+pour ce pilote.
 
 ## Protocole de réponse `file_changes_v1`
 

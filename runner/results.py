@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from pathlib import Path
 from typing import Any
 
 from runner.config import BenchmarkConfig, validate_document
 from runner.errors import BenchmarkError
+
+_JSONL_APPEND_LOCK = threading.Lock()
 
 
 class ResultStore:
@@ -43,8 +46,9 @@ class ResultStore:
     def _append_jsonl(self, line: str) -> None:
         self.raw_root.mkdir(parents=True, exist_ok=True)
         path = self.raw_root / "runs.jsonl"
-        descriptor = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o644)
-        try:
-            os.write(descriptor, line.encode("utf-8"))
-        finally:
-            os.close(descriptor)
+        with _JSONL_APPEND_LOCK:
+            descriptor = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o644)
+            try:
+                os.write(descriptor, line.encode("utf-8"))
+            finally:
+                os.close(descriptor)

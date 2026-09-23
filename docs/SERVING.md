@@ -146,6 +146,73 @@ ne sont pas confirmés sur vLLM 0.29.0 et cette RTX PRO, les mesures ne sont pas
 interpréter comme une comparaison shared-prefix valide. Le détail d'exécution et les
 commandes sont dans [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md).
 
+## Pilote de cohorte agentique
+
+La matrice serving ci-dessus maintient un nombre fixe de requêtes simultanées. Le pilote
+`campaigns/cohort/qwen3.8-agentic-pilot.yaml` répond à une autre question : combien de temps
+faut-il à un groupe fini d'agents pour terminer un même lot de vraies tâches, quand chaque
+agent prend la suivante dès que sa tâche et ses validations sont finies ? La concurrence des
+appels modèle varie donc naturellement ; elle est mesurée séparément de celle des agents.
+
+Le plan comprend 18 tâches en mode `repair`, combinant les sept tâches de la smoke suite avec
+des exemples supplémentaires Axon, COBOL, Delphi, ABAL, WLanguage, OCR scanné, contexte 60k
+et E2E. Chaque tâche dispose de son workspace propre et passe par les mêmes validateurs
+publics/cachés que le runner qualité. Le modèle ne reçoit jamais les tests cachés.
+
+Afficher le plan sans contacter le serveur :
+
+```powershell
+python scripts/run_cohort_pilot.py --benchmark-config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml --plan-only
+```
+
+Les valeurs `agent_counts` du plan sont les points de référence de la grille par défaut.
+`--agents` accepte également n'importe quel entier compris entre 1 et la plus petite de
+ces deux limites : le nombre de tâches du plan et `serving.max_num_seqs`. Pour ce pilote
+de 18 tâches, la configuration vLLM courante autorise donc des points intermédiaires comme
+6 ou 8 agents. `--plan-only` affiche aussi la limite maximale autorisée.
+
+Exécuter un lot à 6 agents :
+
+```powershell
+python scripts/run_cohort_pilot.py `
+    --benchmark-config benchmark.qwen3.8-fp8-dflash2-shared-prefix-medium-thinking.yaml `
+    --agents 6
+```
+
+Pour 8 agents, remplacer `6` par `8`. Les valeurs configurées dans le plan restent
+enregistrées comme points de référence ; chaque manifeste conserve séparément le nombre
+effectivement utilisé (`agent_count`).
+
+Chaque commande est une campagne indépendante. Pour des points comparables, arrêter puis
+relancer vLLM avant chaque campagne afin de repartir d'un cache de préfixe vide ; utiliser
+le même serveur, le même endpoint, et éviter toute autre charge pendant le lot. Chaque run
+persiste sous `results/raw/cohort/`, tandis que les résultats détaillés des tâches restent
+dans le stockage brut standard. En cas d'interruption, les runs déjà achevés restent
+conservés, mais la cohorte incomplète n'a pas de `campaign.json` final.
+
+La configuration déclare le prefix caching, mais ce pilote ne vérifie pas les hits du cache.
+En particulier, pour DFlash2, les hits doivent rester considérés comme inconnus tant que le
+serveur ne les expose pas explicitement.
+
+Le rapport distingue makespan, durée des tâches, réussite, tâches réussies/heure, appels et
+tokens, temps agrégé de requête, nombre moyen/maximal de requêtes modèle simultanées et nombre
+maximal d'agents occupés. Les validations locales font partie du temps tâche mais ne sont pas
+des requêtes modèle. Aucune mesure GPU n'est prélevée sur le poste local ni extrapolée vers le
+serveur ; les métriques GPU distantes non exposées restent indisponibles.
+
+Ce protocole est une cohorte finie à boucle fermée, sans délai de réflexion artificiel ni
+arrivées externes. Il mesure l'effet d'un travail qui se termine et libère ses agents ; il ne
+prédit pas à lui seul le débit sous un flux constant saturant. La session du 23 septembre a
+exécuté 13 cohortes DFlash2 aux niveaux 1/4/5/6/8/10 ; la synthèse des répétitions et de leurs
+limites est dans [`docs/COHORT_SESSION_2026-09-23.md`](COHORT_SESSION_2026-09-23.md). Les
+résultats favorisent provisoirement 5–6 agents pour cette charge, sans établir un optimum :
+la sortie et les reprises varient, les essais par cellule restent peu nombreux, et les hits
+du prefix cache comme les métriques GPU distantes ne sont pas enregistrés.
+
+Le client du runner qualité utilise une réponse non-streamée : le pilote mesure la durée
+complète de chaque requête modèle, mais ne mesure pas la TTFT. Il ne la reconstitue pas à
+partir de la latence totale.
+
 ## Configuration et comparabilité
 
 Le fichier est validé par `schemas/serving-config.schema.json`, le résultat par

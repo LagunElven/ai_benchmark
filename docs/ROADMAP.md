@@ -143,6 +143,17 @@ contient 40 cas et ses résultats bruts sont versionnés par run dans `results/r
 Les métriques matérielles et KV-cache restent explicitement indisponibles lorsque le
 serveur ou la machine ne les expose pas.
 
+Un pilote applicatif distinct complète maintenant cette matrice : 18 tâches qualité dans
+une cohorte finie. Les points de référence sont 1/5/10 agents, avec possibilité d'explorer
+tout nombre d'agents jusqu'à la limite la plus basse entre les tâches sélectionnées et
+`serving.max_num_seqs` ; la concurrence des appels modèle dépend de la boucle de réparation
+et des validations.
+
+- [x] créer l'orchestrateur de cohorte fermée, son plan et son schéma de résultat
+- [x] exécuter le pilote FP8 + DFlash2 à 1/4/5/6/8/10 agents et documenter les résultats
+- [ ] exécuter une cohorte FP8 sans DFlash2 appariée aux niveaux retenus
+- [ ] répliquer les points 5/6/8 et instrumenter cache/charge serveur avant une conclusion
+
 ## Milestone 11 — GPU campaigns
 
 Le protocole des campagnes et l'ordre de reprise sont définis dans

@@ -2,6 +2,25 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## Pilote 0.1.1 — Niveaux de concurrence exploratoires
+
+- Le CLI du pilote accepte maintenant tout nombre d'agents positif, limité par le nombre
+  de tâches sélectionnées et `serving.max_num_seqs`, au lieu de restreindre les exécutions
+  aux seuls points 1/5/10 du plan.
+- Les points de référence du plan restent 1/5/10 ; le nombre effectivement exécuté est
+  enregistré dans `campaign.agent_count`.
+- Aucun résultat brut antérieur ni aucune sémantique de tâche ne sont modifiés.
+
+## Pilote 0.1.0 — Cohorte agentique en boucle fermée
+
+- Ajout d'un protocole de charge applicative à tâches finies : chaque agent récupère la
+  prochaine tâche après la fin complète de la précédente, y compris ses validations.
+- Le plan pilote couvre 18 tâches et permet des campagnes distinctes à 1, 5 ou 10 agents.
+  Les appels modèle simultanés sont mesurés séparément du nombre d'agents.
+- Les résultats qualité restent par tâche ; le makespan, le débit et la concurrence des
+  requêtes sont rapportés dans un schéma brut séparé de serving et qualité standard.
+- Les résultats historiques et les sémantiques des campagnes passées restent inchangés.
+
 ## 0.25.19 — Future baseline Qwen FP8 en profil opérationnel
 
 - Ajout de C-018 avec le checkpoint officiel Qwen3.8-27B-FP8 épinglé, la suite
