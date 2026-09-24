@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 
 from runner.config import load_structured_file, validate_document
 from runner.context_dataset import count_tokens
+from runner.remote_gpu import RemoteGpuMonitor
 from serving.client import OpenAICompatibleServingClient, StreamMeasurement
 from serving.metrics import summarize_requests
 from serving.resources import ResourceMonitor, json_safe
@@ -267,6 +268,7 @@ class ServingBenchmark:
         self,
         client: ServingClient | None = None,
         progress: Callable[[str], None] | None = None,
+        remote_gpu_monitor: RemoteGpuMonitor | None = None,
     ) -> Path:
         data = self.config.data
         endpoint = data["endpoint"]
@@ -280,25 +282,34 @@ class ServingBenchmark:
             chat_template_kwargs=request_config.get("chat_template_kwargs"),
         )
         run_id = f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%S.%fZ')}-serving-{uuid.uuid4().hex[:8]}"
+        run_directory = self.output_dir / run_id
+        run_directory.mkdir(parents=True, exist_ok=False)
+        gpu_monitor = remote_gpu_monitor or RemoteGpuMonitor()
+        gpu_monitor.start(run_directory / "remote-gpu-samples.jsonl")
         started_at = _utc_now()
         cases: list[dict[str, Any]] = []
         specifications = case_specs(self.config)
-        for index, spec in enumerate(specifications, start=1):
-            if progress:
-                progress(f"[{index}/{len(specifications)}] {spec.case_id} started")
-            case = self._run_case(spec, model_client, tokenizer)
-            cases.append(case)
-            if progress:
-                progress(
-                    f"[{index}/{len(specifications)}] {spec.case_id} completed: "
-                    f"{case['metrics']['requests_completed']} completed, "
-                    f"{case['metrics']['requests_failed']} failed, "
-                    f"wall={case['metrics']['wall_seconds']:.1f}s"
-                )
+        try:
+            for index, spec in enumerate(specifications, start=1):
+                if progress:
+                    progress(f"[{index}/{len(specifications)}] {spec.case_id} started")
+                case = self._run_case(spec, model_client, tokenizer)
+                cases.append(case)
+                if progress:
+                    progress(
+                        f"[{index}/{len(specifications)}] {spec.case_id} completed: "
+                        f"{case['metrics']['requests_completed']} completed, "
+                        f"{case['metrics']['requests_failed']} failed, "
+                        f"wall={case['metrics']['wall_seconds']:.1f}s"
+                    )
+        except BaseException:
+            gpu_monitor.stop()
+            raise
+        remote_gpu_metrics = gpu_monitor.stop()
         ended_at = _utc_now()
         has_failures = any(case["metrics"]["requests_failed"] for case in cases)
         result = {
-            "schema_version": "1.1",
+            "schema_version": "1.2",
             "benchmark": {
                 "name": "enterprise-llm-bench-serving",
                 "version": data["version"],
@@ -327,14 +338,18 @@ class ServingBenchmark:
                 "matrix": data["matrix"],
                 "request": data["request"],
             },
+            "remote_gpu_metrics": remote_gpu_metrics,
             "cases": cases,
         }
         result = json_safe(result)
-        run_directory = self.output_dir / run_id
-        run_directory.mkdir(parents=True, exist_ok=False)
         result_path = run_directory / "campaign.json"
         schema_path = (
             Path(__file__).resolve().parents[1] / "schemas" / "serving-campaign-result.schema.json"
+        )
+        validate_document(
+            result["remote_gpu_metrics"],
+            Path(__file__).resolve().parents[1] / "schemas" / "remote-gpu-metrics.schema.json",
+            result_path,
         )
         validate_document(result, schema_path, result_path)
         result_path.write_text(

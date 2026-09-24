@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "benchmark", "run", "configuration", "cases"],
   "properties": {
-    "schema_version": {"const": "1.1"},
+    "schema_version": {"enum": ["1.1", "1.2"]},
     "benchmark": {
       "type": "object",
       "additionalProperties": false,
@@ -47,6 +47,7 @@
         "request": {"type": "object"}
       }
     },
+    "remote_gpu_metrics": {"type": "object"},
     "cases": {
       "type": "array",
       "items": {

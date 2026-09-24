@@ -34,6 +34,8 @@ de qualité afin que leurs métriques ne soient pas confondues.
   définitions de tâches réellement découvrables.
 - `runner/gpu_preflight.py` fige les configurations, les révisions de tâches et les
   empreintes des seuls fichiers model-visible avant une campagne distante.
+- `runner/remote_gpu.py` échantillonne `nvidia-smi` sur la machine d'inférence par une
+  connexion SSH séparée et écrit les observations JSONL près du résultat de campagne.
 - `runner/results.py` écrit un résultat immuable par run et un index JSONL append-only.
 - `scripts/run_quality_campaign.py` orchestre les campagnes qualité, conserve leur
   progression et permet de reprendre seulement une campagne dont l'empreinte complète
@@ -51,13 +53,13 @@ de qualité afin que leurs métriques ne soient pas confondues.
 - `serving/metrics.py` calcule les distributions p50/p95, TPOT, tok/s par utilisateur et
   débit agrégé sans réduire les dimensions à un score opaque.
 - `serving/resources.py` échantillonne `nvidia-smi` et la mémoire hôte si disponibles ;
-  les séries sont attribuées au poste runner et les données non exposées restent
-  explicitement indisponibles.
+  ces séries locales restent attribuées au poste runner. Le collecteur SSH distant est
+  facultatif et conserve une source distincte.
 
 Le pilote de cohorte complète ces dimensions sans les fusionner : les validations qualité
 restent les résultats de chaque tâche, tandis que la durée de cohorte et le débit décrivent
-la performance applicative. Le runner ne prélève pas de métriques GPU locales ou distantes
-pour ce pilote.
+la performance applicative. Les métriques GPU distantes sont échantillonnées en parallèle
+uniquement si une cible SSH est fournie ; elles ne remplacent jamais les ressources locales.
 
 ## Protocole de réponse `file_changes_v1`
 
@@ -97,8 +99,8 @@ déclarées dans `benchmark.yaml`. Les valeurs inconnues restent explicitement `
 sont ni devinées ni remplacées par des valeurs implicites.
 
 Pour une campagne distante, le runner et les tests cachés restent sur le poste de contrôle.
-La machine louée expose uniquement l'endpoint d'inférence ; `scripts/capture_gpu_environment.py`
+La machine louée expose l'endpoint d'inférence au runner ; `scripts/capture_gpu_environment.py`
 enregistre son empreinte avant le smoke et `scripts/run_quality_campaign.py` conserve l'index
-des runs qualité associés à l'identifiant de campagne. Les métriques échantillonnées par le
-runner décrivent le poste de contrôle ; les ressources du GPU distant ne sont disponibles que
-si le serveur les expose explicitement.
+des runs qualité associés à l'identifiant de campagne. Les ressources du poste runner et
+celles du GPU distant restent identifiées par des sources séparées ; le collecteur SSH
+optionnel écrit ses observations brutes près du résultat de chaque campagne.

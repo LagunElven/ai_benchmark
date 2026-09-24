@@ -8,10 +8,16 @@ des profils opérationnels qui cherchent une configuration exploitable.
 Les profils C-016 et C-017 ont été évalués sur la RTX PRO 6000. C-018 (FP8 officiel sans
 DFlash2) et C-019 (FP8 officiel avec DFlash2) ont aussi été exécutés : les deux campagnes
 qualité se sont terminées avec des échecs, et leur benchmark serving a été exécuté. Le pilote de cohorte
-a ensuite été réalisé sur la même configuration FP8 + DFlash2 que C-019. Ses résultats et
-limites figurent dans
-[`docs/COHORT_SESSION_2026-09-23.md`](COHORT_SESSION_2026-09-23.md). Les plans machine-readable
-utilisés pour C-018/C-019 sont des entrées historiques : ne pas les modifier pour refléter
+a ensuite été réalisé sur la même configuration FP8 + DFlash2 que C-019. Le premier pilote
+et ses limites figurent dans
+[docs/COHORT_SESSION_2026-09-23.md](COHORT_SESSION_2026-09-23.md). Depuis, deux séries
+opérationnelles de 18 runs chacune ont été exécutées le 24 septembre : FP8 sans DFlash2 et
+FP8 avec DFlash2, avec trois répétitions par niveau de 1/4/5/6/8/10 agents et télémétrie
+GPU distante. Leur comparaison reste exploratoire, les conditions de cache et de warmup
+n'étant pas normalisées ; la comparaison appariée est différée. Les rapports sont dans
+[docs/COHORT_SESSION_2026-09-24.md](COHORT_SESSION_2026-09-24.md) et
+[docs/COHORT_SESSION_2026-09-24-DFLASH2.md](COHORT_SESSION_2026-09-24-DFLASH2.md).
+Les plans machine-readable utilisés pour C-018/C-019 sont des entrées historiques : ne pas les modifier pour refléter
 la roadmap ou préparer une nouvelle variante. Les nouvelles configurations recevront leurs
 propres plans et profils. Les résultats bruts antérieurs restent préservés.
 
@@ -87,21 +93,22 @@ vLLM avant toute mesure de qualité ou de débit.
 
 ## Suite opérationnelle RTX PRO 6000 : moteur × poids × DFlash2
 
-La suite vise les huit cellules du croisement moteur (vLLM/SGLang), poids (FP8/NVFP4)
-et DFlash2 (désactivé/activé). C-018 et C-019 couvrent déjà vLLM + FP8 ; la matrice
-ci-dessous reprend exactement l'ordre de travail convenu. Cette comparaison est une
-matrice opérationnelle. Pour isoler l'effet d'une variable, comparer les cellules appariées
-qui ne diffèrent que par cette variable.
+La matrice couvre les huit cellules du croisement moteur (vLLM/SGLang), poids
+(FP8/NVFP4) et DFlash2 (désactivé/activé). C-018/C-019 couvrent déjà les campagnes qualité
+et serving vLLM + FP8. Les deux cohortes opérationnelles FP8 sont également terminées avec
+trois runs par niveau de concurrence et télémétrie distante. Leur comparaison appariée est
+différée. L'ordre restant commence par NVFP4 sous vLLM.
 
 | Ordre | Moteur | Poids | DFlash2 | Travaux restants |
 |---:|---|---|---|---|
-| 1 | vLLM | FP8 | non | cohorte appariée ; qualité et serving déjà exécutés en C-018 |
-| 2 | vLLM | NVFP4 | non | campagne qualité, serving, cohorte |
-| 3 | vLLM | NVFP4 | oui | campagne qualité, serving, cohorte |
-| 4 | SGLang | FP8 | non | campagne qualité, serving, cohorte |
-| 5 | SGLang | FP8 | oui | campagne qualité, serving, cohorte |
-| 6 | SGLang | NVFP4 | non | campagne qualité, serving, cohorte |
-| 7 | SGLang | NVFP4 | oui | campagne qualité, serving, cohorte |
+| 1 | vLLM | FP8 | non | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
+| 2 | vLLM | FP8 | oui | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
+| 3 | vLLM | NVFP4 | non | campagne qualité, serving, cohorte |
+| 4 | vLLM | NVFP4 | oui | campagne qualité, serving, cohorte |
+| 5 | SGLang | FP8 | non | campagne qualité, serving, cohorte |
+| 6 | SGLang | FP8 | oui | campagne qualité, serving, cohorte |
+| 7 | SGLang | NVFP4 | non | campagne qualité, serving, cohorte |
+| 8 | SGLang | NVFP4 | oui | campagne qualité, serving, cohorte |
 
 ### Garde-fous d'exécution
 
@@ -122,8 +129,9 @@ qui ne diffèrent que par cette variable.
   pas des mesures GPU du serveur distant.
 - Réaliser au moins trois cohortes par cellule de concurrence comparée. Pour chaque répétition,
   conserver la même sélection et révision de tâches, le même seed et les mêmes conditions de
-  démarrage/warmup ; noter les redémarrages et toute charge étrangère. Les résultats actuels
-  à 6 et 8 agents n'ont que deux répétitions et restent exploratoires.
+  démarrage/warmup ; noter les redémarrages et toute charge étrangère. Les séries FP8 du
+  24 septembre ont trois répétitions par niveau et restent exploratoires, car cache et warmup
+  n'étaient pas normalisés.
 - Apparier les comparaisons sur le checkpoint et sa révision, le tokenizer, les tâches et leurs
   prompts, le matériel, le raisonnement medium, les limites de contexte/sortie et le mode cache.
   Épingler une version du moteur par série SGLang ; consigner les options propres à chaque

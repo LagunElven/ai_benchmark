@@ -95,8 +95,16 @@ Le nombre d'agents ne doit pas être présenté comme le nombre de requêtes mod
 les agents ne sollicitent pas le serveur pendant les validations locales. Ce protocole mesure
 un lot fini en boucle fermée, pas la stabilité sous un flux d'arrivées ouvert et constant.
 Les résultats qualité par tâche restent visibles et ne sont pas réduits à un score de débit.
-Les métriques GPU distantes restent indisponibles si elles ne sont pas exposées par le
-serveur ; les ressources du poste runner ne sont pas utilisées comme substitut.
+Les métriques GPU distantes sont collectées par SSH lorsque les options `--remote-gpu-ssh-*`
+sont fournies au runner. Les échantillons `nvidia-smi` sont conservés dans un fichier JSONL
+associé à la campagne ; le résumé indique la cible SSH, la source et les statistiques par GPU.
+Sans cette collecte, la valeur reste indisponible : les ressources du poste runner ne sont
+jamais utilisées comme substitut.
+
+Le collecteur distant mesure l'activité GPU à l'échelle de la campagne, pas par tâche ou par
+requête. Les échantillons bruts conservent leur horodatage et leur décalage temporel pour les
+rapprocher des tâches, cas serving et requêtes enregistrés dans le résultat. Les métriques
+absentes restent `null` et une erreur SSH n'interrompt pas la campagne.
 
 ## 6. OCR
 

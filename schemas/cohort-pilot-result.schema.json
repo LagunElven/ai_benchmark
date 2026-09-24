@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "benchmark", "campaign", "model", "environment", "timing", "summary", "tasks", "model_requests"],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"enum": ["1.0", "1.1"]},
     "benchmark": {
       "type": "object",
       "additionalProperties": false,
@@ -93,9 +93,16 @@
             "python_version": {"type": "string"}
           }
         },
-        "resource_metrics_source": {"const": "not_sampled; remote GPU metrics unavailable"}
+        "resource_metrics_source": {
+          "enum": [
+            "not_sampled; remote GPU metrics unavailable",
+            "remote_nvidia_smi_over_ssh",
+            "remote_nvidia_smi_over_ssh_unavailable"
+          ]
+        }
       }
     },
+    "remote_gpu_metrics": {"type": "object"},
     "timing": {
       "type": "object",
       "additionalProperties": false,

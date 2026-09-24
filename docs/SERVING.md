@@ -62,8 +62,9 @@ Par cas, le résultat sépare :
 
 Les métriques absentes sont représentées par `null`, une liste vide ou
 `available: false`. Le runner ne déduit pas une consommation GPU et ne transforme
-pas une absence de métrique en zéro. `nvidia-smi` et `psutil` sont utilisés lorsqu'ils
-sont disponibles ; le benchmark reste exécutable sans eux.
+pas une absence de métrique en zéro. `nvidia-smi` et `psutil` échantillonnent le poste
+runner lorsqu'ils sont disponibles. Une collecte distante facultative via SSH ajoute un
+fichier `remote-gpu-samples.jsonl` près de `campaign.json` et un résumé lié au même run ID.
 
 Les percentiles utilisent une règle nearest-rank déterministe. Chaque mesure
 indique son nombre d'échantillons et marque le p95 comme exploratoire sous 100
@@ -92,11 +93,11 @@ cache plutôt que la longueur variable du raisonnement. Le détail des résultat
 et de la comparaison se trouve dans
 [`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md).
 
-Les métriques de ressource capturées par le runner sont celles de la machine
-qui exécute le benchmark. Pour ces campagnes distantes, elles décrivent donc
-le poste local lorsque `nvidia-smi` est lancé côté runner, pas le GPU distant.
-Les métriques `server_metrics` et KV-cache distantes n'étaient pas exposées par
-l'endpoint ; elles restent absentes plutôt que d'être déduites.
+Les métriques de ressources des cas serving capturées par `serving/resources.py` décrivent
+le poste qui exécute le benchmark. La collecte GPU distante optionnelle est conservée
+séparément au niveau de la campagne. Les métriques `server_metrics` et KV-cache distantes
+restent absentes lorsque l'endpoint ne les expose pas ; elles ne sont pas déduites des
+échantillons `nvidia-smi`.
 
 Sur l'instance utilisée le portail Caddy occupe le port distant `8000` ; vLLM
 Q8 écoute sur `8001` et le tunnel SSH mappe le port local `8000` vers ce port.
@@ -131,6 +132,29 @@ Ces profils futurs ne changent pas les résultats du 22 septembre : Q8 historiqu
 reste mesuré avec deux modes de préfixe, trois répétitions et thinking désactivé.
 Le profil Q8 dédié permettra une comparaison serving appariée au FP8 sous les
 nouveaux réglages.
+
+## Profil NVFP4 — shared-prefix uniquement
+
+`campaigns/gpu/serving-qwen-nvfp4-shared-prefix.yaml` reprend le checkpoint,
+le tokenizer, le serveur et les paliers du profil NVFP4 complet, mais ne mesure
+que `shared-prefix`. Il conserve les concurrences 1/2/5/10, les contextes
+8k/32k/64k/100k/200k et 20 répétitions : 20 cas, soit 1 800 requêtes mesurées,
+plus les warmups. Cela retire les cas `cold` sans changer les autres paramètres.
+
+```powershell
+python scripts/run_serving_benchmark.py `
+  --config campaigns/gpu/serving-qwen-nvfp4-shared-prefix.yaml
+```
+
+Ajouter les options `--remote-gpu-ssh-*` documentées dans le runbook pour
+joindre la télémétrie de la carte distante au run.
+
+La première campagne de ce profil est terminée : 20/20 cas et 1 800/1 800 requêtes
+réussies en 18 min 54,6 s. La RTX PRO 6000 Blackwell distante a atteint 90 987 MiB
+utilisés, 100 % d'utilisation GPU en pointe et 554 W en pointe. Le serveur n'a pas
+exposé de compteurs de hits KV ; les bénéfices du mode partagé restent donc non mesurés.
+Le détail, y compris les latences par concurrence et contexte, est dans le
+[rapport NVFP4 du 24 septembre](GPU_SERVING_NVFP4_2026-09-24.md).
 
 ## Profil préparé DFlash2 — cible FP8, shared-prefix
 
@@ -174,10 +198,17 @@ de 18 tâches, la configuration vLLM courante autorise donc des points interméd
 
 Exécuter un lot à 6 agents :
 
+Configurer d'abord `$gpuSshHost`, `$gpuSshUser`, `$gpuSshPort` et `$gpuSshKey`
+comme dans le [runbook GPU](GPU_REMOTE_RUNBOOK.md#collecte-distante-des-métriques-gpu-pendant-un-benchmark).
+
 ```powershell
 python scripts/run_cohort_pilot.py `
     --benchmark-config benchmark.qwen3.8-fp8-dflash2-shared-prefix-medium-thinking.yaml `
-    --agents 6
+    --agents 6 `
+    --remote-gpu-ssh-host $gpuSshHost `
+    --remote-gpu-ssh-user $gpuSshUser `
+    --remote-gpu-ssh-port $gpuSshPort `
+    --remote-gpu-ssh-key "$gpuSshKey"
 ```
 
 Pour 8 agents, remplacer `6` par `8`. Les valeurs configurées dans le plan restent
@@ -199,8 +230,8 @@ serveur ne les expose pas explicitement.
 Le rapport distingue makespan, durée des tâches, réussite, tâches réussies/heure, appels et
 tokens, temps agrégé de requête, nombre moyen/maximal de requêtes modèle simultanées et nombre
 maximal d'agents occupés. Les validations locales font partie du temps tâche mais ne sont pas
-des requêtes modèle. Aucune mesure GPU n'est prélevée sur le poste local ni extrapolée vers le
-serveur ; les métriques GPU distantes non exposées restent indisponibles.
+des requêtes modèle. Les métriques GPU distantes, lorsqu'elles sont collectées par SSH, restent
+séparées des validations et des mesures du poste runner.
 
 Ce protocole est une cohorte finie à boucle fermée, sans délai de réflexion artificiel ni
 arrivées externes. Il mesure l'effet d'un travail qui se termine et libère ses agents ; il ne

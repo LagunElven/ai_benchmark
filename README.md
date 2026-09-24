@@ -65,6 +65,11 @@ Il complète le serving à concurrence fixe et ne contacte pas le serveur en mod
 `--plan-only`. Voir le protocole et les précautions de comparaison dans
 [`docs/SERVING.md`](docs/SERVING.md#pilote-de-cohorte-agentique).
 
+Les trois runners acceptent aussi `--remote-gpu-ssh-host`, `--remote-gpu-ssh-user`,
+`--remote-gpu-ssh-port` et `--remote-gpu-ssh-key` pour joindre les métriques GPU distantes
+aux résultats. Voir les exemples PowerShell dans
+[`docs/GPU_REMOTE_RUNBOOK.md`](docs/GPU_REMOTE_RUNBOOK.md#collecte-distante-des-métriques-gpu-pendant-un-benchmark).
+
 L'URL du serveur et le modèle se configurent dans `benchmark.yaml`. La clé d'API est lue
 depuis la variable dont le nom figure dans `model.api_key_env`; elle n'est jamais stockée dans
 les résultats.
@@ -87,6 +92,10 @@ les résultats.
 - `campaigns/gpu/plan.yaml` : plan machine-readable des campagnes GPU et configurations à figer.
 - `docs/CAMPAIGN_MATRIX.md` : résultats de qualité et de serving effectivement documentés.
 - `docs/COHORT_SESSION_2026-09-23.md` : résultats du pilote de cohorte agentique DFlash2.
+- `docs/COHORT_SESSION_2026-09-24.md` : premières cohortes FP8 sans DFlash2 avec télémétrie GPU distante.
+- `docs/COHORT_SESSION_2026-09-24-DFLASH2.md` : cohortes FP8 avec DFlash2 sur le même serveur.
+- `docs/GPU_FAILURE_ANALYSIS_2026-09-24.md` : analyse des échecs C-018/C-019 et DOC-03.
+- `docs/GPU_SERVING_NVFP4_2026-09-24.md` : résultats serving NVFP4 et télémétrie GPU distante.
 - `docs/GPU_SESSION_2026-09-22.md` : résultats et limites de la session BF16/Q8 sur RTX PRO 6000.
 - `docs/CATALOGUE.md` : inventaire des 74 tâches cibles et état d'implémentation.
 - `docs/TASK_REFERENCE.md` : référence synthétique par tâche, critères de réussite,

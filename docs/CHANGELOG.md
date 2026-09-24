@@ -2,6 +2,21 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 2026-09-24 — Collecte des métriques GPU distantes
+
+- Les runners qualité, cohorte et serving acceptent les paramètres SSH de l'hôte,
+  de l'utilisateur, du port et, facultativement, de la clé privée. La collecte
+  `nvidia-smi` est activée uniquement lorsque ces options sont fournies.
+- Les campagnes conservent les échantillons JSONL et un résumé de métriques
+  distantes par run. La télémétrie distante reste distincte des mesures locales
+  du runner et n'est pas attribuée aux tâches ou requêtes individuelles. Sur une
+  reprise qualité, chaque invocation garde ses propres fichiers et références.
+- Les schémas de résultat passent respectivement en 1.1 (cohorte), 1.2
+  (qualité) et 1.2 (serving). Les versions antérieures et leurs résultats bruts
+  restent valides et inchangés. Pour comparer les mesures de serving, activer
+  cette collecte de façon cohérente, car l'échantillonnage ajoute une connexion
+  et une charge légère sur l'hôte distant.
+
 ## Pilote 0.1.1 — Niveaux de concurrence exploratoires
 
 - Le CLI du pilote accepte maintenant tout nombre d'agents positif, limité par le nombre
@@ -20,6 +35,13 @@ Ce fichier recense uniquement les changements susceptibles d'affecter la compara
 - Les résultats qualité restent par tâche ; le makespan, le débit et la concurrence des
   requêtes sont rapportés dans un schéma brut séparé de serving et qualité standard.
 - Les résultats historiques et les sémantiques des campagnes passées restent inchangés.
+
+## 0.25.20 — Profil serving NVFP4 sans cas cold
+
+- Ajout d'un profil serving NVFP4 `shared-prefix` uniquement, avec les mêmes
+  concurrences, paliers de contexte et 20 répétitions que la matrice complète.
+- Le profil réduit la matrice de 40 à 20 cas et de 3 600 à 1 800 requêtes
+  mesurées ; le profil NVFP4 complet reste disponible sans modification.
 
 ## 0.25.19 — Future baseline Qwen FP8 en profil opérationnel
 

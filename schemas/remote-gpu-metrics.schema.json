@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/enterprise-llm-bench/remote-gpu-metrics.schema.json",
+  "title": "Remote GPU metric collection summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "source",
+    "target",
+    "sample_interval_seconds",
+    "started_at",
+    "ended_at",
+    "sample_count",
+    "samples_file",
+    "devices",
+    "error"
+  ],
+  "properties": {
+    "status": {"enum": ["not_requested", "connecting", "available", "partial", "unavailable"]},
+    "source": {"enum": ["not_requested", "remote_nvidia_smi_over_ssh"]},
+    "target": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["host", "user", "port"],
+      "properties": {
+        "host": {"type": "string", "minLength": 1},
+        "user": {"type": "string", "minLength": 1},
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535}
+      }
+    },
+    "sample_interval_seconds": {"type": ["integer", "null"], "minimum": 1, "maximum": 60},
+    "started_at": {"type": ["string", "null"], "format": "date-time"},
+    "ended_at": {"type": ["string", "null"], "format": "date-time"},
+    "sample_count": {"type": "integer", "minimum": 0},
+    "samples_file": {"type": ["string", "null"]},
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "index",
+          "name",
+          "uuid",
+          "driver_version",
+          "sample_count",
+          "memory_total_mb",
+          "peak_memory_used_mb",
+          "average_utilization_percent",
+          "peak_utilization_percent",
+          "peak_temperature_c",
+          "peak_power_draw_w",
+          "peak_power_limit_w"
+        ],
+        "properties": {
+          "index": {"type": ["integer", "null"], "minimum": 0},
+          "name": {"type": ["string", "null"]},
+          "uuid": {"type": ["string", "null"]},
+          "driver_version": {"type": ["string", "null"]},
+          "sample_count": {"type": "integer", "minimum": 1},
+          "memory_total_mb": {"type": ["number", "null"], "minimum": 0},
+          "peak_memory_used_mb": {"type": ["number", "null"], "minimum": 0},
+          "average_utilization_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+          "peak_utilization_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+          "peak_temperature_c": {"type": ["number", "null"], "minimum": 0},
+          "peak_power_draw_w": {"type": ["number", "null"], "minimum": 0},
+          "peak_power_limit_w": {"type": ["number", "null"], "minimum": 0}
+        }
+      }
+    },
+    "error": {"type": ["string", "null"]}
+  }
+}

@@ -258,6 +258,76 @@ python scripts/check_openai_endpoint.py `
 Le smoke doit réussir avant tout test long. Un échec de `/models`, de template,
 de thinking ou de contexte est un échec de préflight, pas un résultat qualité.
 
+## Collecte distante des métriques GPU pendant un benchmark
+
+Les runners qualité, cohorte et serving peuvent échantillonner le GPU distant
+pendant leur exécution. La collecte utilise une connexion SSH indépendante du
+tunnel API : elle n'a pas besoin de `-L`. Le poste local doit avoir OpenSSH,
+et l'empreinte de l'hôte doit déjà être acceptée dans `known_hosts`, car la
+connexion est non interactive. `nvidia-smi` doit être disponible sur l'hôte GPU.
+
+Définir une fois les paramètres de l'instance courante dans PowerShell. Ces
+valeurs peuvent changer à chaque location :
+
+```powershell
+$gpuSshHost = "<ip-ou-nom-d-hote>"
+$gpuSshUser = "<utilisateur-ssh>"
+$gpuSshPort = 22
+$gpuSshKey = "C:\chemin\vers\cle-privee"
+```
+
+Puis passer les mêmes options à chacun des runners :
+
+```powershell
+python scripts/run_quality_campaign.py `
+  --campaign-id C-018 `
+  --config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml `
+  --remote-gpu-ssh-host $gpuSshHost `
+  --remote-gpu-ssh-user $gpuSshUser `
+  --remote-gpu-ssh-port $gpuSshPort `
+  --remote-gpu-ssh-key "$gpuSshKey"
+```
+
+```powershell
+python scripts/run_cohort_pilot.py `
+  --benchmark-config benchmark.qwen3.8-fp8-shared-prefix-medium-thinking.yaml `
+  --agents 5 `
+  --remote-gpu-ssh-host $gpuSshHost `
+  --remote-gpu-ssh-user $gpuSshUser `
+  --remote-gpu-ssh-port $gpuSshPort `
+  --remote-gpu-ssh-key "$gpuSshKey"
+```
+
+```powershell
+python scripts/run_serving_benchmark.py `
+  --config campaigns/gpu/serving-qwen-rtx-pro-6000-fp8-shared-prefix-medium-thinking.yaml `
+  --remote-gpu-ssh-host $gpuSshHost `
+  --remote-gpu-ssh-user $gpuSshUser `
+  --remote-gpu-ssh-port $gpuSshPort `
+  --remote-gpu-ssh-key "$gpuSshKey"
+```
+
+La clé est facultative si OpenSSH trouve déjà l'identité via son agent ou sa
+configuration. L'intervalle d'échantillonnage vaut une seconde par défaut et
+peut être changé avec `--remote-gpu-sample-interval-seconds`. Les valeurs
+`host`, `user` et `port` sont enregistrées pour identifier l'instance ; le
+chemin et le contenu de la clé ne le sont pas. Chaque dossier de résultat
+contient `remote-gpu-samples.jsonl` et un résumé lié au même identifiant de run.
+Le JSONL garde les échantillons horodatés ; le résumé fournit les informations
+GPU et les pics observés. Ces mesures couvrent l'invocation du runner, pas
+chaque tâche ou requête séparément. Après une reprise qualité avec `--resume`,
+le nouveau sidecar couvre la reprise ; l'artefact précédent et ses échantillons
+restent conservés et référencés par `campaign.resumed_from`.
+
+Sans ces options, aucune connexion SSH n'est ouverte. Si SSH ou `nvidia-smi`
+échoue, le benchmark continue et le résultat marque les mesures distantes comme
+indisponibles avec le motif d'erreur. Les snapshots de progression peuvent
+indiquer `connecting` avant le premier échantillon. Pour comparer les mesures
+de serving, garder la collecte activée de façon cohérente entre les runs ; le
+runner conserve séparément ses mesures de ressources locales.
+
+Le tunnel API reste celui établi séparément, par exemple avec `-L 8000:127.0.0.1:8001`.
+
 ## Ordre pendant la location
 
 Pour chaque campagne :

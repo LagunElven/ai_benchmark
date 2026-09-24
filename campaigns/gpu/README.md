@@ -28,6 +28,7 @@ constituent pas encore des configurations prêtes à exécuter :
 - `serving-qwen-rtx-pro-6000-full.yaml`
 - `serving-qwen-fp8.yaml`
 - `serving-qwen-nvfp4.yaml`
+- `serving-qwen-nvfp4-shared-prefix.yaml`
 
 Copier le template choisi vers un fichier associé à la campagne. Le préflight
 local contrôlera ensuite la révision, la quantification, le moteur et les autres

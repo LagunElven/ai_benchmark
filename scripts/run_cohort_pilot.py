@@ -30,6 +30,11 @@ from runner.config import (  # noqa: E402
 )
 from runner.discovery import TaskDefinition, discover_tasks  # noqa: E402
 from runner.errors import ConfigurationError  # noqa: E402
+from runner.remote_gpu import (  # noqa: E402
+    RemoteGpuMonitor,
+    add_remote_gpu_arguments,
+    remote_gpu_monitor_from_options,
+)
 
 DEFAULT_PLAN = REPOSITORY_ROOT / "campaigns" / "cohort" / "qwen3.8-agentic-pilot.yaml"
 
@@ -211,16 +216,19 @@ def _campaign_document(
     result: CohortRun,
     git_commit: str | None,
     working_tree_dirty: bool | None,
+    campaign_id: str | None = None,
+    remote_gpu_metrics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    campaign_id = (
+    campaign_id = campaign_id or (
         f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%S.%fZ')}-cohort-"
         f"a{agents}-{uuid.uuid4().hex[:8]}"
     )
+    remote_gpu_metrics = remote_gpu_metrics or RemoteGpuMonitor().summary()
     summary = _summary(result)
     config_data = config.data
     errors = summary["tasks_failed"] > 0
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "benchmark": {
             "name": config_data["benchmark"]["name"],
             "version": config_data["benchmark"]["version"],
@@ -278,8 +286,17 @@ def _campaign_document(
                 "kv_cache_dtype": config_data["serving"].get("kv_cache_dtype"),
             },
             "runner": {"platform": platform.platform(), "python_version": sys.version.split()[0]},
-            "resource_metrics_source": "not_sampled; remote GPU metrics unavailable",
+            "resource_metrics_source": (
+                "remote_nvidia_smi_over_ssh"
+                if remote_gpu_metrics["status"] in {"available", "partial"}
+                else (
+                    "remote_nvidia_smi_over_ssh_unavailable"
+                    if remote_gpu_metrics["target"] is not None
+                    else "not_sampled; remote GPU metrics unavailable"
+                )
+            ),
         },
+        "remote_gpu_metrics": remote_gpu_metrics,
         "timing": {
             "started_at": started_at,
             "ended_at": ended_at,
@@ -295,8 +312,13 @@ def _persist_campaign(config: BenchmarkConfig, campaign: dict[str, Any]) -> Path
     raw_root = config.repository_path("results") / "raw"
     campaign_root = raw_root / "cohort"
     run_directory = campaign_root / campaign["campaign"]["id"]
-    run_directory.mkdir(parents=True, exist_ok=False)
+    run_directory.mkdir(parents=True, exist_ok=True)
     result_path = run_directory / "campaign.json"
+    validate_document(
+        campaign["remote_gpu_metrics"],
+        config.schema_dir / "remote-gpu-metrics.schema.json",
+        result_path,
+    )
     validate_document(campaign, config.schema_dir / "cohort-pilot-result.schema.json", result_path)
     serialized = json.dumps(campaign, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     with result_path.open("x", encoding="utf-8", newline="") as stream:
@@ -322,6 +344,7 @@ def main(argv: list[str] | None = None) -> int:
         help="number of cohort agents (1..min(task count, serving.max_num_seqs))",
     )
     parser.add_argument("--plan-only", action="store_true")
+    add_remote_gpu_arguments(parser)
     options = parser.parse_args(argv)
 
     try:
@@ -373,6 +396,14 @@ def main(argv: list[str] | None = None) -> int:
     except ConfigurationError as exc:
         parser.error(str(exc))
 
+    remote_gpu_monitor = remote_gpu_monitor_from_options(parser, options)
+    campaign_id = (
+        f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%S.%fZ')}-cohort-"
+        f"a{options.agents}-{uuid.uuid4().hex[:8]}"
+    )
+    run_directory = config.repository_path("results") / "raw" / "cohort" / campaign_id
+    run_directory.mkdir(parents=True, exist_ok=False)
+    remote_gpu_monitor.start(run_directory / "remote-gpu-samples.jsonl")
     started_at = _utc_now()
     started = time.monotonic()
     effective_data = copy.deepcopy(config.data)
@@ -409,6 +440,8 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         print("Cohort interrupted; completed task runs remain in results/raw/.", file=sys.stderr)
         return 130
+    finally:
+        remote_gpu_metrics = remote_gpu_monitor.stop()
     ended_at = _utc_now()
     git_commit, working_tree_dirty = _git_state(config.root)
     campaign = _campaign_document(
@@ -418,11 +451,13 @@ def main(argv: list[str] | None = None) -> int:
         benchmark_config_path=benchmark_config_path,
         tasks=tasks,
         agents=options.agents,
+        campaign_id=campaign_id,
         started_at=started_at,
         ended_at=ended_at,
         result=result,
         git_commit=git_commit,
         working_tree_dirty=working_tree_dirty,
+        remote_gpu_metrics=remote_gpu_metrics,
     )
     result_path = _persist_campaign(config, campaign)
     print(

@@ -62,6 +62,7 @@ BF16 Qwen.
 | BF16 smoke | 12 cas, concurrence 1/5, contextes 8k/32k/64k, `cold` et `shared-prefix` | Campagne de contrôle partielle |
 | BF16 complet | 20 cas, toutes les concurrences et contextes, `shared-prefix` | Terminée |
 | Q8 complet | 40 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k, `cold` et `shared-prefix` | 540/540 requêtes réussies |
+| NVFP4 shared-prefix | 20 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k | 1 800/1 800 requêtes réussies ; [rapport](GPU_SERVING_NVFP4_2026-09-24.md) |
 
 Le détail de la couverture et l'analyse BF16/Q8 sont consignés dans
 [`docs/GPU_SESSION_2026-09-22.md`](GPU_SESSION_2026-09-22.md). Les cellules
@@ -75,6 +76,40 @@ les limites et les liens par campagne sont dans
 [`docs/COHORT_SESSION_2026-09-23.md`](COHORT_SESSION_2026-09-23.md). Cette session est
 exploratoire : elle ne comprend pas de cohorte FP8 sans DFlash2 appariée et ne mesure pas les
 hits du prefix cache ni l'utilisation du GPU distant.
+
+Le 24 septembre, 18 runs FP8 sans DFlash2 ont été retenus, trois par niveau
+d'agents (1/4/5/6/8/10). Ils ont tous enregistré la télémétrie du même GPU UUID
+et du pilote distant 595.71.05. Les réussites cumulées sont : 54/54 à 1 agent,
+52/54 à 4 agents, 54/54 à 5 agents, 52/54 à 6 agents, puis 54/54 à 8 et 10
+agents. Les quatre échecs concernent `DOC-03`. Un run initial supplémentaire à 5
+agents a réussi 17/18 tâches, mais son sampler SSH s'est terminé avec le statut
+255 ; il est conservé hors de la série télémétrée, et sa reprise réussie est
+incluse parmi les trois runs retenus. Tous les artefacts déclarent le pilote
+610.43.02 et CUDA 13.3 ; les télémétries disponibles rapportent le pilote distant
+595.71.05. Sur ce même GPU UUID, trois cohortes FP8 + DFlash2 à 1 agent ont
+réussi 18/18 tâches en 265,37 s, 251,55 s et 251,71 s ; à 4 agents, trois runs
+ont donné 18/18 en 111,79 s, 17/18 en 68,59 s et 18/18 en 111,84 s. Leurs détails
+et la comparaison exploratoire sont dans
+[`docs/COHORT_SESSION_2026-09-24-DFLASH2.md`](COHORT_SESSION_2026-09-24-DFLASH2.md).
+À 5 agents, trois runs DFlash2 ont réussi 17/18, 17/18 et 18/18 tâches en
+110,03 s, 49,96 s et 109,75 s.
+À 6 agents, les deux premiers runs DFlash2 ont réussi 17/18 tâches chacun, en
+94,31 s et 109,87 s ; le troisième a réussi 18/18 en 86,98 s.
+À 8 agents, trois runs DFlash2 ont réussi 18/18, 18/18 et 17/18 tâches, en
+67,19 s, 104,81 s et 64,24 s.
+À 10 agents, les trois runs DFlash2 ont tous réussi 17/18 tâches, en 47,67 s,
+37,15 s et 83,31 s ; les trois échecs concernent `DOC-03`. La série DFlash2
+compte 18 runs, trois par niveau, avec 315/324 tâches réussies et une
+télémétrie GPU disponible pour chaque run ; les neuf échecs concernent
+`DOC-03`.
+La série sans DFlash2 fournit trois observations matérielles par niveau, mais
+les conditions de prefix cache/warmup ne sont pas normalisées et la comparaison
+complète avec DFlash2 reste à établir. Les résultats, les échantillons bruts et
+les limites de comparaison sont dans
+[`docs/COHORT_SESSION_2026-09-24.md`](COHORT_SESSION_2026-09-24.md).
+
+L'analyse des défaillances qualité de C-018/C-019 et de DOC-03 est consignée dans
+le [rapport d'analyse GPU du 24 septembre](GPU_FAILURE_ANALYSIS_2026-09-24.md).
 
 ## Paramètres des campagnes
 

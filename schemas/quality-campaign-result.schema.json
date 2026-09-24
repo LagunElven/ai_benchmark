@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "type", "campaign", "started_at", "ended_at", "status", "runs", "summary"],
   "properties": {
-    "schema_version": {"const": "1.1"},
+    "schema_version": {"enum": ["1.1", "1.2"]},
     "type": {"const": "quality_campaign_result"},
     "campaign": {
       "type": "object",
@@ -43,6 +43,7 @@
     },
     "started_at": {"type": "string", "format": "date-time"},
     "ended_at": {"type": "string", "format": "date-time"},
+    "remote_gpu_metrics": {"type": "object"},
     "status": {
       "enum": [
         "running",

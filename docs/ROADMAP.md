@@ -151,10 +151,20 @@ et des validations.
 
 - [x] créer l'orchestrateur de cohorte fermée, son plan et son schéma de résultat
 - [x] exécuter le pilote FP8 + DFlash2 à 1/4/5/6/8/10 agents et documenter les résultats
-- [ ] exécuter une cohorte vLLM FP8 sans DFlash2 appariée à la référence FP8 + DFlash2,
-  avec au moins trois répétitions par niveau de concurrence retenu
-- [ ] porter à au moins trois répétitions les cellules DFlash2 retenues (notamment 6 et 8 agents)
-  et relever l'état de cache/warmup ainsi que la charge serveur distante
+- [x] exécuter et documenter trois runs FP8 sans DFlash2 avec télémétrie pour chacun
+  des niveaux 1/4/5/6/8/10 agents (18 runs retenus ; 320/324 tâches réussies ; le
+  run initial à 5 agents sans télémétrie reste archivé à part)
+- [ ] réaliser la comparaison appariée FP8 sans DFlash2 / FP8 + DFlash2 sur la même
+  instance, avec état de prefix cache et warmup contrôlés ou documentés, charge
+  serveur distante relevée et écart entre pilote déclaré et pilote distant résolu
+- [x] réaliser et documenter trois répétitions FP8 + DFlash2 avec télémétrie GPU
+  pour chaque niveau de 1/4/5/6/8/10 agents sur le même serveur (18 runs ;
+  315/324 tâches réussies ; les neuf échecs concernent `DOC-03`). Détails et
+  limites de comparaison dans `docs/COHORT_SESSION_2026-09-24-DFLASH2.md`.
+- [x] analyser les échecs récurrents de DOC-03 dans les deux séries de cohortes FP8 ;
+  voir [le rapport d'analyse](GPU_FAILURE_ANALYSIS_2026-09-24.md)
+- [ ] clarifier les formats de date acceptés par DOC-03 ; versionner toute modification
+  de prompt, de données ou de tests avant de réutiliser cette tâche comme référence
 
 ## Milestone 11 — GPU campaigns
 
@@ -175,22 +185,27 @@ RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
 - [ ] playbook reproductible DGX Spark / GB10 spécifique au moteur retenu
 - [x] exécuter C-018 : Qwen FP8 officiel, suite qualité full (terminée avec
   échecs) et serving shared-prefix en thinking medium
-- [ ] analyser les échecs qualité de C-018 avant d'en faire une base de référence
+- [x] analyser les échecs qualité de C-018/C-019 avant d'en faire une base de référence ;
+  voir [le rapport d'analyse](GPU_FAILURE_ANALYSIS_2026-09-24.md)
 - [x] exécuter C-019 : cible FP8 + draft DFlash2, qualité terminée avec échecs,
   serving exécuté et cohorte agentique explorée
 - [ ] réaliser la matrice opérationnelle RTX PRO 6000 ci-dessous ; C-018/C-019
   restent les cellules vLLM/FP8 déjà mesurées, et les plans ayant servi à ces runs
   sont conservés comme entrées historiques immuables
 
-Ordre de reprise convenu pour compléter les comparaisons :
+Ordre de reprise opérationnelle (la comparaison appariée FP8 reste différée) :
 
-1. vLLM + FP8 sans DFlash2 : cohorte appariée (campagne qualité et serving déjà exécutés).
-2. vLLM + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
-3. vLLM + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
-4. SGLang + FP8 sans DFlash2 : campagne qualité, serving et cohorte.
-5. SGLang + FP8 avec DFlash2 : campagne qualité, serving et cohorte.
-6. SGLang + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
-7. SGLang + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+Le serving vLLM NVFP4 sans DFlash2 a été exécuté sur la RTX PRO 6000 en
+`shared-prefix` uniquement ; les 20 cas et 1 800 requêtes ont réussi. Voir le
+[rapport serving NVFP4](GPU_SERVING_NVFP4_2026-09-24.md). La qualité et la cohorte
+de cette cellule restent à exécuter.
+
+1. vLLM + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
+2. vLLM + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+3. SGLang + FP8 sans DFlash2 : campagne qualité, serving et cohorte.
+4. SGLang + FP8 avec DFlash2 : campagne qualité, serving et cohorte.
+5. SGLang + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
+6. SGLang + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
 
 Garde-fous de cette matrice : smoke SGLang avant toute campagne complète (API,
 raisonnement medium, appels d'outils/protocole, contexte, cache et acceptance DFlash2 si

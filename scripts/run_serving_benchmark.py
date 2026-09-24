@@ -12,6 +12,10 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from serving.benchmark import ServingBenchmark, load_serving_config  # noqa: E402
+from runner.remote_gpu import (  # noqa: E402
+    add_remote_gpu_arguments,
+    remote_gpu_monitor_from_options,
+)
 
 
 def main(arguments: list[str] | None = None) -> int:
@@ -25,13 +29,18 @@ def main(arguments: list[str] | None = None) -> int:
     parser.add_argument(
         "--plan-only", action="store_true", help="Print cases without contacting the endpoint"
     )
+    add_remote_gpu_arguments(parser)
     options = parser.parse_args(arguments)
     config = load_serving_config(options.config)
     benchmark = ServingBenchmark(config, options.output_dir)
     if options.plan_only:
         print(json.dumps(benchmark.plan(), ensure_ascii=False, indent=2))
         return 0
-    result = benchmark.run(progress=lambda message: print(message, flush=True))
+    remote_gpu_monitor = remote_gpu_monitor_from_options(parser, options)
+    result = benchmark.run(
+        progress=lambda message: print(message, flush=True),
+        remote_gpu_monitor=remote_gpu_monitor,
+    )
     print(result)
     return 0
 

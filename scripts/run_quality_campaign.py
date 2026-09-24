@@ -21,6 +21,11 @@ from runner.config import load_benchmark_config, validate_document  # noqa: E402
 from runner.discovery import discover_tasks, filter_tasks  # noqa: E402
 from runner.execution import run_one_shot, run_repair  # noqa: E402
 from runner.gpu_preflight import load_gpu_plan  # noqa: E402
+from runner.remote_gpu import (  # noqa: E402
+    RemoteGpuMonitor,
+    add_remote_gpu_arguments,
+    remote_gpu_monitor_from_options,
+)
 
 RESUMABLE_STATUSES = {"running", "interrupted", "stopped"}
 PARTIAL_RESULT_STATUSES = RESUMABLE_STATUSES | {"completed_with_failures", "failed"}
@@ -136,6 +141,11 @@ def _write_json_atomic(path: Path, value: dict[str, Any]) -> None:
 
 def _write_campaign_snapshot(root: Path, path: Path, result: dict[str, Any]) -> None:
     schema = root / "schemas" / "quality-campaign-result.schema.json"
+    validate_document(
+        result.get("remote_gpu_metrics", RemoteGpuMonitor().summary()),
+        root / "schemas" / "remote-gpu-metrics.schema.json",
+        path,
+    )
     validate_document(result, schema, path)
     _write_json_atomic(path, result)
 
@@ -444,6 +454,7 @@ def _campaign_result(
     status: str,
     runs: list[dict[str, Any]],
     tasks_total: int,
+    remote_gpu_metrics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     tasks_passed = sum(run["validation_outcome"] == "passed" for run in runs)
     tasks_failed = len(runs) - tasks_passed
@@ -463,11 +474,12 @@ def _campaign_result(
     )
     tasks_with_errors = sum(bool(run.get("error_types")) or bool(run.get("error")) for run in runs)
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "type": "quality_campaign_result",
         "campaign": metadata,
         "started_at": started_at,
         "ended_at": ended_at,
+        "remote_gpu_metrics": remote_gpu_metrics or RemoteGpuMonitor().summary(),
         "status": status,
         "runs": runs,
         "summary": {
@@ -561,6 +573,7 @@ def main(arguments: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, help="override the configured generation seed")
     parser.add_argument("--plan-only", action="store_true")
     parser.add_argument("--stop-on-error", action="store_true")
+    add_remote_gpu_arguments(parser)
     parser.add_argument(
         "--resume",
         action="store_true",
@@ -669,7 +682,9 @@ def main(arguments: list[str] | None = None) -> int:
 
     completed_task_ids = {run.get("task_id") for run in runs if isinstance(run, dict)}
     pending_tasks = [task for task in tasks if task.id not in completed_task_ids]
+    remote_gpu_monitor = remote_gpu_monitor_from_options(parser, options)
     campaign_directory = _create_campaign_directory(config.root, options.campaign_id)
+    remote_gpu_monitor.start(campaign_directory / "remote-gpu-samples.jsonl")
     progress_path = campaign_directory / "campaign-progress.json"
     progress = _campaign_result(
         metadata=campaign_metadata,
@@ -678,6 +693,7 @@ def main(arguments: list[str] | None = None) -> int:
         status="running",
         runs=runs,
         tasks_total=len(tasks),
+        remote_gpu_metrics=remote_gpu_monitor.summary(),
     )
     _write_campaign_snapshot(config.root, progress_path, progress)
 
@@ -708,6 +724,7 @@ def main(arguments: list[str] | None = None) -> int:
                     status="running",
                     runs=runs,
                     tasks_total=len(tasks),
+                    remote_gpu_metrics=remote_gpu_monitor.summary(),
                 )
                 _write_campaign_snapshot(config.root, progress_path, progress)
                 if options.stop_on_error and not passed:
@@ -732,11 +749,13 @@ def main(arguments: list[str] | None = None) -> int:
                     status="running",
                     runs=runs,
                     tasks_total=len(tasks),
+                    remote_gpu_metrics=remote_gpu_monitor.summary(),
                 )
                 _write_campaign_snapshot(config.root, progress_path, progress)
                 if options.stop_on_error:
                     break
     except KeyboardInterrupt:
+        remote_gpu_metrics = remote_gpu_monitor.stop()
         interrupted = _campaign_result(
             metadata=campaign_metadata,
             started_at=started_at,
@@ -744,6 +763,7 @@ def main(arguments: list[str] | None = None) -> int:
             status="interrupted",
             runs=runs,
             tasks_total=len(tasks),
+            remote_gpu_metrics=remote_gpu_metrics,
         )
         _write_campaign_snapshot(config.root, progress_path, interrupted)
         print(
@@ -755,6 +775,8 @@ def main(arguments: list[str] | None = None) -> int:
         )
         return 130
 
+    remote_gpu_metrics = remote_gpu_monitor.stop()
+
     complete = len(runs) == len(tasks)
     if not complete:
         progress = _campaign_result(
@@ -764,6 +786,7 @@ def main(arguments: list[str] | None = None) -> int:
             status="stopped",
             runs=runs,
             tasks_total=len(tasks),
+            remote_gpu_metrics=remote_gpu_metrics,
         )
         _write_campaign_snapshot(config.root, progress_path, progress)
         print(
@@ -782,6 +805,7 @@ def main(arguments: list[str] | None = None) -> int:
         status="completed" if tasks_failed == 0 else "completed_with_failures",
         runs=runs,
         tasks_total=len(tasks),
+        remote_gpu_metrics=remote_gpu_metrics,
     )
     result_path = campaign_directory / "campaign.json"
     _write_campaign_snapshot(config.root, result_path, final_result)
