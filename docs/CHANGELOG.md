@@ -2,6 +2,30 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.22 — Profil qualité NVFP4 avec DFlash2
+
+- Ajout du profil C-021 avec `reasoning_effort: medium`, la révision NVFP4 épinglée,
+  le draft DFlash2 BF16 épinglé et le prefix caching activé comme sur le serveur lancé.
+- C-021 est terminé : qualité 57/74, serving 1 800/1 800 et cohorte à 1/4/5/6/8/10
+  agents. La qualité C-021 et le serving n'ont pas de télémétrie GPU distante.
+- La comparaison C-020/C-021 reste opérationnelle : C-020 observait la Workstation
+  Edition, la télémétrie de C-021 qualité n'a pas été demandée, et le manifeste C-020
+  déclare le prefix caching désactivé malgré le `VLLM_ARGS` Vast.ai fourni qui
+  l'activait. Les hits cache ne sont pas disponibles ; ne pas attribuer les écarts
+  qualité au seul DFlash2.
+
+## 0.25.21 — Effort de raisonnement medium explicite pour les campagnes GPU à venir
+
+- Les profils qualité BF16 et FP8 utilisés par les campagnes contrôlées, le profil
+  BF16 shared-prefix C-014 et le nouveau profil NVFP4 C-020 transmettent explicitement
+  `reasoning_effort: medium` avec thinking activé. Le plan machine-readable précise le
+  même réglage pour C-003 à C-006, C-009/C-010 et C-012.
+- C-020 est un suivi opérationnel NVFP4 sans DFlash2 de C-011. Le run C-011 reste
+  immuable : son template n'indiquait pas l'effort et Qwen a appliqué `xhigh` par défaut.
+  La comparaison vise à diagnostiquer l'effet du réglage de raisonnement ; elle ne doit
+  pas être présentée comme une comparaison contrôlée de quantification.
+- Les profils dédiés à C-013 (thinking désactivé) et C-015 (`low`) gardent leur intention.
+
 ## 2026-09-24 — Collecte des métriques GPU distantes
 
 - Les runners qualité, cohorte et serving acceptent les paramètres SSH de l'hôte,

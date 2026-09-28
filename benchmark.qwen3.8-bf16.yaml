@@ -1,6 +1,6 @@
 benchmark:
-  name: enterprise-llm-bench-qwen3.8-bf16
-  version: 0.24.5-qwen3.8-bf16-vllm
+  name: enterprise-llm-bench-qwen3.8-bf16-medium-thinking
+  version: 0.25.21-qwen3.8-bf16-vllm-medium-thinking
 paths:
   tasks: tasks
   private_tests: private-tests
@@ -25,6 +25,7 @@ model:
     seed: 42
     chat_template_kwargs:
       enable_thinking: true
+      reasoning_effort: medium
 hardware:
   accelerator_model: null
   gpu_count: null

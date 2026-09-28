@@ -246,6 +246,25 @@ Le client du runner qualité utilise une réponse non-streamée : le pilote mesu
 complète de chaque requête modèle, mais ne mesure pas la TTFT. Il ne la reconstitue pas à
 partir de la latence totale.
 
+### Cohortes NVFP4 en thinking medium
+
+Le 25 septembre 2026, trois runs NVFP4 sans DFlash2 à 1 agent ont chacun terminé
+les 18 tâches sur 18, en 446,57 s, 447,26 s et 446,44 s. Deux runs à 4 agents
+ont terminé en 180,57 s (18/18), 166,30 s (17/18, échec de validation de
+`DOC-03`) et 168,55 s (18/18). Le 28 septembre, trois runs à 10 agents ont
+réussi 17/18 tâches chacun en 389,63 s, 260,79 s et 260,78 s ; `DOC-03` a échoué
+à la validation dans chacun. Ces runs utilisent une RTX PRO 6000 Blackwell
+Server Edition, avec un GPU UUID différent des cohortes 1–8 réalisées sur la
+Workstation Edition. Les résultats et limites de comparabilité sont dans le
+[rapport de session NVFP4](COHORT_SESSION_NVFP4_2026-09-25.md).
+
+Le profil NVFP4 + DFlash2 a terminé ses 20 cas `shared-prefix` avec 1 800/1 800
+requêtes réussies en thinking medium. À 10 utilisateurs, le TTFT p95 atteint
+67,75 s à 64k tokens et 205,16 s à 100k. L'artefact ne contient ni métriques GPU
+distantes ni compteurs de hits KV-cache. Les résultats détaillés et les 18 runs
+de cohorte associés sont décrits dans
+[le rapport NVFP4 + DFlash2](COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md).
+
 ## Configuration et comparabilité
 
 Le fichier est validé par `schemas/serving-config.schema.json`, le résultat par

@@ -154,6 +154,28 @@ hf download nvidia/Qwen3.8-27B-NVFP4 \
   --revision dbb8f445b3145f8a4c18ddc769f032d57d32867c
 ```
 
+Pour préparer uniquement la cellule NVFP4 sans DFlash2, ne télécharger que le
+checkpoint NVFP4 et les fichiers du tokenizer. Cela évite de récupérer les
+poids BF16 et FP8 qui ne sont pas utilisés par cette cellule :
+
+```bash
+df -h /workspace
+mkdir -p /workspace/models
+export HF_HOME=/workspace/models
+if ! command -v hf >/dev/null 2>&1; then
+  python3 -m pip install --user -U huggingface_hub
+  export PATH="$(python3 -m site --user-base)/bin:$PATH"
+fi
+hf download nvidia/Qwen3.8-27B-NVFP4 \
+  --revision dbb8f445b3145f8a4c18ddc769f032d57d32867c
+hf download Qwen/Qwen3.8-27B \
+  tokenizer.json tokenizer_config.json vocab.json merges.txt chat_template.jinja \
+  --revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+```
+
+Les commandes `hf download` peuvent être relancées après une interruption ;
+le cache existant est réutilisé. Attendre leur fin avant de démarrer vLLM.
+
 Prévoir au minimum l'espace cumulé des trois snapshots (environ 105 GB
 publiés) plus une marge pour les caches et les logs ; 180 à 200 GB est une base
 plus confortable. Si le volume est déjà préparé dans une image ou attaché à une
@@ -196,11 +218,12 @@ l'attendu. Les options `--model-file` et `--expected-sha256` restent disponibles
 pour un artefact monolithique utilisé par un autre moteur, mais ne sont pas le
 contrôle de référence pour les snapshots Safetensors Qwen.
 
-Pour C-011, utiliser `NVIDIA RTX PRO 6000 Blackwell Server Edition` et l'identité
-`nvidia/Qwen3.8-27B-NVFP4`. Pour C-012, utiliser `NVIDIA GB10` (le nom exposé
-par `nvidia-smi`) et
-la même identité de checkpoint. Ces deux campagnes restent exploratoires tant
-que le backend NVFP4 et la stabilité du serveur n'ont pas été confirmés.
+Le préflight C-011 a rapporté une `NVIDIA RTX PRO 6000 Blackwell Workstation Edition`
+pour `nvidia/Qwen3.8-27B-NVFP4` ; le suivi C-020 cible cette même
+machine lorsqu'elle est disponible, mais doit enregistrer le matériel observé
+à nouveau. Pour C-012, utiliser `NVIDIA GB10` (le nom exposé par `nvidia-smi`)
+et la même identité de checkpoint. C-012 reste exploratoire tant que le backend
+NVFP4 et la stabilité du serveur n'ont pas été confirmés.
 
 Le serveur d'inférence est ensuite lancé avec la commande exacte de la
 configuration. Pour Qwen3.8-27B :
@@ -238,14 +261,136 @@ commande complète, image/tag ou digest,
 version du moteur, modèle chargé, quantification, KV cache, contexte maximum,
 batch, slots, prefix caching et état de flash attention/speculative decoding.
 
+### Profil NVFP4 vLLM sans DFlash2
+
+C-011 a été exécuté le 25 septembre avec `benchmark.qwen3.8-nvfp4.yaml`, qui
+n'envoyait pas `reasoning_effort` : Qwen a donc appliqué son défaut `xhigh`.
+Pour le suivi C-020 en `medium`, garder ce même serveur et utiliser
+`benchmark.qwen3.8-nvfp4-medium-thinking.yaml` côté runner ; l'effort est un
+paramètre de requête transmis par le runner, pas un argument de lancement vLLM.
+Le prefix caching reste désactivé. Le serveur écoute sur le port distant `8001`
+afin que le tunnel local puisse rester sur `8000`. La commande ne configure pas
+de `--speculative-config`, donc DFlash2 n'est pas activé.
+
+```bash
+mkdir -p /workspace/logs
+LOG_FILE="/workspace/logs/vllm-nvfp4-no-dflash2-$(date -u +%Y%m%dT%H%M%SZ).log"
+nohup env HF_HOME=/workspace/models vllm serve nvidia/Qwen3.8-27B-NVFP4 \
+  --revision dbb8f445b3145f8a4c18ddc769f032d57d32867c \
+  --tokenizer Qwen/Qwen3.8-27B \
+  --tokenizer-revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0 \
+  --served-model-name Qwen3.8-27B \
+  --tensor-parallel-size 1 \
+  --pipeline-parallel-size 1 \
+  --max-model-len 262144 \
+  --max-num-seqs 16 \
+  --reasoning-parser qwen3 \
+  --kv-cache-dtype fp8 \
+  --port 8001 \
+  >"$LOG_FILE" 2>&1 < /dev/null &
+SERVER_PID=$!
+printf 'PID=%s\nLOG=%s\n' "$SERVER_PID" "$LOG_FILE"
+```
+
+Suivre le démarrage depuis le shell qui a lancé le serveur :
+
+```bash
+tail -n 100 -f "$LOG_FILE"
+```
+
+Après reconnexion, suivre le log le plus récent :
+
+```bash
+tail -n 100 -f "$(ls -t /workspace/logs/vllm-nvfp4-no-dflash2-*.log | head -n 1)"
+```
+
 ## Connexion sans exposer le serveur
 
 Ne pas rendre l'API publique si un tunnel SSH suffit. Depuis le poste local :
 
 ```powershell
-ssh -p <ssh-port> <user>@<remote-host> `
-  -L 8000:127.0.0.1:<server-port>
+$gpuSshHost = "<ip-ou-nom-d-hote>"
+$gpuSshUser = "<utilisateur-ssh>"
+$gpuSshPort = 22
+$gpuSshKey = "C:\chemin\vers\cle-privee"
+ssh -i "$gpuSshKey" `
+  -p $gpuSshPort `
+  -L 8000:127.0.0.1:8001 `
+  "$gpuSshUser@$gpuSshHost"
 ```
+
+Remplacer les quatre valeurs selon l'instance courante. Pour les instances
+`portal-aio` où Caddy utilise le port distant `8000`, garder vLLM sur `8001` et
+ce tunnel `8000:127.0.0.1:8001`.
+
+### Commandes utilisées pour la qualité NVFP4 C-020 en thinking medium
+
+Ces commandes documentent le run C-020 terminé. Ne pas les relancer avec le même
+ID ; créer un nouvel identifiant pour une répétition. C-011 utilisait l'ancien
+profil implicite `xhigh`. Définir les informations SSH côté runner local. La clé sert à la collecte
+de télémétrie distante, qui ouvre une connexion SSH indépendante du tunnel :
+
+```powershell
+$gpuSshHost = "<ip-ou-nom-d-hote>"
+$gpuSshUser = "<utilisateur-ssh>"
+$gpuSshPort = 22
+$gpuSshKey = "C:\chemin\vers\cle-privee"
+```
+
+Vérifier l'API, puis créer un nouveau manifeste de préflight afin de conserver
+les préflights antérieurs :
+
+```powershell
+python scripts/check_openai_endpoint.py `
+  --base-url http://127.0.0.1:8000/v1 `
+  --model Qwen3.8-27B
+
+$runStamp = Get-Date -Format "yyyyMMdd-HHmmss"
+python scripts/prepare_gpu_campaign.py `
+  --campaign-id C-020 `
+  --config benchmark.qwen3.8-nvfp4-medium-thinking.yaml `
+  --serving-config campaigns/gpu/serving-qwen-nvfp4.yaml `
+  --output "results/raw/preflight/C-020-preflight-$runStamp.json" `
+  --require-clean
+```
+
+Prévisualiser puis lancer la suite qualité complète :
+
+```powershell
+python scripts/run_quality_campaign.py `
+  --campaign-id C-020 `
+  --config benchmark.qwen3.8-nvfp4-medium-thinking.yaml `
+  --mode repair `
+  --suite full `
+  --seed 42 `
+  --plan-only
+
+python scripts/run_quality_campaign.py `
+  --campaign-id C-020 `
+  --config benchmark.qwen3.8-nvfp4-medium-thinking.yaml `
+  --mode repair `
+  --suite full `
+  --seed 42 `
+  --remote-gpu-ssh-host $gpuSshHost `
+  --remote-gpu-ssh-user $gpuSshUser `
+  --remote-gpu-ssh-port $gpuSshPort `
+  --remote-gpu-ssh-key "$gpuSshKey"
+```
+
+Si la campagne est interrompue, reprendre avec les mêmes options et ajouter
+`--resume`. Pour un pilote de cohorte, utiliser le même fichier qualité :
+
+```powershell
+python scripts/run_cohort_pilot.py `
+  --benchmark-config benchmark.qwen3.8-nvfp4-medium-thinking.yaml `
+  --agents 5 `
+  --remote-gpu-ssh-host $gpuSshHost `
+  --remote-gpu-ssh-user $gpuSshUser `
+  --remote-gpu-ssh-port $gpuSshPort `
+  --remote-gpu-ssh-key "$gpuSshKey"
+```
+
+Répéter la cohorte trois fois pour chaque niveau `1`, `4`, `5`, `6`, `8` et `10`.
 
 Puis vérifier immédiatement le modèle annoncé et une génération courte :
 

@@ -94,6 +94,8 @@ les résultats.
 - `docs/COHORT_SESSION_2026-09-23.md` : résultats du pilote de cohorte agentique DFlash2.
 - `docs/COHORT_SESSION_2026-09-24.md` : premières cohortes FP8 sans DFlash2 avec télémétrie GPU distante.
 - `docs/COHORT_SESSION_2026-09-24-DFLASH2.md` : cohortes FP8 avec DFlash2 sur le même serveur.
+- `docs/COHORT_SESSION_NVFP4_2026-09-25.md` : cohortes NVFP4 en thinking medium.
+- `docs/COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md` : cohortes NVFP4 + DFlash2, comparaison opérationnelle et limites de cache.
 - `docs/GPU_FAILURE_ANALYSIS_2026-09-24.md` : analyse des échecs C-018/C-019 et DOC-03.
 - `docs/GPU_SERVING_NVFP4_2026-09-24.md` : résultats serving NVFP4 et télémétrie GPU distante.
 - `docs/GPU_SESSION_2026-09-22.md` : résultats et limites de la session BF16/Q8 sur RTX PRO 6000.

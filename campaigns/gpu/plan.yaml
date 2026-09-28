@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-gpu-campaigns
-version: "0.5.8"
+version: "0.5.10"
 
 # The Qwen repositories and revisions are pinned to the Hugging Face main
 # commits observed on 2026-09-17. The NVFP4 artifact is published by NVIDIA
@@ -56,7 +56,7 @@ campaigns:
     hardware_model: NVIDIA H200
     gpu_count: 1
     artifact_variant: bf16
-    notes: Reference BF16 campaign on one H200.
+    notes: Reference BF16 campaign on one H200 with thinking enabled and reasoning_effort=medium.
   - id: C-004
     status: planned
     comparison_type: controlled_hardware
@@ -64,7 +64,7 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
     gpu_count: 1
     artifact_variant: bf16
-    notes: Reference BF16 campaign on one RTX PRO 6000 Blackwell Server Edition.
+    notes: Reference BF16 campaign on one RTX PRO 6000 Blackwell Server Edition with thinking enabled and reasoning_effort=medium.
   - id: C-005
     status: planned
     comparison_type: controlled_hardware
@@ -72,7 +72,7 @@ campaigns:
     hardware_model: NVIDIA H200
     gpu_count: 1
     artifact_variant: fp8
-    notes: Reference FP8 campaign on one H200 using the official Qwen checkpoint.
+    notes: Reference FP8 campaign on one H200 using the official Qwen checkpoint with thinking enabled and reasoning_effort=medium.
   - id: C-006
     status: planned
     comparison_type: controlled_hardware
@@ -80,7 +80,7 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
     gpu_count: 1
     artifact_variant: fp8
-    notes: Reference FP8 campaign on one RTX PRO 6000 Blackwell Server Edition using the official Qwen checkpoint.
+    notes: Reference FP8 campaign on one RTX PRO 6000 Blackwell Server Edition using the official Qwen checkpoint with thinking enabled and reasoning_effort=medium.
   - id: C-009
     status: planned
     comparison_type: controlled_hardware
@@ -88,7 +88,7 @@ campaigns:
     hardware_model: NVIDIA DGX Spark / GB10
     gpu_count: 1
     artifact_variant: bf16
-    notes: Reference BF16 campaign on one DGX Spark / GB10 system.
+    notes: Reference BF16 campaign on one DGX Spark / GB10 system with thinking enabled and reasoning_effort=medium.
   - id: C-010
     status: planned
     comparison_type: controlled_hardware
@@ -96,15 +96,15 @@ campaigns:
     hardware_model: NVIDIA DGX Spark / GB10
     gpu_count: 1
     artifact_variant: fp8
-    notes: Reference FP8 campaign on one DGX Spark / GB10 system using the official Qwen checkpoint.
+    notes: Reference FP8 campaign on one DGX Spark / GB10 system using the official Qwen checkpoint with thinking enabled and reasoning_effort=medium.
   - id: C-011
-    status: exploratory
+    status: completed
     comparison_type: controlled_quantization
     comparison_group: quantization-rtx-pro-6000
     hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: NVFP4 quantization campaign on RTX PRO 6000 Server Edition; compare with C-004/C-006 after the vLLM compatibility smoke.
+    notes: Quality run completed 2026-09-25 with failures; its config omitted reasoning_effort, so Qwen used its xhigh default. Keep this historical run unchanged and use C-020 for a medium-effort diagnostic follow-up. GPU telemetry identified the Workstation Edition.
   - id: C-012
     status: exploratory
     comparison_type: controlled_quantization
@@ -112,7 +112,7 @@ campaigns:
     hardware_model: NVIDIA DGX Spark / GB10
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: NVFP4 quantization campaign on DGX Spark / GB10; compare with C-009/C-010 after the vLLM compatibility smoke.
+    notes: NVFP4 quantization campaign on DGX Spark / GB10 with thinking enabled and reasoning_effort=medium; use benchmark.qwen3.8-nvfp4-medium-thinking.yaml and compare with C-009/C-010 after the vLLM compatibility smoke.
   - id: C-013
     status: exploratory
     comparison_type: operational_solution
@@ -128,7 +128,7 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell Server Edition
     gpu_count: 1
     artifact_variant: bf16
-    notes: BF16 repair quality profile with prefix caching enabled; compare operationally with C-004, not as a controlled hardware result.
+    notes: BF16 repair quality profile with prefix caching and thinking enabled at reasoning_effort=medium; compare operationally with C-004, not as a controlled hardware result.
   - id: C-015
     status: planned
     comparison_type: operational_solution
@@ -161,3 +161,11 @@ campaigns:
     gpu_count: 1
     artifact_variant: fp8
     notes: Official Qwen FP8 checkpoint, full 74-task repair suite, reasoning_effort=medium and prefix caching; future operational baseline paired with C-017, not the controlled C-006 profile.
+  - id: C-020
+    status: completed
+    comparison_type: operational_solution
+    comparison_group: reasoning-effort-nvfp4-rtx-pro-6000
+    hardware_model: NVIDIA RTX PRO 6000 Blackwell Workstation Edition
+    gpu_count: 1
+    artifact_variant: nvfp4
+    notes: Completed 2026-09-25 with reasoning_effort=medium recorded on all 74 tasks; 59/74 passed, 2 protocol failures, 12 functional failures, and 1 context rejection. Same task set, seed, NVFP4 revision, and GPU UUID as C-011; diagnostic operational follow-up, not a replicated result.

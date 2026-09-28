@@ -21,6 +21,44 @@ Les plans machine-readable utilisés pour C-018/C-019 sont des entrées historiq
 la roadmap ou préparer une nouvelle variante. Les nouvelles configurations recevront leurs
 propres plans et profils. Les résultats bruts antérieurs restent préservés.
 
+C-011 et C-020 ont été exécutés en qualité le 25 septembre 2026 sur le même
+ensemble de tâches, seed, checkpoint NVFP4 et GPU UUID. C-011 n'envoyait pas
+`reasoning_effort` et a donc utilisé le défaut Qwen `xhigh` ; C-020 a envoyé
+`medium` sur les 74 tâches. Les résultats de C-020 sont meilleurs en réussite
+totale et en erreurs de protocole, avec davantage d'échecs fonctionnels. C'est
+un diagnostic opérationnel apparié sur une seule répétition, pas une référence
+générale ni une comparaison de quantification.
+
+Trois cohortes NVFP4 à 1 agent ont aussi été enregistrées avec ce profil ; elles
+ont toutes réussi 18/18 tâches en 446,57 s, 447,26 s et 446,44 s. Trois cohortes
+à 4 agents ont ensuite terminé en 180,57 s (18/18), 166,30 s (17/18, échec
+de validation de `DOC-03`) et 168,55 s (18/18). À 5 agents, les trois runs ont
+réussi 17/18 tâches chacun, en 157,61 s, 158,55 s et 162,63 s (`DOC-03`). À 6
+agents, trois runs ont réussi 17/18, 18/18 et 17/18 tâches en 194,61 s,
+156,64 s et 155,65 s. Les deux échecs concernent `DOC-03` : deux
+`ChangeProtocolError` au premier run et un échec de validation au troisième.
+Les trois runs à 8 agents ont réussi 17/18, 17/18 et 18/18 tâches en 150,87 s,
+149,13 s et 146,57 s ; les deux échecs concernent `DOC-03` en validation. Ces
+quinze runs ont la télémétrie distante du même GPU UUID, une RTX PRO 6000 Blackwell
+Workstation Edition. Le 28 septembre, trois runs à 10 agents ont réussi 17/18
+tâches chacun, en 389,63 s, 260,79 s et 260,78 s ; les trois échecs concernent
+`DOC-03` en validation. Ils disposent de la télémétrie d'une RTX PRO 6000
+Blackwell Server Edition avec un GPU UUID différent. Les trois répétitions sont
+terminées aux six niveaux 1/4/5/6/8/10, mais les durées entre niveaux ne sont pas directement
+comparables à cause de ce changement matériel. Voir
+[le rapport de session cohorte NVFP4](COHORT_SESSION_NVFP4_2026-09-25.md).
+
+C-021 NVFP4 + DFlash2 a ensuite été exécuté le 28 septembre : qualité terminée
+avec 57/74 tâches réussies, serving terminé sans échec (1 800/1 800 requêtes)
+et 18 cohortes à 1/4/5/6/8/10 agents, trois répétitions par niveau. Les cohortes
+ont toutes une télémétrie distante sur la RTX PRO 6000 Blackwell Server Edition.
+Au niveau 10, leur makespan médian est de 82,21 s contre 260,79 s pour la série
+sans DFlash2 sur le même GPU UUID. Ce résultat reste opérationnel : l'état déclaré
+du prefix caching dans le profil historique sans DFlash2 contredit le template
+Vast.ai fourni, et aucun des pilotes ne mesure les hits du cache. La qualité et
+le serving C-021 n'ont pas demandé de télémétrie GPU distante. Voir
+[le rapport NVFP4 + DFlash2](COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md).
+
 La préparation opérationnelle et le parcours de location sont décrits dans
 [`docs/GPU_REMOTE_RUNBOOK.md`](GPU_REMOTE_RUNBOOK.md). Le plan machine-readable
 se trouve dans [`campaigns/gpu/plan.yaml`](../campaigns/gpu/plan.yaml) ; les
@@ -86,10 +124,12 @@ vLLM avant toute mesure de qualité ou de débit.
 | C-005 | planifiée | 1x H200 | FP8 | contrôlée matériel | qualité de référence FP8 |
 | C-006 | planifiée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 | contrôlée matériel | qualité de référence FP8 |
 | C-010 | planifiée | 1x DGX Spark / GB10 | FP8 | contrôlée matériel | qualité de référence FP8 |
-| C-011 | exploratoire | 1x RTX PRO 6000 Blackwell Server Edition | NVFP4 mixed | contrôlée quantification | NVFP4 sur RTX PRO Server Edition, après smoke vLLM |
+| C-011 | qualité terminée avec échecs | 1x RTX PRO 6000 Blackwell Workstation Edition observée | NVFP4 mixed | comparaison contrôlée prévue, résultat non attribuable à la seule quantification | run historique sans effort explicite, défaut Qwen `xhigh` |
 | C-012 | exploratoire | 1x DGX Spark / GB10 | NVFP4 mixed | contrôlée quantification | NVFP4 sur GB10, après smoke vLLM |
 | C-018 | qualité terminée avec échecs / serving terminé | 1x RTX PRO 6000 Blackwell Server Edition | FP8 officiel | opérationnelle | base FP8 sans DFlash2, thinking medium et shared-prefix, 74 tâches |
 | C-019 | qualité terminée avec échecs / serving terminé / cohorte séparée explorée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; la cohorte DFlash2 est documentée séparément |
+| C-020 | qualité terminée avec échecs | 1x RTX PRO 6000 Blackwell Workstation Edition | NVFP4 mixed | diagnostic opérationnel | 59/74 tâches réussies avec `reasoning_effort=medium`, suivi de C-011 |
+| C-021 | qualité / serving / cohorte terminés | Vast.ai ; GPU non relevé pour qualité et serving | NVFP4 mixed + draft DFlash2 BF16 | opérationnelle | qualité 57/74 ; serving 1 800/1 800 ; cohorte et télémétrie distante documentées séparément |
 
 ## Suite opérationnelle RTX PRO 6000 : moteur × poids × DFlash2
 
@@ -97,14 +137,15 @@ La matrice couvre les huit cellules du croisement moteur (vLLM/SGLang), poids
 (FP8/NVFP4) et DFlash2 (désactivé/activé). C-018/C-019 couvrent déjà les campagnes qualité
 et serving vLLM + FP8. Les deux cohortes opérationnelles FP8 sont également terminées avec
 trois runs par niveau de concurrence et télémétrie distante. Leur comparaison appariée est
-différée. L'ordre restant commence par NVFP4 sous vLLM.
+différée. Les deux cellules NVFP4 vLLM ont maintenant été mesurées ; les travaux
+restants dans cette matrice sont les cellules SGLang.
 
 | Ordre | Moteur | Poids | DFlash2 | Travaux restants |
 |---:|---|---|---|---|
 | 1 | vLLM | FP8 | non | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
 | 2 | vLLM | FP8 | oui | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
-| 3 | vLLM | NVFP4 | non | campagne qualité, serving, cohorte |
-| 4 | vLLM | NVFP4 | oui | campagne qualité, serving, cohorte |
+| 3 | vLLM | NVFP4 | non | C-020 qualité, serving et cohorte terminés ; comparabilité avec la Server Edition limitée |
+| 4 | vLLM | NVFP4 | oui | C-021 qualité, serving et cohorte terminés ; limites consignées dans le rapport |
 | 5 | SGLang | FP8 | non | campagne qualité, serving, cohorte |
 | 6 | SGLang | FP8 | oui | campagne qualité, serving, cohorte |
 | 7 | SGLang | NVFP4 | non | campagne qualité, serving, cohorte |
@@ -146,9 +187,17 @@ comparatif sur notre propre charge
 
 C-003/C-004/C-009 forment la comparaison matérielle BF16 et C-005/C-006/C-010 la
 comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent
-ensuite une comparaison de quantification sur chaque plateforme. C-011 se
-compare à C-004/C-006 et C-012 à C-009/C-010, en conservant la distinction entre
-la série contrôlée et le statut exploratoire du support NVFP4.
+ensuite une comparaison de quantification sur chaque plateforme. C-011 visait
+une comparaison avec C-004/C-006, mais son `xhigh` implicite diffère du `medium`
+maintenant retenu ; ce résultat est indicatif et ne doit pas être attribué à la
+seule quantification. C-020 documente le suivi NVFP4 en medium. C-012 peut être
+comparé à C-009/C-010 après smoke, avec l'effort explicitement fixé à medium.
+
+Les profils qualité planifiés utilisent explicitement `enable_thinking: true` et
+`reasoning_effort: medium` : BF16 pour C-003/C-004/C-009, FP8 pour
+C-005/C-006/C-010, BF16 shared-prefix pour C-014 et NVFP4 pour C-012/C-020.
+C-013 reste volontairement sans thinking et C-015 reste volontairement en
+`low`. C-011 est conservé tel qu'exécuté et n'est pas réétiqueté en medium.
 
 Les profils opérationnels ajoutés pour la RTX PRO 6000 sont `C-013` (BF16
 no-thinking), `C-014` (BF16 avec prefix caching), `C-015` (thinking low), `C-016`
@@ -290,8 +339,9 @@ comparaison annoncée.
 - Concurrence qualité : 1, slots 1 et prefix caching désactivé.
 - Batch qualité : valeur commune conservatrice, à fixer après le smoke mémoire
   et à conserver pour C-003 à C-006, C-009/C-010 et les campagnes NVFP4.
-- Thinking : activé ; `reasoning_effort=xhigh` lorsque le serveur et le
-  template Qwen le supportent.
+- Thinking : activé ; envoyer explicitement `reasoning_effort=medium` dans
+  `chat_template_kwargs` pour chaque profil prévu. Ne pas dépendre du défaut
+  du template, qui a produit `xhigh` pour le C-011 exécuté.
 - Échantillonnage thinking : température 1.0, `top_p=0.95`, `top_k=20`,
   `min_p=0.0`, `presence_penalty=0.0`, `repetition_penalty=1.0`.
 - Seed : 42 lorsque supporté.
@@ -319,18 +369,33 @@ qu'un GPU est intrinsèquement plus rapide qu'un autre.
 La séquence retenue est donc :
 
 1. six campagnes qualité contrôlées C-003 à C-006, C-009 et C-010 ;
-2. smoke de compatibilité du checkpoint NVFP4 sur C-011 et C-012 ;
-3. deux campagnes qualité/quantification NVFP4, puis leur serving ;
-4. profils serving optimisés séparément par carte ;
-5. comparaison vLLM de paramètres optimisés par carte, après la série contrôlée.
+2. smoke de compatibilité NVFP4 sur C-012 ;
+3. campagne qualité/quantification NVFP4 C-012, puis son serving ;
+4. qualité NVFP4 C-020 terminée en medium ; serving et cohortes à 1/4/5/6/8/10 agents terminés avec trois répétitions par niveau. Le niveau 10 est sur la RTX PRO 6000 Server Edition, les autres sur la Workstation Edition ;
+5. qualité NVFP4 + DFlash2 C-021 terminée en medium ; serving et cohortes à 1/4/5/6/8/10 agents terminés avec trois répétitions par niveau. Les cohortes DFlash2 sont sur la Server Edition ; le rapport décrit la comparaison au niveau 10 et l'écart de métadonnées prefix cache ;
+6. profils serving optimisés séparément par carte ;
+7. comparaison vLLM de paramètres optimisés par carte, après la série contrôlée.
 
 ### Configuration NVFP4
 
-C-011 et C-012 gardent les mêmes entrées, tokenizer, contexte, KV cache et
-paramètres de génération que la série BF16/FP8. Leur objectif est de mesurer
-l'effet de la quantification sur une carte donnée, pas de comparer directement
-le RTX PRO au GB10. Elles restent `exploratory` jusqu'à validation du chargement
-et du backend de calcul effectif.
+C-012 garde les mêmes entrées, tokenizer, contexte, KV cache, raisonnement
+`medium` et paramètres de génération que la série BF16/FP8. Son objectif est de
+mesurer l'effet de la quantification sur une carte donnée, pas de comparer
+directement le RTX PRO au GB10. Utiliser
+`benchmark.qwen3.8-nvfp4-medium-thinking.yaml`. C-012 reste `exploratory`
+jusqu'à validation du chargement et du backend de calcul effectif.
+
+C-011 est terminé avec échecs et garde ses artefacts historiques. Le manifeste
+enregistre `benchmark.qwen3.8-nvfp4.yaml` et son empreinte ; cette configuration
+ne contient pas `reasoning_effort`. La télémétrie rapporte une RTX PRO 6000
+Blackwell Workstation Edition, pilote 595.71.05. C-020 utilise le nouveau profil
+`benchmark.qwen3.8-nvfp4-medium-thinking.yaml`, avec le même checkpoint, le
+même tokenizer, le même KV cache FP8 et sans DFlash2. Le profil/manifeste C-020
+déclare le cache de préfixe désactivé, alors que la commande `VLLM_ARGS` du
+template Vast.ai utilisée l'activait ; les hits cache ne sont pas mesurés. Son
+dossier de préflight et ses résultats doivent rester distincts de C-011. La
+configuration ne pré-remplit pas les propriétés du matériel : elles
+doivent venir du préflight de l'hôte effectivement loué.
 
 - Checkpoint : `nvidia/Qwen3.8-27B-NVFP4`, révision
   `dbb8f445b3145f8a4c18ddc769f032d57d32867c`.
@@ -387,8 +452,11 @@ configuration du run.
   CPU/GPU et éventuel partage avec l'OS ; ces caractéristiques font partie de
   la comparaison opérationnelle du Spark.
 
-Ces profils ne remplacent pas C-003 à C-006, C-009/C-010 ni C-011/C-012 : ils
+Ces profils ne remplacent pas C-003 à C-006, C-009/C-010 ni C-012 : ils
 répondent à une question d'exploitation et non à une comparaison contrôlée.
+C-011 n'est plus une référence contrôlée exploitable pour attribuer un effet à
+la quantification, car son effort effectif était `xhigh` ; C-020 est son suivi
+opérationnel en `medium`.
 
 ## Procédure pour chaque campagne GPU
 
@@ -425,7 +493,8 @@ le même identifiant de campagne.
 ### 3. Qualité
 
 Lancer la suite complète des 74 tâches en mode `repair`, avec le même ordre et
-les mêmes budgets pour C-003 à C-006, C-009/C-010 et C-011/C-012. Produire
+les mêmes budgets pour C-003 à C-006, C-009/C-010 et C-012. C-020 garde ces mêmes
+budgets pour son diagnostic d'effort face à C-011. Produire
 pour chaque campagne :
 
 - résultats bruts JSON/JSONL non écrasés ;

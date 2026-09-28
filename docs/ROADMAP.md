@@ -170,13 +170,15 @@ et des validations.
 
 Le protocole des campagnes et l'ordre de reprise sont définis dans
 [`docs/GPU_CAMPAIGN_PLAN.md`](GPU_CAMPAIGN_PLAN.md). Les campagnes réelles restent
-à exécuter pour les comparaisons contrôlées H200, RTX PRO et DGX Spark, ainsi que pour
-NVFP4. Les profils opérationnels C-016 (BF16) et C-017 (Q8) ont déjà été exécutés sur
-RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
+à exécuter pour les comparaisons contrôlées H200, RTX PRO et DGX Spark, notamment
+NVFP4 C-012 sur DGX Spark. Les cellules NVFP4 opérationnelles vLLM sur RTX PRO
+(C-011, C-020 et C-021) ont été exécutées et sont documentées ci-dessous. Les
+profils opérationnels C-016 (BF16) et C-017 (Q8) ont aussi été exécutés sur
+RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées.
 
 - [x] protocole de comparaison contrôlée BF16/FP8 avec vLLM
 - [x] matrice initiale C-003 à C-006 et C-009/C-010
-- [x] campagnes NVFP4 distinctes C-011/C-012 pour RTX PRO et DGX Spark
+- [x] profils NVFP4 opérationnels C-011/C-020/C-021 sur RTX PRO ; C-012 reste planifié sur DGX Spark
 - [x] plan versionné, préflight local et manifeste de campagne
 - [x] playbook distant générique avec tunnel SSH et préflight hôte
 - [ ] playbook reproductible H200 spécifique au moteur retenu
@@ -189,19 +191,56 @@ RTX PRO 6000 ; leurs résultats ne remplacent pas ces campagnes contrôlées.
   voir [le rapport d'analyse](GPU_FAILURE_ANALYSIS_2026-09-24.md)
 - [x] exécuter C-019 : cible FP8 + draft DFlash2, qualité terminée avec échecs,
   serving exécuté et cohorte agentique explorée
-- [ ] réaliser la matrice opérationnelle RTX PRO 6000 ci-dessous ; C-018/C-019
-  restent les cellules vLLM/FP8 déjà mesurées, et les plans ayant servi à ces runs
-  sont conservés comme entrées historiques immuables
+- [ ] compléter la matrice opérationnelle RTX PRO 6000 ci-dessous avec les cellules
+  SGLang ; les cellules vLLM/FP8 C-018/C-019 et NVFP4 C-020/C-021 ont été exécutées,
+  et les plans ayant servi à ces runs restent des entrées historiques immuables
 
 Ordre de reprise opérationnelle (la comparaison appariée FP8 reste différée) :
 
 Le serving vLLM NVFP4 sans DFlash2 a été exécuté sur la RTX PRO 6000 en
 `shared-prefix` uniquement ; les 20 cas et 1 800 requêtes ont réussi. Voir le
-[rapport serving NVFP4](GPU_SERVING_NVFP4_2026-09-24.md). La qualité et la cohorte
-de cette cellule restent à exécuter.
+[rapport serving NVFP4](GPU_SERVING_NVFP4_2026-09-24.md). La qualité C-011 s'est
+terminée le 25 septembre avec des échecs et un effort effectif `xhigh` implicite ;
+le suivi qualité C-020 en `medium` s'est également terminé avec des échecs. Le
+résultat comparatif des deux campagnes est dans la [matrice des campagnes](CAMPAIGN_MATRIX.md) ;
+les trois runs à 1 agent ont réussi 18/18 tâches chacun. À 4 agents, deux runs
+ont réussi 18/18 puis 17/18 tâches (DOC-03 en échec de validation), et le
+troisième a réussi 18/18. À 5 agents, les trois runs ont réussi 17/18 chacun
+(DOC-03) ; à 6 agents, les runs ont réussi 17/18, 18/18 et 17/18 tâches. Les
+deux échecs concernent `DOC-03` : le premier run a eu deux erreurs de protocole,
+et le troisième un échec de validation. Les niveaux 1, 4, 5 et 6 ont leurs trois
+répétitions. À 8 agents, les runs ont réussi 17/18, 17/18 et 18/18 tâches ; les
+deux échecs concernent `DOC-03` en validation. Les trois répétitions aux niveaux
+1, 4, 5, 6 et 8 sont terminées. Le 28 septembre, les trois runs à 10 agents ont
+réussi 17/18 tâches chacun, avec `DOC-03` en échec de validation, en 389,63 s,
+260,79 s et 260,78 s. Ces runs utilisent une RTX PRO 6000 Blackwell Server
+Edition (GPU UUID distinct), alors que les niveaux 1–8 utilisent la Workstation
+Edition ; les durées ne sont donc pas directement comparables entre niveaux.
+Les trois répétitions sont maintenant terminées aux six niveaux 1/4/5/6/8/10.
+Voir le
+[rapport de cohorte NVFP4](COHORT_SESSION_NVFP4_2026-09-25.md).
 
-1. vLLM + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
-2. vLLM + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+Le profil NVFP4 + DFlash2 C-021 a terminé la qualité le 28 septembre avec
+57/74 tâches réussies (16 échecs fonctionnels, aucun échec de protocole et un
+rejet de capacité), et le serving a réussi 1 800/1 800 requêtes. La télémétrie
+GPU n'a pas été demandée pour ces deux campagnes. Les 18 cohortes à 1/4/5/6/8/10
+agents ont toutes une télémétrie GPU distante sur la RTX PRO 6000 Blackwell
+Server Edition ; elles totalisent 311/324 tâches réussies, avec `DOC-03` comme
+seule tâche en échec. À 10 agents, la médiane est de 82,21 s contre 260,79 s
+pour la cellule NVFP4 sans DFlash2 sur le même UUID. Ce résultat est opérationnel :
+les hits du cache ne sont pas capturés et le manifeste sans DFlash2 contredit la
+commande Vast.ai fournie, qui active le prefix caching. Les autres niveaux sans
+DFlash2 utilisent une Workstation Edition distincte. Voir le
+[rapport de cohorte NVFP4 + DFlash2](COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md)
+pour les artefacts et les limites de comparaison.
+
+1. vLLM + NVFP4 sans DFlash2 : C-011 et le suivi qualité medium C-020 terminés avec
+   échecs ; serving terminé, trois cohortes réalisées à chaque niveau de
+   1/4/5/6/8/10 agents. La cellule 10 agents est sur la Server Edition ; voir la
+   limite de comparabilité matérielle dans le rapport de cohorte.
+2. vLLM + NVFP4 avec DFlash2 : C-021 qualité terminée avec échecs (57/74), serving
+   terminé sans échec (1 800/1 800) et cohorte terminée à 1/4/5/6/8/10 agents
+   avec trois répétitions par niveau ; voir le rapport lié ci-dessus.
 3. SGLang + FP8 sans DFlash2 : campagne qualité, serving et cohorte.
 4. SGLang + FP8 avec DFlash2 : campagne qualité, serving et cohorte.
 5. SGLang + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.

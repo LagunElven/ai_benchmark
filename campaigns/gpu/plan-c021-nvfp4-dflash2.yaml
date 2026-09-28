@@ -1,0 +1,42 @@
+schema_version: "1.0"
+name: enterprise-gpu-campaign-c021-nvfp4-dflash2
+version: "0.1.0"
+
+model:
+  name: Qwen3.8-27B
+  source_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  tokenizer_repository: https://huggingface.co/Qwen/Qwen3.8-27B
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  artifact_variants:
+    - id: nvfp4
+      quantization: NVFP4-MIXED
+      dtype: NVFP4/FP8
+      source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
+      revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
+      snapshot_url: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/tree/dbb8f445b3145f8a4c18ddc769f032d57d32867c
+
+serving:
+  engine: vllm
+  engine_version: 0.29.0
+  kv_cache_dtype: fp8
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 16
+  reasoning_parser: qwen3
+
+campaigns:
+  - id: C-021
+    status: planned
+    comparison_type: operational_solution
+    comparison_group: nvfp4-dflash2-medium-vastai
+    hardware_model: Vast.ai GPU (record exact model from the active instance)
+    gpu_count: 1
+    artifact_variant: nvfp4
+    notes: >-
+      Operational NVFP4 quality run with explicit reasoning_effort=medium and
+      DFlash2 BF16 drafter incoai/Qwen3.8-27B-DFlash2 revision
+      015e795645c74b1a0eeef3b570031fb62e769bc5. Compare descriptively with C-020;
+      DFlash2 and prefix caching make this a multi-variable operational comparison,
+      not an isolated measurement of the draft model.
