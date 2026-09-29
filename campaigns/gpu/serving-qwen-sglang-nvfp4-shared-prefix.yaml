@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-serving-qwen3.8-nvfp4-sglang-shared-prefix
-version: 0.25.24-qwen3.8-nvfp4-sglang-shared-prefix
+version: 0.25.27-qwen3.8-nvfp4-sglang-shared-prefix
 
 endpoint:
   base_url: http://127.0.0.1:8000/v1
@@ -31,7 +31,7 @@ hardware:
 
 serving:
   engine: sglang
-  engine_version: "0.5.19"
+  engine_version: "0.5.20-cuda-13.0 (vastai/sglang:v0.5.20-cuda-13.0)"
   launch_command: >-
     HF_HOME=/workspace/models sglang serve
     --model-path /workspace/models/Qwen3.8-27B-NVFP4
@@ -43,7 +43,7 @@ serving:
     --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer
     --max-mamba-cache-size 50 --max-running-requests 10
     --reasoning-parser qwen3 --tool-call-parser qwen3_coder
-    --enable-metrics --host 127.0.0.1 --port 30000
+    --enable-metrics --host 127.0.0.1 --port 8001
   tensor_parallel_size: 1
   pipeline_parallel_size: 1
   max_model_length: 262144

@@ -28,9 +28,12 @@ cache reste `fp8_e4m3` dans les trois cellules.
 ## Image et artefacts sur l'hôte GPU
 
 La recette de départ reprend le [cookbook Qwen3.8 de SGLang, version v0.5.19](https://github.com/sgl-project/sglang/blob/v0.5.19/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx),
-testé sur RTX PRO 6000. Utiliser l'image versionnée
-`lmsysorg/sglang:v0.5.19`, puis relever son digest exact sur l'hôte avant le
-smoke. Une étiquette seule n'identifie pas complètement le build utilisé.
+testé sur RTX PRO 6000. Pour la première campagne SGLang C-022, le template Vast.ai
+retenu utilise `vastai/sglang:v0.5.20-cuda-13.0`. Cette version est un nouveau
+build opérationnel, pas une reproduction du cookbook 0.5.19 : le smoke doit
+confirmer les options, le chargement NVFP4 et les comportements avant tout run
+qualité complet. Relever l'ID/digest exact de l'image sur l'instance ; le tag seul
+ne suffit pas à identifier le build utilisé.
 
 Sur l'hôte GPU, prévoir Docker avec le support NVIDIA et un volume monté au même
 chemin dans le conteneur. Télécharger les snapshots dans des répertoires locaux
@@ -47,8 +50,15 @@ hf download Qwen/Qwen3.8-27B \
 hf download incoai/Qwen3.8-27B-DFlash2 \
   --revision 015e795645c74b1a0eeef3b570031fb62e769bc5 \
   --local-dir /workspace/models/Qwen3.8-27B-DFlash2
-docker pull lmsysorg/sglang:v0.5.19
-docker image inspect lmsysorg/sglang:v0.5.19 --format '{{json .RepoDigests}}'
+```
+
+Pour une nouvelle instance seulement, télécharger l'image avant de lancer le
+template. Pour l'instance déjà lancée, ne pas refaire `docker pull` sous le même
+tag : relever l'ID de l'image du conteneur actif depuis les détails Vast.ai ou,
+si le démon Docker de l'hôte est accessible, avec :
+
+```bash
+docker inspect <container-id> --format '{{.Image}}'
 ```
 
 Les deux premières commandes suffisent pour C-022 et C-024. Le troisième
@@ -57,9 +67,32 @@ les versions effectives de CUDA, du pilote et des dépendances dans les artefact
 de campagne. Pour que le préflight vérifie le même build partout, remplacer
 ensuite `serving.engine_version` par la même valeur dans `campaigns/gpu/plan-sglang.yaml`,
 les trois profils qualité et les trois profils serving, par exemple
-`0.5.19 (lmsysorg/sglang@sha256:<digest>)`. Utiliser la référence par digest
-(`lmsysorg/sglang@sha256:<digest>`) dans `docker run` à la place du tag. Ne pas
-déduire la mémoire ou l'utilisation du GPU à partir du poste runner.
+`0.5.20-cuda-13.0 (vastai/sglang@sha256:<digest>)`. Si Vast ne fournit pas de
+`RepoDigest`, conserver l'ID d'image Docker (`.Id`) avec le tag dans le manifeste.
+Utiliser la référence immuable obtenue pour les prochaines instances lorsque
+Vast l'autorise. Ne pas déduire la mémoire ou l'utilisation du GPU à partir du
+poste runner.
+
+### Valeurs du template Vast.ai
+
+Le disque persistant de 100 Go est monté sur `/workspace/models`. Les snapshots
+NVFP4 et tokenizer doivent déjà s'y trouver aux chemins ci-dessous. Dans le
+template, remplacer `SGLANG_MODEL`, `SGLANG_ARGS` et `AUTO_PARALLEL`, ajouter
+`HF_HOME`, et faire pointer l'entrée API du `PORTAL_CONFIG` du port interne
+`18000` vers `8001` :
+
+```text
+SGLANG_MODEL=/workspace/models/Qwen3.8-27B-NVFP4
+HF_HOME=/workspace/models
+AUTO_PARALLEL=false
+SGLANG_ARGS=--attention-backend flashinfer --reasoning-parser qwen3 --tool-call-parser qwen3_coder --download-dir /workspace/models --tokenizer-path /workspace/models/Qwen3.8-27B --served-model-name Qwen3.8-27B --trust-remote-code --tp-size 1 --context-length 262144 --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85 --chunked-prefill-size 2048 --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer --max-mamba-cache-size 50 --max-running-requests 10 --enable-metrics --host 127.0.0.1 --port 8001
+PORTAL_CONFIG=localhost:1111:11111:/:Instance Portal|localhost:7860:17860:/:Model UI|localhost:8000:8001:/docs:SGLang API|localhost:8080:18080:/:Jupyter|localhost:8080:8080:/terminals/1:Jupyter Terminal
+```
+
+Conserver les autres ports publiés par le template. Le service SGLang reste lié
+à `127.0.0.1:8001` dans l'instance ; le tunnel ci-dessous expose ce port comme
+`127.0.0.1:8000` au runner local. Ne pas confondre le port API SGLang distant
+8001 avec le port local du runner 8000.
 
 ## Démarrer le serveur
 
@@ -67,14 +100,15 @@ Chaque fichier qualité/serving contient le `launch_command` complet de sa
 cellule. Lancer ce contenu dans l'image SGLang en montant
 `/workspace/models:/workspace/models`, avec accès GPU et mémoire partagée du
 conteneur. Utiliser le réseau hôte Linux : le serveur reste lié à
-`127.0.0.1:30000` sur la machine distante et n'est pas publié sur Internet.
+`127.0.0.1:8001` sur l'instance distante et n'est pas publié directement sur
+Internet.
 Exemple du wrapper de lancement pour C-022 :
 
 ```bash
 docker run --name sglang-c022 --gpus all --ipc=host --network=host \
   -v /workspace/models:/workspace/models \
   -e HF_HOME=/workspace/models \
-  lmsysorg/sglang:v0.5.19 \
+  vastai/sglang:v0.5.20-cuda-13.0 \
   sglang serve \
   --model-path /workspace/models/Qwen3.8-27B-NVFP4 \
   --tokenizer-path /workspace/models/Qwen3.8-27B \
@@ -85,11 +119,12 @@ docker run --name sglang-c022 --gpus all --ipc=host --network=host \
   --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer \
   --max-mamba-cache-size 50 --max-running-requests 10 \
   --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
-  --enable-metrics --host 127.0.0.1 --port 30000
+  --enable-metrics --host 127.0.0.1 --port 8001
 ```
 
-Dans cette commande, remplacer `lmsysorg/sglang:v0.5.19` par le nom d'image
-complet contenant le digest relevé avant le smoke.
+Pour une exécution Docker manuelle, remplacer le tag par la référence immuable
+relevée avant la campagne. Avec le template Vast déjà lancé, ne pas lancer un
+second conteneur : appliquer les variables du tableau précédent au template.
 
 Le `max-mamba-cache-size` de 50 correspond au point de départ `10` requêtes ×
 `5` états pour la stratégie `extra_buffer`. Au démarrage, vérifier dans les logs
@@ -107,7 +142,7 @@ options déjà présentes dans son `launch_command` :
 --speculative-eagle-topk 1 --speculative-num-draft-tokens 4` et
 `--enable-linear-replayssm-spec`. Ne pas mélanger les options DFlash2 et MTP.
 
-Depuis le poste benchmark, ouvrir un tunnel SSH vers le port distant 30000 :
+Depuis le poste benchmark, ouvrir un tunnel SSH vers le port distant 8001 :
 
 ```powershell
 $gpuSshHost = "<ip-ou-nom-d-hote>"
@@ -116,7 +151,7 @@ $gpuSshPort = 22
 $gpuSshKey = "C:\chemin\vers\cle-privee"
 ssh -i "$gpuSshKey" `
   -p $gpuSshPort `
-  -L 8000:127.0.0.1:30000 `
+  -L 8000:127.0.0.1:8001 `
   "$gpuSshUser@$gpuSshHost"
 ```
 
@@ -217,6 +252,12 @@ préflight : `--require-clean` vérifie que les fichiers de la campagne sont
 immuables pendant son exécution. Enregistrer un manifeste séparé par cellule,
 par exemple :
 
+Dans un checkout où les profils viennent d'être modifiés, `--require-clean`
+échouera tant que ces modifications ne sont pas commitées. Le smoke endpoint
+peut être exécuté immédiatement ; avant la suite complète, figer le digest/ID
+de l'image et les métadonnées matérielles, puis committer les profils et relancer
+le préflight sans `--allow-pending`.
+
 ```powershell
 $runStamp = Get-Date -Format "yyyyMMdd-HHmmss"
 python scripts/prepare_gpu_campaign.py `
@@ -234,6 +275,21 @@ serving correspondants ; conserver le même plan SGLang. Ajouter les options
 la télémétrie provienne de l'hôte GPU.
 
 Passe qualité smoke de C-022, puis campagne complète après validation :
+
+Avant la suite qualité, ouvrir le tunnel SSH indiqué plus haut puis vérifier
+`/v1/models` et une complétion streamée courte depuis le runner :
+
+```powershell
+python scripts/check_openai_endpoint.py `
+  --base-url http://127.0.0.1:8000/v1 `
+  --model Qwen3.8-27B
+```
+
+Ce contrôle ne valide qu'une requête courte. Il ne prouve pas la capacité de
+contexte 262k ni tous les appels d'outils : vérifier les logs du serveur et faire
+la montée de contexte 64k, 128k puis 262k avant la suite `full`. La suite
+`smoke` teste ensuite les tâches qualité avec les paramètres de raisonnement
+`medium` du profil.
 
 ```powershell
 python scripts/run_quality_campaign.py `
@@ -297,9 +353,10 @@ qu'après décision explicite de retenir cette variante.
 ## Mesure du prefix cache
 
 Le runner serving ne scrape pas les métriques propres à SGLang. Le serveur est
-configuré avec `--enable-metrics` ; capturer `/metrics` côté hôte juste avant et
+configuré avec `--enable-metrics` ; capturer `/metrics` sur l'instance juste avant et
 après chaque matrice `shared-prefix`, et conserver les deux snapshots à côté du
-run brut. Sur le build SGLang 0.5.19, préférer les deltas du compteur
+run brut. Sur le build SGLang 0.5.20, vérifier d'abord la présence et la sémantique
+des compteurs ; s'ils sont disponibles, préférer les deltas du compteur
 `sglang:prefill_effective_tokens_total` : additionner `device_hit`, `host_hit`
 et `storage_hit`, puis calculer `hits / (hits + input)`. Conserver aussi les
 deltas de `sglang:realtime_tokens_total` (`prefill_cache` et `prefill_compute`)
@@ -312,7 +369,7 @@ Sur l'hôte GPU, capturer les deux réponses Prometheus sans les transformer :
 
 ```bash
 mkdir -p /workspace/sglang-metrics
-curl -fsS http://127.0.0.1:30000/metrics \
+curl -fsS http://127.0.0.1:8001/metrics \
   -o /workspace/sglang-metrics/C-022-before.prom
 ```
 

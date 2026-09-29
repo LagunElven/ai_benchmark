@@ -2,6 +2,19 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.27 — SGLang NVFP4 aligné sur le template Vast.ai 0.5.20
+
+- Les profils SGLang C-022/C-023/C-024 ciblent désormais l'image
+  `vastai/sglang:v0.5.20-cuda-13.0` au lieu de SGLang 0.5.19 ; les profils qualité,
+  serving et le plan SGLang portent la même version moteur. Le digest immuable doit
+  être capturé sur l'instance et ajouté aux métadonnées avant la campagne complète.
+- Le port API SGLang passe de 30000 à 8001. Le template Vast doit router son entrée
+  API vers le port interne 8001 ; le tunnel benchmark conserve le port local 8000.
+- C-022 doit passer la smoke endpoint, protocole et contexte avant la suite complète.
+  Les gates d'isolation DFlash2 de C-023 et de compatibilité MTP de C-024 restent en place.
+- Ces cellules restent des comparaisons opérationnelles moteur/configuration ; les
+  plans, résultats et profils vLLM historiques ne changent pas.
+
 ## 0.25.26 — Profils de campagne SGLang NVFP4 préparés
 
 - Ajout des profils qualité, serving et cohorte C-022 NVFP4 sans décodage spéculatif,

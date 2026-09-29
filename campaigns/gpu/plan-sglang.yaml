@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: enterprise-sglang-nvfp4-campaigns
-version: "0.1.0"
+version: "0.2.0"
 
 # This is a separate engine plan; campaigns/gpu/plan.yaml remains the immutable
 # vLLM plan. SGLang's target and tokenizer artifacts use the existing pinned revisions.
@@ -20,7 +20,7 @@ model:
 
 serving:
   engine: sglang
-  engine_version: "0.5.19"
+  engine_version: "0.5.20-cuda-13.0 (vastai/sglang:v0.5.20-cuda-13.0)"
   kv_cache_dtype: fp8_e4m3
   tensor_parallel_size: 1
   pipeline_parallel_size: 1
@@ -36,7 +36,7 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: SGLang 0.5.19, NVFP4 without speculative decoding, reasoning medium; run only after the server smoke and host/image metadata capture.
+    notes: Vast.ai vastai/sglang:v0.5.20-cuda-13.0, NVFP4 without speculative decoding, reasoning medium; server API port 8001; run only after the endpoint/context smoke and host/image metadata capture. Record the immutable image digest before the full campaign.
   - id: C-023
     status: exploratory
     comparison_type: operational_solution
@@ -44,7 +44,7 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: SGLang 0.5.19, NVFP4 plus DFlash2 draft incoai/Qwen3.8-27B-DFlash2 at revision 015e795645c74b1a0eeef3b570031fb62e769bc5; multi-request serving and cohort remain gated on a distinct-prompt isolation smoke.
+    notes: Vast.ai vastai/sglang:v0.5.20-cuda-13.0, NVFP4 plus DFlash2 draft incoai/Qwen3.8-27B-DFlash2 at revision 015e795645c74b1a0eeef3b570031fb62e769bc5; server API port 8001; multi-request serving and cohort remain gated on a distinct-prompt isolation smoke.
   - id: C-024
     status: exploratory
     comparison_type: operational_solution
@@ -52,4 +52,4 @@ campaigns:
     hardware_model: NVIDIA RTX PRO 6000 Blackwell
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: Optional SGLang in-checkpoint MTP candidate, without DFlash2; only run after the user chooses this cell and its compatibility smoke passes.
+    notes: Optional Vast.ai SGLang 0.5.20 in-checkpoint MTP candidate, without DFlash2; server API port 8001; only run after the user chooses this cell and its compatibility smoke passes.

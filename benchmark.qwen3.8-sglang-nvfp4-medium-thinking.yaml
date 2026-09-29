@@ -1,6 +1,6 @@
 benchmark:
   name: enterprise-llm-bench-qwen3.8-sglang-nvfp4-medium-thinking
-  version: 0.25.24-sglang-nvfp4-medium-thinking
+  version: 0.25.27-sglang-nvfp4-medium-thinking
 paths:
   tasks: tasks
   private_tests: private-tests
@@ -36,7 +36,7 @@ hardware:
   host_memory_gb: null
 serving:
   engine: sglang
-  engine_version: "0.5.19"
+  engine_version: "0.5.20-cuda-13.0 (vastai/sglang:v0.5.20-cuda-13.0)"
   launch_command: >-
     HF_HOME=/workspace/models sglang serve
     --model-path /workspace/models/Qwen3.8-27B-NVFP4
@@ -48,7 +48,7 @@ serving:
     --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer
     --max-mamba-cache-size 50 --max-running-requests 10
     --reasoning-parser qwen3 --tool-call-parser qwen3_coder
-    --enable-metrics --host 127.0.0.1 --port 30000
+    --enable-metrics --host 127.0.0.1 --port 8001
   tensor_parallel_size: 1
   pipeline_parallel_size: 1
   max_model_length: 262144
