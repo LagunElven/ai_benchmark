@@ -8,8 +8,9 @@ exécutions `one-shot` et `repair`, validation publique et cachée isolée, rés
 catalogue de 74 tâches et matrice de serving reproductible.
 
 Le milestone 11 est en cours. Les profils opérationnels vLLM FP8 et NVFP4 sur RTX PRO 6000
-ont été exécutés ; les cellules NVFP4 SGLang avec et sans DFlash2 sont préparées, avec MTP
-comme option. Les comparaisons GPU contrôlées H200, RTX PRO et DGX Spark restent à exécuter.
+ont été exécutés. La cellule SGLang NVFP4 C-022 a terminé la qualité et ses 18 cohortes ;
+le serving shared-prefix reste à exécuter. C-023 avec DFlash2 et C-024 MTP restent
+exploratoires. Les comparaisons GPU contrôlées H200, RTX PRO et DGX Spark restent à exécuter.
 Le reporting comparatif est planifié au milestone 12. Voir la [roadmap](docs/ROADMAP.md),
 la [matrice des campagnes](docs/CAMPAIGN_MATRIX.md) et le [plan GPU](docs/GPU_CAMPAIGN_PLAN.md).
 
@@ -96,6 +97,7 @@ les résultats.
 - `docs/COHORT_SESSION_2026-09-24-DFLASH2.md` : cohortes FP8 avec DFlash2 sur le même serveur.
 - `docs/COHORT_SESSION_NVFP4_2026-09-25.md` : cohortes NVFP4 en thinking medium.
 - `docs/COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md` : cohortes NVFP4 + DFlash2, comparaison opérationnelle et limites de cache.
+- `docs/COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md` : qualité C-022 et 18 cohortes SGLang NVFP4 sans décodage spéculatif.
 - `docs/GPU_FAILURE_ANALYSIS_2026-09-24.md` : analyse des échecs C-018/C-019 et DOC-03.
 - `docs/GPU_SERVING_NVFP4_2026-09-24.md` : résultats serving NVFP4 et télémétrie GPU distante.
 - `docs/GPU_SESSION_2026-09-22.md` : résultats et limites de la session BF16/Q8 sur RTX PRO 6000.

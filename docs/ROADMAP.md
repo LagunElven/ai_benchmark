@@ -196,9 +196,13 @@ RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées
 - [x] préparer les profils SGLang NVFP4 C-022 sans DFlash2, C-023 avec DFlash2,
   et C-024 MTP/EAGLE optionnel, ainsi que leurs configurations qualité, serving
   et cohorte dans un plan distinct des campagnes vLLM historiques
-- [ ] smoke SGLang NVFP4 sur RTX PRO 6000 ; épingler l'image par digest et relever
-  l'édition du GPU, le UUID, le backend NVFP4 et les limites de mémoire/contexte
-- [ ] exécuter C-022 en qualité, serving et cohortes (trois répétitions par niveau)
+- [x] smoke endpoint/qualité SGLang C-022 : 7/7 tâches réussies ; qualité complète
+  exécutée avec 64/74 réussites (voir la matrice et le rapport de session)
+- [x] exécuter les cohortes C-022 : 18 runs, trois répétitions par niveau,
+  317/324 tâches réussies
+- [ ] compléter la provenance C-022 : l'ID/digest immuable de l'image n'a pas été
+  conservé ; le profil et les manifestes ne donnent que le tag Vast.ai
+- [ ] exécuter le serving shared-prefix C-022 et conserver les snapshots Prometheus
 - [ ] exécuter C-023 après validation de l'isolation multi-requête DFlash2 ; garder
   la concurrence à 1 tant que le smoke à prompts distincts n'a pas réussi
 - [ ] décider si C-024 MTP/EAGLE reste optionnel ou rejoint la campagne
@@ -228,6 +232,14 @@ Les trois répétitions sont maintenant terminées aux six niveaux 1/4/5/6/8/10.
 Voir le
 [rapport de cohorte NVFP4](COHORT_SESSION_NVFP4_2026-09-25.md).
 
+Le 29 septembre, C-022 SGLang NVFP4 sans décodage spéculatif a terminé sa qualité
+avec 64/74 réussites, puis 18 cohortes sur la même RTX PRO 6000 Blackwell Server
+Edition (317/324 réussites). Chaque niveau 1/4/5/6/8/10 a trois répétitions.
+Les médianes observées sont plus courtes que les médianes vLLM historiques, mais
+les GPU physiques, pilotes et paramètres moteur diffèrent. Le serving C-022 et
+la capture du digest image restent à faire ; voir le
+[rapport SGLang](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md).
+
 Le profil NVFP4 + DFlash2 C-021 a terminé la qualité le 28 septembre avec
 57/74 tâches réussies (16 échecs fonctionnels, aucun échec de protocole et un
 rejet de capacité), et le serving a réussi 1 800/1 800 requêtes. La télémétrie
@@ -249,7 +261,8 @@ pour les artefacts et les limites de comparaison.
 2. vLLM + NVFP4 avec DFlash2 : C-021 qualité terminée avec échecs (57/74), serving
    terminé sans échec (1 800/1 800) et cohorte terminée à 1/4/5/6/8/10 agents
    avec trois répétitions par niveau ; voir le rapport lié ci-dessus.
-3. SGLang + NVFP4 sans DFlash2 : smoke, puis campagne qualité, serving et cohorte.
+3. SGLang + NVFP4 sans DFlash2 : smoke, qualité et cohortes terminées ; serving
+   shared-prefix et fermeture de la provenance image restent à faire.
 4. SGLang + NVFP4 avec DFlash2 : smoke, puis campagne qualité, serving et cohorte.
 5. MTP/EAGLE reste optionnel : C-024 est préparée comme cellule NVFP4 distincte,
    sans DFlash2 ; décider après smoke si elle rejoint les exécutions.

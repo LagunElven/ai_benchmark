@@ -18,6 +18,7 @@ sur les postes où ces résultats ont été conservés.
 | C-011 | 2026-09-25 | Qwen3.8-27B NVFP4 RTX PRO 6000 — thinking effectif xhigh | [Résultat brut](../results/raw/campaigns/20260925T080205.982250Z-c-011-f1b4da84/campaign.json) |
 | C-020 | 2026-09-25 | Qwen3.8-27B NVFP4 RTX PRO 6000 — reasoning effort medium | [Résultat brut](../results/raw/campaigns/20260925T105415.271097Z-c-020-b3938e5e/campaign.json) |
 | C-021 | 2026-09-28 | Qwen3.8-27B NVFP4 + DFlash2 — reasoning effort medium | [Résultat brut](../results/raw/campaigns/20260928T114254.844647Z-c-021-6dd76751/campaign.json) |
+| C-022 | 2026-09-29 | Qwen3.8-27B NVFP4 SGLang sans décodage spéculatif — qualité et cohortes | [Rapport de session](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md) |
 | C-016 | 2026-09-21 | Qwen3.8-27B BF16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T110238.257698Z-c-016-81173711/campaign.json) |
 | C-017 | 2026-09-21/22 | Qwen3.8-27B Q8/W8A16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T155315.525802Z-c-017-35d4e399/campaign.json) |
 
@@ -60,6 +61,18 @@ C-021 n'a pas demandé de télémétrie GPU distante, et le manifeste de C-020 n
 reflète pas l'option de cache de préfixe fournie dans la commande effective du
 template Vast.ai. Les hits du cache ne sont pas disponibles dans les deux
 campagnes. Voir le [rapport DFlash2](COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md).
+
+### C-022 — qualité NVFP4 SGLang sans décodage spéculatif
+
+Le smoke qualité a réussi 7/7 tâches. La suite complète s'est terminée avec
+64/74 réussites : 8 échecs fonctionnels, 1 échec de protocole et 1 rejet de
+capacité (`CTX-06`, 273 488 tokens demandés contre 262 144 disponibles). Aucun
+échec d'infrastructure ou du runner. Le manifeste est
+[conservé ici](../results/raw/campaigns/20260929T143712.429719Z-c-022-fd6d21a7/campaign.json).
+Le run a été repris après un redémarrage ; les durées cumulées des tâches sont
+32 min 03 s, distinctes du temps mural incluant l'interruption. C-020 vLLM avait
+réussi 59/74, mais la comparaison reste opérationnelle (GPU et réglages moteur
+différents). Le digest immuable de l'image SGLang n'est pas présent dans le manifeste.
 
 ## Matrice qualité
 
@@ -182,6 +195,15 @@ sans DFlash déclare un état de cache en contradiction avec la commande du temp
 Vast.ai. Les autres niveaux sans DFlash2 utilisaient la Workstation Edition.
 Voir le [rapport de cohorte NVFP4 + DFlash2](COHORT_SESSION_NVFP4_DFLASH2_2026-09-28.md)
 pour les campagnes brutes et les limites de comparaison.
+
+Le 29 septembre, C-022 SGLang NVFP4 sans décodage spéculatif a complété 18 runs,
+trois à chacun des niveaux 1/4/5/6/8/10 agents : 317/324 tâches ont réussi, et
+les sept échecs concernent `DOC-03`. Les médianes SGLang sont plus courtes que les
+médianes vLLM historiques aux six niveaux, mais les GPU physiques, pilotes et
+réglages moteur diffèrent ; ne pas attribuer directement l'écart au moteur. Les
+18 runs SGLang ont utilisé le même UUID Server Edition avec télémétrie distante.
+Le [rapport de session SGLang](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md) contient
+les valeurs par répétition, les liens bruts et les limites de comparaison.
 
 L'analyse des défaillances qualité de C-018/C-019 et de DOC-03 est consignée dans
 le [rapport d'analyse GPU du 24 septembre](GPU_FAILURE_ANALYSIS_2026-09-24.md).
