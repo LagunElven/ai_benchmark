@@ -1,0 +1,16 @@
+schema_version: "1.0"
+name: qwen3.8-sglang-nvfp4-dflash2-concurrency-smoke
+version: "0.1.0"
+mode: repair
+agent_counts: [1, 4, 10]
+tasks:
+  - JAVA-03
+  - SPRING-05
+  - AXON-02
+  - WEB-03
+  - COBOL-05
+  - DOC-10
+  - CTX-01
+  - AXON-05
+  - COBOL-03
+  - CTX-03

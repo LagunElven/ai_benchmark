@@ -182,7 +182,9 @@ RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées
 - [x] plan versionné, préflight local et manifeste de campagne
 - [x] playbook distant générique avec tunnel SSH et préflight hôte
 - [ ] playbook reproductible H200 spécifique au moteur retenu
-- [ ] playbook reproductible RTX PRO 6000 Blackwell spécifique au moteur retenu
+- [x] playbook SGLang NVFP4 reproductible pour RTX PRO 6000 : qualité, serving,
+  cohorte, smoke DFlash2 et collecte des métriques ; les playbooks H200 et DGX
+  Spark restent à rédiger
 - [x] campagnes DGX Spark / GB10 ajoutées au plan contrôlé
 - [ ] playbook reproductible DGX Spark / GB10 spécifique au moteur retenu
 - [x] exécuter C-018 : Qwen FP8 officiel, suite qualité full (terminée avec
@@ -191,9 +193,15 @@ RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées
   voir [le rapport d'analyse](GPU_FAILURE_ANALYSIS_2026-09-24.md)
 - [x] exécuter C-019 : cible FP8 + draft DFlash2, qualité terminée avec échecs,
   serving exécuté et cohorte agentique explorée
-- [ ] compléter la matrice opérationnelle RTX PRO 6000 ci-dessous avec les cellules
-  SGLang ; les cellules vLLM/FP8 C-018/C-019 et NVFP4 C-020/C-021 ont été exécutées,
-  et les plans ayant servi à ces runs restent des entrées historiques immuables
+- [x] préparer les profils SGLang NVFP4 C-022 sans DFlash2, C-023 avec DFlash2,
+  et C-024 MTP/EAGLE optionnel, ainsi que leurs configurations qualité, serving
+  et cohorte dans un plan distinct des campagnes vLLM historiques
+- [ ] smoke SGLang NVFP4 sur RTX PRO 6000 ; épingler l'image par digest et relever
+  l'édition du GPU, le UUID, le backend NVFP4 et les limites de mémoire/contexte
+- [ ] exécuter C-022 en qualité, serving et cohortes (trois répétitions par niveau)
+- [ ] exécuter C-023 après validation de l'isolation multi-requête DFlash2 ; garder
+  la concurrence à 1 tant que le smoke à prompts distincts n'a pas réussi
+- [ ] décider si C-024 MTP/EAGLE reste optionnel ou rejoint la campagne
 
 Ordre de reprise opérationnelle (la comparaison appariée FP8 reste différée) :
 
@@ -241,14 +249,14 @@ pour les artefacts et les limites de comparaison.
 2. vLLM + NVFP4 avec DFlash2 : C-021 qualité terminée avec échecs (57/74), serving
    terminé sans échec (1 800/1 800) et cohorte terminée à 1/4/5/6/8/10 agents
    avec trois répétitions par niveau ; voir le rapport lié ci-dessus.
-3. SGLang + FP8 sans DFlash2 : campagne qualité, serving et cohorte.
-4. SGLang + FP8 avec DFlash2 : campagne qualité, serving et cohorte.
-5. SGLang + NVFP4 sans DFlash2 : campagne qualité, serving et cohorte.
-6. SGLang + NVFP4 avec DFlash2 : campagne qualité, serving et cohorte.
+3. SGLang + NVFP4 sans DFlash2 : smoke, puis campagne qualité, serving et cohorte.
+4. SGLang + NVFP4 avec DFlash2 : smoke, puis campagne qualité, serving et cohorte.
+5. MTP/EAGLE reste optionnel : C-024 est préparée comme cellule NVFP4 distincte,
+   sans DFlash2 ; décider après smoke si elle rejoint les exécutions.
 
 Garde-fous de cette matrice : smoke SGLang avant toute campagne complète (API,
-raisonnement medium, appels d'outils/protocole, contexte, cache et acceptance DFlash2 si
-activé) ; KV cache FP8 pour toutes les variantes DFlash2, y compris avec poids NVFP4 ;
+raisonnement medium, appels d'outils/protocole, contexte, cache et acceptance DFlash2 ou MTP
+si activé) ; KV cache FP8 pour toutes les variantes DFlash2, y compris avec poids NVFP4 ;
 confirmation de vrais hits cache avant d'interpréter les cas shared-prefix ; au moins
 trois cohortes par cellule de concurrence comparée. Les comparaisons doivent être appariées
 sur les mêmes tâches/révisions, prompts, seed, matériel, limites de contexte/sortie et

@@ -1,0 +1,72 @@
+schema_version: "1.0"
+name: enterprise-serving-qwen3.8-nvfp4-sglang-shared-prefix
+version: 0.25.24-qwen3.8-nvfp4-sglang-shared-prefix
+
+endpoint:
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+
+model: Qwen3.8-27B
+model_metadata:
+  source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
+  revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: NVFP4-MIXED
+  dtype: NVFP4/FP8
+
+tokenizer:
+  type: huggingface
+  repository: Qwen/Qwen3.8-27B
+  revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  local_files_only: false
+
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+
+serving:
+  engine: sglang
+  engine_version: "0.5.19"
+  launch_command: >-
+    HF_HOME=/workspace/models sglang serve
+    --model-path /workspace/models/Qwen3.8-27B-NVFP4
+    --tokenizer-path /workspace/models/Qwen3.8-27B
+    --served-model-name Qwen3.8-27B
+    --trust-remote-code --tp-size 1 --context-length 262144
+    --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85
+    --attention-backend flashinfer --chunked-prefill-size 2048
+    --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer
+    --max-mamba-cache-size 50 --max-running-requests 10
+    --reasoning-parser qwen3 --tool-call-parser qwen3_coder
+    --enable-metrics --host 127.0.0.1 --port 30000
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  prefix_caching: true
+  kv_cache_dtype: fp8_e4m3
+  batch_size: null
+  max_num_seqs: 10
+  reasoning_parser: qwen3
+
+matrix:
+  concurrency: [1, 2, 5, 10]
+  context_tokens: [8000, 32000, 64000, 100000, 200000]
+  prefix_modes: [shared-prefix]
+  warmup_batches: 1
+  repetitions: 20
+
+request:
+  timeout_seconds: 1800
+  max_output_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  seed: 42
+  stream: true
+  chat_template_kwargs:
+    enable_thinking: true
+    reasoning_effort: medium

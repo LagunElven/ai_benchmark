@@ -1,0 +1,24 @@
+schema_version: "1.0"
+name: qwen3.8-sglang-nvfp4-dflash2-agentic-pilot
+version: "0.1.0"
+mode: repair
+agent_counts: [1, 4, 5, 6, 8, 10]
+tasks:
+  - JAVA-03
+  - SPRING-05
+  - AXON-02
+  - WEB-03
+  - COBOL-05
+  - DOC-10
+  - CTX-01
+  - AXON-05
+  - COBOL-03
+  - CTX-03
+  - DELPHI-01
+  - DOC-03
+  - E2E-02
+  - JAVA-04
+  - SPRING-01
+  - WEB-09
+  - ABAL-01
+  - WL-01

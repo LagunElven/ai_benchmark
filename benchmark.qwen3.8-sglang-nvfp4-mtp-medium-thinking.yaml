@@ -1,0 +1,72 @@
+benchmark:
+  name: enterprise-llm-bench-qwen3.8-sglang-nvfp4-mtp-medium-thinking
+  version: 0.25.26-sglang-nvfp4-mtp-medium-thinking
+paths:
+  tasks: tasks
+  private_tests: private-tests
+  results: results
+  work: .benchmark-work
+model:
+  provider: openai_compatible
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: BENCHMARK_API_KEY
+  name: Qwen3.8-27B
+  source_repository: https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4
+  revision: dbb8f445b3145f8a4c18ddc769f032d57d32867c
+  tokenizer_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  quantization: NVFP4-MIXED
+  dtype: NVFP4/FP8
+  request_timeout_seconds: 1800
+  generation:
+    temperature: 1.0
+    top_p: 0.95
+    top_k: 20
+    max_output_tokens: 32768
+    seed: 42
+    chat_template_kwargs:
+      enable_thinking: true
+      reasoning_effort: medium
+hardware:
+  accelerator_model: null
+  gpu_count: null
+  gpu_memory_gb: null
+  driver_version: null
+  cuda_version: null
+  cpu_model: null
+  host_memory_gb: null
+serving:
+  engine: sglang
+  engine_version: "0.5.19"
+  launch_command: >-
+    HF_HOME=/workspace/models sglang serve
+    --model-path /workspace/models/Qwen3.8-27B-NVFP4
+    --tokenizer-path /workspace/models/Qwen3.8-27B
+    --served-model-name Qwen3.8-27B
+    --trust-remote-code --tp-size 1 --context-length 262144
+    --kv-cache-dtype fp8_e4m3 --mem-fraction-static 0.85
+    --attention-backend flashinfer --chunked-prefill-size 2048
+    --mamba-ssm-dtype float32 --mamba-radix-cache-strategy extra_buffer
+    --max-mamba-cache-size 50 --max-running-requests 10
+    --reasoning-parser qwen3 --tool-call-parser qwen3_coder
+    --speculative-algorithm EAGLE --speculative-num-steps 3
+    --speculative-eagle-topk 1 --speculative-num-draft-tokens 4
+    --enable-linear-replayssm-spec
+    --enable-metrics --host 127.0.0.1 --port 30000
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  max_model_length: 262144
+  max_num_seqs: 10
+  reasoning_parser: qwen3
+  prefix_caching: true
+  kv_cache_dtype: fp8_e4m3
+  batch_size: null
+  concurrency: 1
+runner:
+  response_protocol: file_changes_v1
+  max_context_bytes: 2000000
+  max_repair_iterations: 3
+  max_repair_total_output_tokens: 98304
+  max_repair_total_seconds: 21600
+  override_task_max_output_tokens: false
+  keep_workspaces: false
+  append_jsonl: true

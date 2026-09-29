@@ -130,44 +130,57 @@ vLLM avant toute mesure de qualité ou de débit.
 | C-019 | qualité terminée avec échecs / serving terminé / cohorte séparée explorée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; la cohorte DFlash2 est documentée séparément |
 | C-020 | qualité terminée avec échecs | 1x RTX PRO 6000 Blackwell Workstation Edition | NVFP4 mixed | diagnostic opérationnel | 59/74 tâches réussies avec `reasoning_effort=medium`, suivi de C-011 |
 | C-021 | qualité / serving / cohorte terminés | Vast.ai ; GPU non relevé pour qualité et serving | NVFP4 mixed + draft DFlash2 BF16 | opérationnelle | qualité 57/74 ; serving 1 800/1 800 ; cohorte et télémétrie distante documentées séparément |
+| C-022 | planifiée | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed | opérationnelle | SGLang 0.5.19, sans décodage spéculatif |
+| C-023 | smoke requis | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed + draft DFlash2 | opérationnelle | SGLang 0.5.19 ; cohorte et serving concurrents après test d'isolation |
+| C-024 | optionnelle | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed + MTP/EAGLE | opérationnelle | profil candidat, séparé de DFlash2, à exécuter après décision |
 
-## Suite opérationnelle RTX PRO 6000 : moteur × poids × DFlash2
+## Suite opérationnelle RTX PRO 6000 : vLLM et SGLang NVFP4
 
-La matrice couvre les huit cellules du croisement moteur (vLLM/SGLang), poids
-(FP8/NVFP4) et DFlash2 (désactivé/activé). C-018/C-019 couvrent déjà les campagnes qualité
-et serving vLLM + FP8. Les deux cohortes opérationnelles FP8 sont également terminées avec
-trois runs par niveau de concurrence et télémétrie distante. Leur comparaison appariée est
-différée. Les deux cellules NVFP4 vLLM ont maintenant été mesurées ; les travaux
-restants dans cette matrice sont les cellules SGLang.
+La matrice opérationnelle vLLM a couvert FP8 et NVFP4, avec et sans DFlash2,
+sur RTX PRO 6000. Elle constitue le tour des profils opérationnels documentés ;
+les comparaisons matérielles contrôlées C-003 à C-006, C-009/C-010 et C-012,
+ainsi que la comparaison appariée des cohortes FP8, restent distinctes et à faire.
 
-| Ordre | Moteur | Poids | DFlash2 | Travaux restants |
+Le périmètre SGLang préparé pour gagner du temps se limite à NVFP4 sans DFlash2
+(C-022), puis NVFP4 avec DFlash2 (C-023). Les configurations qualité, serving
+et cohorte sont prêtes dans les fichiers dédiés ci-dessous. Le profil MTP (C-024)
+est préparé comme troisième cellule optionnelle, sans DFlash2 ; il ne fait pas
+partie du lancement prioritaire.
+
+La version SGLang est épinglée à `0.5.19`, version sur laquelle le cookbook
+officiel Qwen3.8 annonce avoir mesuré ses recettes RTX PRO 6000. Utiliser l'image
+`lmsysorg/sglang:v0.5.19` et consigner son digest dans les métadonnées effectives.
+Les campagnes se trouvent dans [`campaigns/gpu/plan-sglang.yaml`](../campaigns/gpu/plan-sglang.yaml) ;
+les configurations qualité, serving et cohorte sont listées dans le
+[playbook SGLang](SGLANG_CAMPAIGN_RUNBOOK.md).
+
+| Ordre | Campagne | Poids | Décodage spéculatif | Travaux |
 |---:|---|---|---|---|
-| 1 | vLLM | FP8 | non | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
-| 2 | vLLM | FP8 | oui | qualité, serving et cohorte terminés ; cohorte exploratoire documentée |
-| 3 | vLLM | NVFP4 | non | C-020 qualité, serving et cohorte terminés ; comparabilité avec la Server Edition limitée |
-| 4 | vLLM | NVFP4 | oui | C-021 qualité, serving et cohorte terminés ; limites consignées dans le rapport |
-| 5 | SGLang | FP8 | non | campagne qualité, serving, cohorte |
-| 6 | SGLang | FP8 | oui | campagne qualité, serving, cohorte |
-| 7 | SGLang | NVFP4 | non | campagne qualité, serving, cohorte |
-| 8 | SGLang | NVFP4 | oui | campagne qualité, serving, cohorte |
+| 1 | C-022 | NVFP4 | aucun | smoke, qualité, serving et cohorte |
+| 2 | C-023 | NVFP4 | DFlash2 | smoke séquentiel puis test d'isolation à 1/4/10 requêtes ; serving et cohorte complets seulement après réussite |
+| option | C-024 | NVFP4 | MTP/EAGLE | smoke et exécution si cette cellule est retenue |
 
 ### Garde-fous d'exécution
 
 - Avant chaque campagne SGLang complète, lancer un smoke de chargement et d'API OpenAI,
   vérifier le raisonnement medium, le streaming, les appels d'outils et le protocole de sortie,
-  les contextes visés, puis l'acceptance DFlash2 lorsque le draft est activé. Avant la cohorte,
-  vérifier aussi l'isolation des sorties sur plusieurs requêtes concurrentes aux prompts
-  distincts ; un [signalement SGLang](https://github.com/sgl-project/sglang/issues/36548)
-  décrit un possible mélange de contexte avec DFlash2 sous forte concurrence sur RTX PRO 6000.
+  les contextes visés, puis l'acceptance du mécanisme spéculatif sélectionné. Pour C-023,
+  vérifier l'isolation des sorties sur des prompts distincts jusqu'à 10 requêtes concurrentes
+  observées avant de lancer serving ou cohorte à concurrence supérieure à 1 ; un
+  [signalement SGLang](https://github.com/sgl-project/sglang/issues/36548) décrit un possible
+  mélange de contexte avec DFlash2 sous forte concurrence sur RTX PRO 6000.
 - Dans tous les profils avec DFlash2, garder le KV cache en FP8, y compris lorsque les poids
   cibles sont NVFP4. La quantification des poids et celle du KV cache sont deux paramètres
   distincts ; un problème SGLang a été signalé avec DFlash et un KV cache NVFP4
   ([issue SGLang #36010](https://github.com/sgl-project/sglang/issues/36010)).
-- Le serving de cette campagne utilise shared-prefix uniquement. Ne pas considérer le cache
+- Le serving de ces campagnes utilise shared-prefix uniquement. Ne pas considérer le cache
   comme validé parce que son option est activée : relever les compteurs côté serveur avant et
   après le test, et confirmer des hits réels. Pour SGLang, activer ses métriques et enregistrer
-  les valeurs RadixCache pertinentes ; les échantillons de ressources du runner local ne sont
-  pas des mesures GPU du serveur distant.
+  des snapshots de `/metrics`. Calculer le taux depuis les deltas de
+  `sglang:prefill_effective_tokens_total` (`device_hit`, `host_hit`, `storage_hit` et `input`),
+  pas depuis le gauge batch-level `sglang:cache_hit_rate` seul ; les deltas de
+  `sglang:realtime_tokens_total` en `prefill_cache`/`prefill_compute` servent de contrôle.
+  Les échantillons de ressources du runner local ne sont pas des mesures GPU distantes.
 - Réaliser au moins trois cohortes par cellule de concurrence comparée. Pour chaque répétition,
   conserver la même sélection et révision de tâches, le même seed et les mêmes conditions de
   démarrage/warmup ; noter les redémarrages et toute charge étrangère. Les séries FP8 du
@@ -179,11 +192,11 @@ restants dans cette matrice sont les cellules SGLang.
   moteur, notamment la taille de bloc DFlash2, au lieu de supposer que les mêmes valeurs de
   drapeaux signifient le même réglage effectif.
 
-Le cookbook officiel SGLang documente Qwen3.8-27B en FP8 et avec l'export NVIDIA NVFP4,
-ainsi que DFlash2 et des validations sur RTX PRO 6000. Cette validation établit la
-compatibilité, pas un avantage de débit face à vLLM ; le pilote ci-dessus doit mesurer ce
-comparatif sur notre propre charge
-([cookbook Qwen3.8-27B](https://github.com/sgl-project/sglang/blob/main/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx)).
+Le cookbook officiel SGLang donne les arguments NVFP4, DFlash2 et MTP/EAGLE pour Qwen3.8
+sur RTX PRO 6000 et rapporte ses validations sur SGLang 0.5.19. Cela établit un point de
+départ de compatibilité, pas un résultat sur notre charge ni un avantage de débit face à
+vLLM. Voir le [cookbook Qwen3.8-27B épinglé à v0.5.19](https://github.com/sgl-project/sglang/blob/v0.5.19/docs/cookbook/autoregressive/Qwen/Qwen3.8-27B.mdx)
+et son [profil de lancement](https://github.com/sgl-project/sglang/blob/v0.5.19/docs/src/snippets/configs/Qwen/qwen3.8-27b.jsx).
 
 C-003/C-004/C-009 forment la comparaison matérielle BF16 et C-005/C-006/C-010 la
 comparaison matérielle FP8. C-003/C-005, C-004/C-006 et C-009/C-010 permettent

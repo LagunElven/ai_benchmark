@@ -2,6 +2,29 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.26 — Profils de campagne SGLang NVFP4 préparés
+
+- Ajout des profils qualité, serving et cohorte C-022 NVFP4 sans décodage spéculatif,
+  C-023 NVFP4 + DFlash2 et C-024 NVFP4 + MTP/EAGLE optionnel. Les trois cellules sont
+  des comparaisons opérationnelles distinctes ; elles n'altèrent pas les tâches ni les
+  résultats vLLM historiques.
+- Le plan SGLang est séparé du plan vLLM et épingle les checkpoints, tokenizer, moteur,
+  KV cache et options spécifiques. Les profils MTP sont facultatifs ; DFlash2 reste
+  soumis au smoke d'isolation avant toute exécution concurrente complète.
+- Les profils serving conservent les mêmes 20 cas `shared-prefix` et 1 800 requêtes que
+  la matrice opérationnelle précédente. Les snapshots Prometheus SGLang sont requis pour
+  établir les hits réels du prefix cache ; le runner ne les collecte pas automatiquement.
+- Les profils qualité portent respectivement les versions `0.25.24`, `0.25.25` et
+  `0.25.26` afin que les options du moteur et les cellules spéculatives soient identifiables.
+
+## 0.25.23 — Périmètre SGLang NVFP4 resserré
+
+- La suite SGLang RTX PRO 6000 priorise deux cellules NVFP4 : sans DFlash2, puis
+  avec DFlash2. Les cellules SGLang FP8 ne font plus partie du périmètre prioritaire.
+- MTP reste un candidat soumis à un smoke de compatibilité et à la définition de sa
+  combinaison avec DFlash2 avant tout ajout au plan de campagne.
+- Les campagnes vLLM et leurs artefacts historiques ne changent pas.
+
 ## 0.25.22 — Profil qualité NVFP4 avec DFlash2
 
 - Ajout du profil C-021 avec `reasoning_effort: medium`, la révision NVFP4 épinglée,

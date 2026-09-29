@@ -303,3 +303,18 @@ incompatibilité signalée entre DFlash et le KV cache NVFP4 ; voir l'issue réf
 plan GPU. Avant les campagnes SGLang complètes, le smoke doit vérifier l'API, le raisonnement
 medium, les appels d'outils/protocole, les contextes, les hits cache et l'acceptance DFlash2
 le cas échéant.
+
+Les profils préparés pour la RTX PRO 6000 sont `serving-qwen-sglang-nvfp4-shared-prefix.yaml`
+et `serving-qwen-sglang-nvfp4-dflash2-shared-prefix.yaml`. Le profil MTP candidat est
+`serving-qwen-sglang-nvfp4-mtp-shared-prefix.yaml`. Chacun conserve la matrice
+`1/2/5/10` utilisateurs × `8k/32k/64k/100k/200k` tokens, un warmup et 20 répétitions par
+cas, en `shared-prefix` uniquement. Voir les commandes et les garde-fous dans le
+[playbook SGLang](SGLANG_CAMPAIGN_RUNBOOK.md).
+
+Le serveur SGLang doit démarrer avec `--enable-metrics`. Pour confirmer le prefix cache,
+conserver les snapshots `/metrics` avant et après chaque serving run et calculer les hits
+à partir des deltas `sglang:prefill_effective_tokens_total` : somme des modes `device_hit`,
+`host_hit` et `storage_hit`, divisée par cette somme plus `input`. Les deltas
+`sglang:realtime_tokens_total` en `prefill_cache` et `prefill_compute` servent de contrôle
+secondaire. Le gauge `sglang:cache_hit_rate` peut refléter un batch récent et ne remplace
+pas cette mesure agrégée. Le benchmark runner ne collecte pas ces compteurs.
