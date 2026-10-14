@@ -18,7 +18,8 @@ sur les postes où ces résultats ont été conservés.
 | C-011 | 2026-09-25 | Qwen3.8-27B NVFP4 RTX PRO 6000 — thinking effectif xhigh | [Résultat brut](../results/raw/campaigns/20260925T080205.982250Z-c-011-f1b4da84/campaign.json) |
 | C-020 | 2026-09-25 | Qwen3.8-27B NVFP4 RTX PRO 6000 — reasoning effort medium | [Résultat brut](../results/raw/campaigns/20260925T105415.271097Z-c-020-b3938e5e/campaign.json) |
 | C-021 | 2026-09-28 | Qwen3.8-27B NVFP4 + DFlash2 — reasoning effort medium | [Résultat brut](../results/raw/campaigns/20260928T114254.844647Z-c-021-6dd76751/campaign.json) |
-| C-022 | 2026-09-29 | Qwen3.8-27B NVFP4 SGLang sans décodage spéculatif — qualité et cohortes | [Rapport de session](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md) |
+| C-022 | 2026-09-29/30 | Qwen3.8-27B NVFP4 SGLang sans décodage spéculatif — qualité, serving et cohortes | [Rapport qualité/cohortes](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md) · [Serving fusionné](../results/reports/sglang-nvfp4-serving-merged-20260930.json) |
+| C-025 | 2026-10-14 | Qwen3.8-27B NVFP4 + DFlash2 SGLang / DGX Spark — cohorte terminée | [Rapport de session](COHORT_SESSION_DGX_SPARK_SGLANG_DFLASH2_2026-10-14.md) · [Runbook](SGLANG_DGX_SPARK_RUNBOOK.md) |
 | C-016 | 2026-09-21 | Qwen3.8-27B BF16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T110238.257698Z-c-016-81173711/campaign.json) |
 | C-017 | 2026-09-21/22 | Qwen3.8-27B Q8/W8A16 RTX PRO 6000 — thinking medium | [Résultat brut](../results/raw/campaigns/20260921T155315.525802Z-c-017-35d4e399/campaign.json) |
 
@@ -114,6 +115,18 @@ BF16 Qwen.
 | Q8 complet | 40 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k, `cold` et `shared-prefix` | 540/540 requêtes réussies |
 | NVFP4 shared-prefix | 20 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k | 1 800/1 800 requêtes réussies ; [rapport](GPU_SERVING_NVFP4_2026-09-24.md) |
 | NVFP4 + DFlash2 shared-prefix | 20 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k, thinking medium | 1 800/1 800 requêtes réussies ; GPU distant et hits KV-cache non disponibles dans l'artefact |
+| SGLang NVFP4 C-022, shared-prefix, thinking medium | 20 cas, concurrence 1/2/5/10, contextes 8k/32k/64k/100k/200k | 1 800/1 800 requêtes réussies après relance complète des deux cas interrompus ; [rapport fusionné dérivé](../results/reports/sglang-nvfp4-serving-merged-20260930.json) |
+
+Le premier serving SGLang a terminé 18 cas sans échec ; les deux cas à 10
+concurrents et 100k/200k ont été relancés en entier après la perte de connexion
+rapportée, puis remplacés dans le rapport dérivé (pas de fusion requête par
+requête). Les deux manifestes bruts restent préservés : [run initial](../results/raw/serving/20260930T120934.789616Z-serving-fa654956/campaign.json)
+et [relance ciblée](../results/raw/serving/targeted-retries-c10-20260930/20260930T125247.250272Z-serving-40f067b4/campaign.json).
+La télémétrie GPU distante est conservée par run et non concaténée : le sampler
+initial est `partial` (1 762 échantillons, sortie SSH 255), celui de la relance est
+`available` (623 échantillons). Aucun snapshot Prometheus ni métrique de hit
+KV-cache n'est présent ; les bénéfices du `shared-prefix` ne sont donc pas mesurés.
+Le digest immuable de l'image SGLang n'a pas été capturé.
 
 La campagne NVFP4 + DFlash2 est référencée par le profil
 [`serving-qwen-nvfp4-dflash2-shared-prefix-medium-thinking.yaml`](../campaigns/gpu/serving-qwen-nvfp4-dflash2-shared-prefix-medium-thinking.yaml)
@@ -204,6 +217,19 @@ réglages moteur diffèrent ; ne pas attribuer directement l'écart au moteur. L
 18 runs SGLang ont utilisé le même UUID Server Edition avec télémétrie distante.
 Le [rapport de session SGLang](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md) contient
 les valeurs par répétition, les liens bruts et les limites de comparaison.
+
+Le 14 octobre, C-025 a terminé le pilote de cohorte sur le DGX Spark loué : 18
+runs, trois répétitions à chacun des niveaux 1/4/5/6/8/10 agents, soit 311/324
+résultats de tâches réussis. Les makespans médians par niveau sont 488,61 s,
+185,38 s, 241,15 s, 252,84 s, 201,65 s et 318,06 s, respectivement ; chaque run
+a atteint le pic de requêtes simultanées configuré, jusqu'à 10. Les 13 échecs
+concernent `DOC-03` (validation cachée après réussite publique). Le smoke distinct
+sur dix tâches reste à 9/10, avec `DOC-10` en erreur de protocole ; il n'est pas
+inclus dans ces statistiques. La télémétrie distante des 18 runs identifie le
+même NVIDIA GB10, driver 595.71.05 ; les mesures mémoire ne sont pas disponibles.
+La qualité complète sur 74 tâches et le serving restent à exécuter. Les valeurs
+par répétition, les manifestes bruts et les limites d'interprétation figurent
+dans le [rapport de session](COHORT_SESSION_DGX_SPARK_SGLANG_DFLASH2_2026-10-14.md).
 
 L'analyse des défaillances qualité de C-018/C-019 et de DOC-03 est consignée dans
 le [rapport d'analyse GPU du 24 septembre](GPU_FAILURE_ANALYSIS_2026-09-24.md).

@@ -2,6 +2,20 @@
 
 Ce fichier recense uniquement les changements susceptibles d'affecter la comparabilité.
 
+## 0.25.29 — Cellule SGLang NVFP4 + DFlash2 préparée pour DGX Spark
+
+- Ajout de C-025, cellule opérationnelle distincte de C-023 : DGX Spark / GB10,
+  checkpoint NVFP4 et tokenizer aux révisions déjà retenues, draft DFlash2 épinglé,
+  image SGLang DFlash2 à digest, KV FP8 et effort de raisonnement medium.
+- Ajout des profils qualité, serving shared-prefix, cohorte et smoke d'isolation. Le
+  serving conserve la matrice 20 cas/1 800 requêtes ; l'isolation multi-requête doit
+  réussir jusqu'à 10 requêtes observées avant son exécution.
+- Le profil Spark emploie `--mem-fraction-static 0.80` pour tenir compte de la mémoire
+  unifiée GB10 et désactive FlashInfer autotune pour stabiliser les redémarrages. Ces
+  réglages forment une comparaison opérationnelle ; aucun résultat GPU n'est ajouté.
+- Le plan C-025 est séparé du plan SGLang RTX PRO afin que le préflight compare
+  l'image moteur propre au Spark avec la bonne version configurée.
+
 ## 0.25.27 — SGLang NVFP4 aligné sur le template Vast.ai 0.5.20
 
 - Les profils SGLang C-022/C-023/C-024 ciblent désormais l'image

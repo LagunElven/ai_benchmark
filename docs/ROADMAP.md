@@ -183,10 +183,14 @@ RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées
 - [x] playbook distant générique avec tunnel SSH et préflight hôte
 - [ ] playbook reproductible H200 spécifique au moteur retenu
 - [x] playbook SGLang NVFP4 reproductible pour RTX PRO 6000 : qualité, serving,
-  cohorte, smoke DFlash2 et collecte des métriques ; les playbooks H200 et DGX
-  Spark restent à rédiger
+  cohorte, smoke DFlash2 et collecte des métriques ; le playbook H200 reste à rédiger
 - [x] campagnes DGX Spark / GB10 ajoutées au plan contrôlé
-- [ ] playbook reproductible DGX Spark / GB10 spécifique au moteur retenu
+- [x] playbook SGLang DGX Spark / GB10 NVFP4 + DFlash2 et cohorte C-025 terminés :
+  18 runs, trois répétitions aux niveaux 1/4/5/6/8/10, 311/324 tâches réussies ;
+  maximum observé de 10 requêtes simultanées. Les 13 échecs concernent `DOC-03`.
+  Le smoke séquentiel distinct a réussi 9/10 (`DOC-10`, erreur de protocole).
+  Voir le [rapport de session](COHORT_SESSION_DGX_SPARK_SGLANG_DFLASH2_2026-10-14.md).
+- [ ] exécuter la qualité complète (74 tâches) et le serving shared-prefix C-025
 - [x] exécuter C-018 : Qwen FP8 officiel, suite qualité full (terminée avec
   échecs) et serving shared-prefix en thinking medium
 - [x] analyser les échecs qualité de C-018/C-019 avant d'en faire une base de référence ;
@@ -202,7 +206,11 @@ RTX PRO 6000 ; aucun de ces résultats ne remplace les comparaisons contrôlées
   317/324 tâches réussies
 - [ ] compléter la provenance C-022 : l'ID/digest immuable de l'image n'a pas été
   conservé ; le profil et les manifestes ne donnent que le tag Vast.ai
-- [ ] exécuter le serving shared-prefix C-022 et conserver les snapshots Prometheus
+- [x] exécuter le serving shared-prefix C-022 : 20 cas et 1 800/1 800 requêtes
+  réussies après relance complète des deux cas interrompus (rapport dérivé dans
+  `results/reports/` ; les deux manifestes bruts restent intacts)
+- [ ] conserver les snapshots Prometheus C-022 avant/après serving ; ils ne sont
+  pas présents dans les manifestes et les hits KV-cache restent inconnus
 - [ ] exécuter C-023 après validation de l'isolation multi-requête DFlash2 ; garder
   la concurrence à 1 tant que le smoke à prompts distincts n'a pas réussi
 - [ ] décider si C-024 MTP/EAGLE reste optionnel ou rejoint la campagne
@@ -235,10 +243,13 @@ Voir le
 Le 29 septembre, C-022 SGLang NVFP4 sans décodage spéculatif a terminé sa qualité
 avec 64/74 réussites, puis 18 cohortes sur la même RTX PRO 6000 Blackwell Server
 Edition (317/324 réussites). Chaque niveau 1/4/5/6/8/10 a trois répétitions.
-Les médianes observées sont plus courtes que les médianes vLLM historiques, mais
-les GPU physiques, pilotes et paramètres moteur diffèrent. Le serving C-022 et
-la capture du digest image restent à faire ; voir le
-[rapport SGLang](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md).
+Le 30 septembre, le serving a couvert 20 cas et 1 800/1 800 requêtes réussies ;
+les deux cellules affectées par la perte de connexion ont été relancées en entier
+et substituées dans un rapport dérivé. Les médianes de cohorte sont plus courtes
+que les médianes vLLM historiques, mais les GPU physiques, pilotes et paramètres
+moteur diffèrent. Les snapshots Prometheus et le digest immuable de l'image
+restent manquants ; voir le [rapport de cohorte](COHORT_SESSION_SGLANG_NVFP4_2026-09-29.md)
+et le [résultat serving](../results/reports/sglang-nvfp4-serving-merged-20260930.json).
 
 Le profil NVFP4 + DFlash2 C-021 a terminé la qualité le 28 septembre avec
 57/74 tâches réussies (16 échecs fonctionnels, aucun échec de protocole et un
@@ -263,7 +274,9 @@ pour les artefacts et les limites de comparaison.
    avec trois répétitions par niveau ; voir le rapport lié ci-dessus.
 3. SGLang + NVFP4 sans DFlash2 : smoke, qualité et cohortes terminées ; serving
    shared-prefix et fermeture de la provenance image restent à faire.
-4. SGLang + NVFP4 avec DFlash2 : smoke, puis campagne qualité, serving et cohorte.
+4. SGLang + NVFP4 avec DFlash2 sur DGX Spark (C-025) : cohorte terminée ; qualité
+   complète et serving restent à exécuter. La cellule RTX PRO C-023 garde son
+   smoke d'isolation avant ses campagnes concurrentes.
 5. MTP/EAGLE reste optionnel : C-024 est préparée comme cellule NVFP4 distincte,
    sans DFlash2 ; décider après smoke si elle rejoint les exécutions.
 

@@ -130,9 +130,10 @@ vLLM avant toute mesure de qualité ou de débit.
 | C-019 | qualité terminée avec échecs / serving terminé / cohorte séparée explorée | 1x RTX PRO 6000 Blackwell Server Edition | FP8 + draft DFlash2 BF16 | opérationnelle | même cible FP8 que C-018 ; la cohorte DFlash2 est documentée séparément |
 | C-020 | qualité terminée avec échecs | 1x RTX PRO 6000 Blackwell Workstation Edition | NVFP4 mixed | diagnostic opérationnel | 59/74 tâches réussies avec `reasoning_effort=medium`, suivi de C-011 |
 | C-021 | qualité / serving / cohorte terminés | Vast.ai ; GPU non relevé pour qualité et serving | NVFP4 mixed + draft DFlash2 BF16 | opérationnelle | qualité 57/74 ; serving 1 800/1 800 ; cohorte et télémétrie distante documentées séparément |
-| C-022 | planifiée | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed | opérationnelle | SGLang 0.5.19, sans décodage spéculatif |
-| C-023 | smoke requis | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed + draft DFlash2 | opérationnelle | SGLang 0.5.19 ; cohorte et serving concurrents après test d'isolation |
+| C-022 | qualité terminée avec échecs / serving terminé / cohorte terminée | 1x RTX PRO 6000 Blackwell Server Edition observée | NVFP4 mixed | opérationnelle | SGLang 0.5.20, sans décodage spéculatif ; serving 1 800/1 800 après relance ciblée ; digest d'image absent |
+| C-023 | smoke requis | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed + draft DFlash2 | opérationnelle | SGLang 0.5.20 ; cohorte et serving concurrents après test d'isolation |
 | C-024 | optionnelle | 1x RTX PRO 6000 Blackwell, édition à relever | NVFP4 mixed + MTP/EAGLE | opérationnelle | profil candidat, séparé de DFlash2, à exécuter après décision |
+| C-025 | cohorte terminée : 18 runs, 311/324 résultats de tâches réussis | NVIDIA GB10 observé, driver 595.71.05 ; télémétrie distante disponible | NVFP4 mixed + draft DFlash2 | opérationnelle | trois répétitions aux niveaux 1/4/5/6/8/10 ; maximum observé 10 requêtes simultanées ; qualité complète et serving à exécuter ; mémoire indisponible |
 
 ## Suite opérationnelle RTX PRO 6000 : vLLM et SGLang NVFP4
 
@@ -141,24 +142,41 @@ sur RTX PRO 6000. Elle constitue le tour des profils opérationnels documentés 
 les comparaisons matérielles contrôlées C-003 à C-006, C-009/C-010 et C-012,
 ainsi que la comparaison appariée des cohortes FP8, restent distinctes et à faire.
 
-Le périmètre SGLang préparé pour gagner du temps se limite à NVFP4 sans DFlash2
-(C-022), puis NVFP4 avec DFlash2 (C-023). Les configurations qualité, serving
-et cohorte sont prêtes dans les fichiers dédiés ci-dessous. Le profil MTP (C-024)
-est préparé comme troisième cellule optionnelle, sans DFlash2 ; il ne fait pas
-partie du lancement prioritaire.
+Sur RTX PRO 6000, le périmètre SGLang exécuté comprend NVFP4 sans DFlash2
+(C-022) ; NVFP4 avec DFlash2 (C-023) reste la prochaine cellule exploratoire.
+La cohorte DGX Spark C-025 est une campagne distincte : ses cohortes sont
+terminées, tandis que qualité et serving restent à exécuter. Le profil MTP
+(C-024) est une cellule optionnelle sans DFlash2, hors du lancement prioritaire.
 
-La version SGLang est épinglée à `0.5.19`, version sur laquelle le cookbook
-officiel Qwen3.8 annonce avoir mesuré ses recettes RTX PRO 6000. Utiliser l'image
-`lmsysorg/sglang:v0.5.19` et consigner son digest dans les métadonnées effectives.
-Les campagnes se trouvent dans [`campaigns/gpu/plan-sglang.yaml`](../campaigns/gpu/plan-sglang.yaml) ;
+La campagne C-022 a utilisé SGLang `0.5.20-cuda-13.0` avec l'image
+`vastai/sglang:v0.5.20-cuda-13.0`. Son digest immuable n'a pas été conservé ;
+cette lacune de provenance reste à corriger avant de traiter le résultat comme
+une référence entièrement reproductible. Les campagnes se trouvent dans
+[`campaigns/gpu/plan-sglang.yaml`](../campaigns/gpu/plan-sglang.yaml) ;
 les configurations qualité, serving et cohorte sont listées dans le
 [playbook SGLang](SGLANG_CAMPAIGN_RUNBOOK.md).
 
+La cellule C-025 cible un DGX Spark / GB10 loué et reste distincte de C-023 : elle
+utilise l'image SGLang multi-architecture avec DFlash2 épinglée par digest et une
+fraction mémoire statique de 0.80. Le smoke séquentiel du 14 octobre a réussi
+9/10 tâches ; `DOC-10` a échoué au protocole et le pic était une requête
+simultanée. Le pilote complet est terminé : 18 runs, trois répétitions par
+niveau 1/4/5/6/8/10, 311/324 résultats de tâches réussis et un pic mesuré de dix
+requêtes simultanées. Les 13 échecs sont tous `DOC-03`, avec validation publique
+réussie et validation cachée échouée. La télémétrie distante identifie le même
+NVIDIA GB10, driver 595.71.05 ; les mesures mémoire sont indisponibles. La
+qualité complète sur 74 tâches et le serving restent à exécuter. Les valeurs par
+run et les limites figurent dans le [rapport de session DGX Spark](COHORT_SESSION_DGX_SPARK_SGLANG_DFLASH2_2026-10-14.md)
+et le [playbook DGX Spark](SGLANG_DGX_SPARK_RUNBOOK.md). Son plan distinct est
+[`campaigns/gpu/plan-sglang-dgx-spark.yaml`](../campaigns/gpu/plan-sglang-dgx-spark.yaml)
+afin que le préflight vérifie le digest moteur propre au Spark.
+
 | Ordre | Campagne | Poids | Décodage spéculatif | Travaux |
 |---:|---|---|---|---|
-| 1 | C-022 | NVFP4 | aucun | smoke, qualité, serving et cohorte |
+| 1 | C-022 | NVFP4 | aucun | terminé : smoke, qualité, serving et cohorte ; digest image à compléter |
 | 2 | C-023 | NVFP4 | DFlash2 | smoke séquentiel puis test d'isolation à 1/4/10 requêtes ; serving et cohorte complets seulement après réussite |
 | option | C-024 | NVFP4 | MTP/EAGLE | smoke et exécution si cette cellule est retenue |
+| 3 | C-025 | NVFP4 | DFlash2 | DGX Spark ; cohorte terminée (18 runs, trois répétitions à 1/4/5/6/8/10 agents, maximum observé 10) ; qualité complète et serving à exécuter |
 
 ### Garde-fous d'exécution
 

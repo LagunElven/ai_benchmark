@@ -30,13 +30,13 @@ serving:
 
 campaigns:
   - id: C-022
-    status: planned
+    status: completed
     comparison_type: operational_solution
     comparison_group: sglang-nvfp4-rtx-pro-6000
     hardware_model: NVIDIA RTX PRO 6000 Blackwell
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: Vast.ai vastai/sglang:v0.5.20-cuda-13.0, NVFP4 without speculative decoding, reasoning medium; server API port 8001; run only after the endpoint/context smoke and host/image metadata capture. Record the immutable image digest before the full campaign.
+    notes: Vast.ai vastai/sglang:v0.5.20-cuda-13.0, NVFP4 without speculative decoding, reasoning medium; quality, serving, and cohorts completed. Serving reached 1800/1800 requests after targeted full-case retries. Immutable image digest was not captured; Prometheus cache-hit snapshots are also absent.
   - id: C-023
     status: exploratory
     comparison_type: operational_solution

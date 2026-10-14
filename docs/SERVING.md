@@ -318,3 +318,23 @@ conserver les snapshots `/metrics` avant et après chaque serving run et calcule
 `sglang:realtime_tokens_total` en `prefill_cache` et `prefill_compute` servent de contrôle
 secondaire. Le gauge `sglang:cache_hit_rate` peut refléter un batch récent et ne remplace
 pas cette mesure agrégée. Le benchmark runner ne collecte pas ces compteurs.
+
+### Résultat C-022 SGLang NVFP4 sans DFlash2
+
+Le 30 septembre 2026, le profil
+[`serving-qwen-sglang-nvfp4-shared-prefix.yaml`](../campaigns/gpu/serving-qwen-sglang-nvfp4-shared-prefix.yaml)
+a couvert les 20 cellules `shared-prefix` (concurrences 1/2/5/10, contextes
+8k/32k/64k/100k/200k), avec thinking medium. Après relance complète des deux
+cellules affectées par la perte de connexion rapportée, les 20 cas et les 1 800
+requêtes mesurées ont réussi. Le
+[rapport fusionné dérivé](../results/reports/sglang-nvfp4-serving-merged-20260930.json)
+garde la provenance de chaque cas ; les [manifestes bruts initiaux](../results/raw/serving/20260930T120934.789616Z-serving-fa654956/campaign.json)
+et de la [relance ciblée](../results/raw/serving/targeted-retries-c10-20260930/20260930T125247.250272Z-serving-40f067b4/campaign.json)
+ne sont pas modifiés.
+
+Les échantillons GPU distants restent séparés par run : le sampler initial a un
+état `partial` (1 762 échantillons, sortie SSH 255) et celui de la relance un état
+`available` (623 échantillons). Le runner n'a pas conservé de snapshots Prometheus
+ni de métriques KV-cache ; le taux de hit et le bénéfice du préfixe partagé restent
+inconnus. L'image observée est étiquetée
+`vastai/sglang:v0.5.20-cuda-13.0`, mais son digest immuable n'a pas été enregistré.

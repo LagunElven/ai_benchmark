@@ -8,9 +8,11 @@ exécutions `one-shot` et `repair`, validation publique et cachée isolée, rés
 catalogue de 74 tâches et matrice de serving reproductible.
 
 Le milestone 11 est en cours. Les profils opérationnels vLLM FP8 et NVFP4 sur RTX PRO 6000
-ont été exécutés. La cellule SGLang NVFP4 C-022 a terminé la qualité et ses 18 cohortes ;
-le serving shared-prefix reste à exécuter. C-023 avec DFlash2 et C-024 MTP restent
-exploratoires. Les comparaisons GPU contrôlées H200, RTX PRO et DGX Spark restent à exécuter.
+ont été exécutés. La cellule SGLang NVFP4 C-022 a terminé la qualité, le serving
+shared-prefix (20 cas, 1 800 requêtes) et ses 18 cohortes. C-023 avec DFlash2 et C-024 MTP
+restent exploratoires. Sur DGX Spark, la cohorte C-025 NVFP4 + DFlash2 est terminée
+(18 runs, 311/324 tâches réussies) ; sa qualité complète et son serving restent à exécuter.
+Les comparaisons GPU contrôlées H200, RTX PRO et DGX Spark restent à exécuter.
 Le reporting comparatif est planifié au milestone 12. Voir la [roadmap](docs/ROADMAP.md),
 la [matrice des campagnes](docs/CAMPAIGN_MATRIX.md) et le [plan GPU](docs/GPU_CAMPAIGN_PLAN.md).
 
@@ -87,10 +89,13 @@ les résultats.
 - `docs/SERVING.md` : matrice, exécution et métriques du benchmark serving.
 - `docs/GPU_CAMPAIGN_PLAN.md` : protocole et ordre des futures campagnes GPU.
 - `docs/SGLANG_CAMPAIGN_RUNBOOK.md` : campagnes NVFP4 SGLang sur RTX PRO 6000.
+- `docs/SGLANG_DGX_SPARK_RUNBOOK.md` : cellule SGLang NVFP4 + DFlash2 sur DGX Spark / GB10.
+- `docs/COHORT_SESSION_DGX_SPARK_SGLANG_DFLASH2_2026-10-14.md` : résultats des 18 cohortes C-025.
 - `docs/GPU_REMOTE_RUNBOOK.md` : préparation et exécution sur une machine GPU louée.
 - `docs/REMOTE_GPU_CHECKLIST.md` : checklist courte avant location, après connexion et avant arrêt.
 - `campaigns/gpu/plan.yaml` : plan machine-readable des campagnes GPU et configurations à figer.
 - `campaigns/gpu/plan-sglang.yaml` : plan SGLang distinct, sans modifier le plan vLLM historique.
+- `campaigns/gpu/plan-sglang-dgx-spark.yaml` : plan dédié à la cellule C-025 DGX Spark.
 - `docs/CAMPAIGN_MATRIX.md` : résultats de qualité et de serving effectivement documentés.
 - `docs/COHORT_SESSION_2026-09-23.md` : résultats du pilote de cohorte agentique DFlash2.
 - `docs/COHORT_SESSION_2026-09-24.md` : premières cohortes FP8 sans DFlash2 avec télémétrie GPU distante.
