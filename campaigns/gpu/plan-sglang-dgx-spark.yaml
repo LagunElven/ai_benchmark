@@ -34,4 +34,11 @@ campaigns:
     hardware_model: NVIDIA DGX Spark / GB10
     gpu_count: 1
     artifact_variant: nvfp4
-    notes: Cohort pilot completed on 2026-10-14: 18 runs, 311/324 task results passed, three repetitions at 1/4/5/6/8/10 agents, and observed concurrency reached 10; all 13 task failures were DOC-03. The separate sequential smoke passed 9/10 (DOC-10 protocol failure). Full quality and serving remain to run. Qwen3.8-27B NVFP4 plus DFlash2 draft incoai/Qwen3.8-27B-DFlash2 at revision 015e795645c74b1a0eeef3b570031fb62e769bc5; use the digest-pinned SGLang DFlash2 image and Spark-specific 0.80 static-memory profile; GPU memory metrics unavailable.
+    notes: >-
+      Cohort pilot completed on 2026-10-14: 18 runs, 311/324 task results passed, three
+      repetitions at 1/4/5/6/8/10 agents, and observed concurrency reached 10; all 13 task
+      failures were DOC-03. The separate sequential smoke passed 9/10 (DOC-10 protocol failure).
+      Full quality and serving remain to run. Qwen3.8-27B NVFP4 plus DFlash2 draft
+      incoai/Qwen3.8-27B-DFlash2 at revision 015e795645c74b1a0eeef3b570031fb62e769bc5; use
+      the digest-pinned SGLang DFlash2 image and Spark-specific 0.80 static-memory profile;
+      GPU memory metrics unavailable.
